@@ -64,15 +64,29 @@
                 <div class="flex items-center justify-between border-b border-slate-200 pb-3">
                     <div>
                         <h2 id="worker-title-name" class="text-lg font-black text-slate-900 uppercase tracking-tight">-</h2>
-                        <p class="text-xs text-slate-500">Haftalık stüdyo, yayın yerleşimleriniz ve çalışma takviminiz.</p>
+                        <p class="text-xs text-slate-500">Haftalık tüm çalışma ve boş gün takviminiz. "BUGÜN" işareti güncel zamanı gösterir.</p>
                     </div>
                     <div id="sync-timestamp-badge" class="text-[10px] bg-slate-200 text-slate-700 px-3 py-1 rounded-full font-bold shadow-sm">Henüz Yüklenmedi</div>
                 </div>
 
-                <div id="weekly-schedule-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto custom-scroll">
+                        <table class="w-full text-left border-collapse min-w-[600px]">
+                            <thead>
+                                <tr class="bg-slate-900 text-slate-200 text-[11px] font-bold uppercase tracking-wider">
+                                    <th class="p-3.5 pl-5 w-28">Tarih / Gün</th>
+                                    <th class="p-3.5 w-24 text-center">Durum</th>
+                                    <th class="p-3.5">Görevlendirilen Program / Stüdyo</th>
+                                    <th class="p-3.5 w-32 text-center">Yayın Saati</th>
+                                    <th class="p-3.5 w-44 text-right pr-5">Aksiyon</th>
+                                </tr>
+                            </thead>
+                            <tbody id="weekly-schedule-table-body" class="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
+                                </tbody>
+                        </table>
                     </div>
-            </div>
-        </section>
+                </div>
+            </section>
 
 
         <section id="section-admin" class="hidden space-y-6">
@@ -214,6 +228,7 @@
         let rawMatrixData = null;
         let staffSchedules = {};
         let mainShiftsLogPool = [];
+        let timePeriodDaysList = []; // Excel'den okunan tüm sıralı günlerin/tarihlerin global listesi
         let currentActiveTab = 'personnel';
         let chartInstanceReference = null;
 
@@ -325,6 +340,7 @@
             
             staffSchedules = {};
             mainShiftsLogPool = [];
+            timePeriodDaysList = [];
             
             compileExcelMatrix(matrixRows);
         }
@@ -358,13 +374,15 @@
                         formattedDateStr = String(excelDateValue).split(' ')[0];
                     }
 
-                    parsedDayColumns.push({
+                    const dayItem = {
                         cIndex: columnIndex,
                         dayTitle: String(rowDays[columnIndex]).replace(/\.\d+/g, '').trim(),
                         dateTitle: formattedDateStr,
                         month: targetMonth,
                         year: targetYear
-                    });
+                    };
+                    parsedDayColumns.push(dayItem);
+                    timePeriodDaysList.push(dayItem); // Sıralı tam liste için kaydet
                 }
             }
 
@@ -374,7 +392,6 @@
                 let currentProgramHour = "";
                 let currentBlockUniqueKey = "";
                 
-                // İlk taramada: O güne ait program blok sınırlarını belirle ve personelleri topla
                 for(let rowIndex = 4; rowIndex < matrix.length; rowIndex++) {
                     let cellCoreValue = matrix[rowIndex][dayColumn.cIndex];
                     let cellHourValue = matrix[rowIndex][dayColumn.cIndex + 2];
@@ -384,7 +401,6 @@
                     let cleanStringValue = String(cellCoreValue).trim();
                     if(cleanStringValue === "" || cleanStringValue === "null") continue;
 
-                    // Eğer hücre program, stüdyo veya yayın başlığı ise (Blok Başlangıcı)
                     if(cleanStringValue.includes("YAYIN") || cleanStringValue.includes("STÜDYOSU") || cleanStringValue.includes("SAHNESİ") || cleanStringValue.includes("EZGİLER") || cleanStringValue.includes("ŞENTÜRK") || cleanStringValue.includes("GÜNDEM") || cleanStringValue.includes("AKLI SELİM") || (cleanStringValue === cleanStringValue.toUpperCase() && cleanStringValue.length > 8 && !cleanStringValue.includes("."))) {
                         currentProgramName = cleanStringValue;
                         currentProgramHour = cellHourValue ? String(cellHourValue).trim() : "Belirtilmedi";
@@ -392,13 +408,10 @@
                             let timeFragments = currentProgramHour.split(" ");
                             currentProgramHour = timeFragments.length > 1 ? timeFragments[1].substring(0,5) : currentProgramHour;
                         }
-                        
-                        // Ekip arkadaşlarının birbirini bulabilmesi için benzersiz blok ID'si oluştur (Sütun + Başlangıç Satırı)
                         currentBlockUniqueKey = dayColumn.cIndex + "_blockStart_" + rowIndex;
                         continue;
                     }
 
-                    // Personel İsim Ayrıştırma ve Doğrulama
                     let sanitizedStaffName = cleanStringValue.replace(/\.+$/, "").trim();
 
                     if(USER_EXPLICIT_25.includes(sanitizedStaffName)) {
@@ -415,7 +428,7 @@
                             year: dayColumn.year,
                             program: currentProgramName || "Genel Görev",
                             hour: currentProgramHour || "Belirtilmedi",
-                            uniqueKey: currentBlockUniqueKey || (dayColumn.cIndex + "_row_" + rowIndex), // Eğer blok başlığı yoksa satıra bağla
+                            uniqueKey: currentBlockUniqueKey || (dayColumn.cIndex + "_row_" + rowIndex),
                             isExtra: isExtraJob
                         };
 
@@ -454,62 +467,103 @@
             displayStaffCards();
         }
 
+        // PERSONEL HAFTALIK SIRALI TABLO SİSTEMİ (DOLU & BOŞ GÜNLER VE BUGÜNÜN BELLİ EDİLMESİ)
         function displayStaffCards() {
             const selectedStaffName = document.getElementById('staff-dropdown').value;
             if(!selectedStaffName) return;
 
             document.getElementById('worker-title-name').innerHTML = `<i class="fa-solid fa-user text-teal-500 mr-1.5"></i> ${selectedStaffName}`;
-            const gridContainer = document.getElementById('weekly-schedule-grid');
-            gridContainer.innerHTML = "";
+            const tableBody = document.getElementById('weekly-schedule-table-body');
+            tableBody.innerHTML = "";
 
             const personalShiftsList = staffSchedules[selectedStaffName] || [];
 
-            if(personalShiftsList.length === 0) {
-                gridContainer.innerHTML = `<div class="col-span-full text-center py-12 bg-white rounded-xl border border-dashed border-slate-200 text-slate-400 font-medium text-xs"><i class="fa-solid fa-calendar-xmark text-3xl mb-2 block"></i>Bu takvim döneminde adınıza kayıtlı bir görev ibaresi bulunamadı.</div>`;
-                return;
-            }
+            // Bugünün gerçek sistem tarihini alıp biçimlendiriyoruz (Örn: 08.06.2026)
+            const todayObj = new Date();
+            const tDay = todayObj.getDate();
+            const tMonth = todayObj.getMonth() + 1;
+            const tYear = todayObj.getFullYear();
+            const todayFormattedString = `${tDay < 10 ? '0'+tDay : tDay}.${tMonth < 10 ? '0'+tMonth : tMonth}.${tYear}`;
 
-            personalShiftsList.forEach(shift => {
-                const cardNode = document.createElement('div');
-                const borderClass = shift.isExtra ? "border-l-4 border-l-amber-500" : "border-l-4 border-l-teal-500";
-                const extraBadge = shift.isExtra ? `<span class="bg-amber-100 text-amber-800 text-[9px] font-bold px-1.5 py-0.5 rounded ml-1 border border-amber-200"><i class="fa-solid fa-circle-plus"></i> Ek/Yedek Görev</span>` : "";
+            // Dönemdeki tüm günleri sırayla ekrana basıyoruz (Böylece boş günler de görünür)
+            timePeriodDaysList.forEach(dayItem => {
+                // Bu tarihte personelin görevi var mı diye kontrol et
+                // Bir günde birden fazla görevi olabilir diye filter kullanıyoruz
+                const activeShiftsOnThisDay = personalShiftsList.filter(s => s.date === dayItem.dateTitle);
+                const isToday = (dayItem.dateTitle === todayFormattedString);
 
-                cardNode.className = `bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 flex flex-col justify-between space-y-4 hover:shadow-md transition-all ${borderClass}`;
-                cardNode.innerHTML = `
-                    <div>
-                        <div class="flex justify-between items-center text-[10px] font-black uppercase tracking-wider mb-2">
-                            <span class="bg-slate-100 px-2 py-0.5 rounded text-slate-600 border border-slate-200">${shift.date}</span>
-                            <div class="flex items-center">
-                                <span class="text-teal-700 bg-teal-50 px-2 py-0.5 rounded font-bold">${shift.dayName}</span>
-                                ${extraBadge}
-                            </div>
+                // Ortak satır stili ve Bugün rozeti mantığı
+                let rowBgClass = "bg-white hover:bg-slate-50/80 transition-all";
+                let dateBadgeHtml = `<div class="font-bold text-slate-900">${dayItem.dateTitle}</div><div class="text-[10px] text-slate-400 font-bold">${dayItem.dayTitle}</div>`;
+                
+                if (isToday) {
+                    rowBgClass = "bg-teal-50/60 ring-2 ring-teal-500 ring-inset hover:bg-teal-50 transition-all";
+                    dateBadgeHtml = `
+                        <div class="flex items-center gap-1 mb-0.5">
+                            <span class="bg-teal-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm tracking-wider uppercase animate-pulse"><i class="fa-solid fa-location-crosshairs text-[8px]"></i> BUGÜN</span>
                         </div>
-                        <h4 class="text-slate-900 font-extrabold text-sm leading-snug tracking-tight">${shift.program}</h4>
-                        <div class="text-[11px] text-slate-500 font-semibold mt-2 flex items-center gap-1">
-                            <i class="fa-solid fa-clock text-slate-400"></i> Yayın Saati: <span class="text-slate-800 font-black">${shift.hour}</span>
-                        </div>
-                    </div>
-                    <button onclick="triggerTeamDiscoveryModal('${shift.uniqueKey}', '${shift.program}', '${shift.date}')" class="w-full bg-slate-50 hover:bg-teal-50 text-slate-600 hover:text-teal-700 border border-slate-200 hover:border-teal-300 font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-user-group text-[11px]"></i> Ekip Arkadaşlarımı Göster
-                    </button>
-                `;
-                gridContainer.appendChild(cardNode);
+                        <div class="font-extrabold text-teal-950">${dayItem.dateTitle}</div>
+                        <div class="text-[10px] text-teal-700 font-black">${dayItem.dayTitle}</div>
+                    `;
+                }
+
+                if (activeShiftsOnThisDay.length === 0) {
+                    // => BOŞ GÜN SATIRI
+                    const rowNode = document.createElement('tr');
+                    rowNode.className = rowBgClass;
+                    rowNode.innerHTML = `
+                        <td class="p-3.5 pl-5 border-b border-slate-100">${dateBadgeHtml}</td>
+                        <td class="p-3.5 border-b border-slate-100 text-center">
+                            <span class="bg-slate-100 text-slate-500 border border-slate-200 text-[10px] font-bold px-2 py-1 rounded-xl block w-full max-w-[90px] mx-auto shadow-inner"><i class="fa-solid fa-bed text-[10px]"></i> Boş Gün</span>
+                        </td>
+                        <td class="p-3.5 border-b border-slate-100 text-slate-400 italic font-medium">Bu tarihte adınıza kayıtlı bir çalışma veya stüdyo görevi bulunmamaktadır.</td>
+                        <td class="p-3.5 border-b border-slate-100 text-center text-slate-400">-</td>
+                        <td class="p-3.5 border-b border-slate-100 text-right pr-5">
+                            <span class="text-[11px] text-slate-400 italic">Dinlenme</span>
+                        </td>
+                    `;
+                    tableBody.appendChild(rowNode);
+                } else {
+                    // => DOLU GÜN SATIRI (Birden fazla görev varsa alt alta basılır)
+                    activeShiftsOnThisDay.forEach((shift, index) => {
+                        const rowNode = document.createElement('tr');
+                        rowNode.className = rowBgClass;
+
+                        const statusBadge = shift.isExtra 
+                            ? `<span class="bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-black px-2 py-1 rounded-xl block w-full max-w-[90px] mx-auto shadow-sm text-center"><i class="fa-solid fa-circle-plus"></i> Ek Görev</span>`
+                            : `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-black px-2 py-1 rounded-xl block w-full max-w-[90px] mx-auto shadow-sm text-center"><i class="fa-solid fa-briefcase text-[10px]"></i> Görevli</span>`;
+
+                        rowNode.innerHTML = `
+                            <td class="p-3.5 pl-5 border-b border-slate-100">${index === 0 ? dateBadgeHtml : ''}</td>
+                            <td class="p-3.5 border-b border-slate-100 text-center">${statusBadge}</td>
+                            <td class="p-3.5 border-b border-slate-100">
+                                <div class="text-slate-900 font-extrabold text-sm tracking-tight">${shift.program}</div>
+                            </td>
+                            <td class="p-3.5 border-b border-slate-100 text-center">
+                                <span class="bg-slate-100 border border-slate-200 text-slate-800 px-2.5 py-1 rounded-lg font-black text-[11px]"><i class="fa-solid fa-clock text-slate-400 mr-0.5"></i> ${shift.hour}</span>
+                            </td>
+                            <td class="p-3.5 border-b border-slate-100 text-right pr-5">
+                                <button onclick="triggerTeamDiscoveryModal('${shift.uniqueKey}', '${shift.program}', '${shift.date}')" class="bg-slate-50 hover:bg-teal-50 text-slate-600 hover:text-teal-700 border border-slate-200 hover:border-teal-300 font-bold text-[11px] px-3 py-1.5 rounded-xl transition-all inline-flex items-center gap-1 cursor-pointer shadow-sm">
+                                    <i class="fa-solid fa-user-group text-[10px]"></i> Ekip Arkadaşlarım
+                                </button>
+                            </td>
+                        `;
+                        tableBody.appendChild(rowNode);
+                    });
+                }
             });
         }
 
-        // KUSURSUZ EKİP ARKADAŞLARINI BULMA FONKSİYONU
         function triggerTeamDiscoveryModal(uniqueKey, programName, dateString) {
             const listContainer = document.getElementById('modal-staff-list');
             const headerContainer = document.getElementById('modal-info-header');
             listContainer.innerHTML = "";
             headerContainer.textContent = `${dateString} - ${programName}`;
 
-            // Aynı program blok anahtarına (uniqueKey) sahip tüm personelleri havuzdan filtrele
             const teamMembers = mainShiftsLogPool
                 .filter(s => s.uniqueKey === uniqueKey)
                 .map(s => s.workerName);
             
-            // Çift kayıtları engellemek için tekilleştir
             const uniqueTeam = [...new Set(teamMembers)];
             const currentViewer = document.getElementById('staff-dropdown').value;
 
