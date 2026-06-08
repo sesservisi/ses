@@ -68,15 +68,13 @@
 
         <!-- ================= BÖLÜM 1: PERSONEL HAFTALIK PLAN GÖRÜNÜMÜ ================= -->
         <section id="section-personnel" class="space-y-4 hidden">
-            <!-- Personel Seçim Alanı -->
             <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 max-w-md mx-auto">
-                <label border-slate-200 class="block text-sky-600 text-xs font-black uppercase tracking-widest text-center mb-2.5"><i class="fa-solid fa-circle-user text-orange-500 mr-1"></i> LÜTFEN İSMİNİZİ SEÇİNİZ</label>
+                <label class="block text-sky-600 text-xs font-black uppercase tracking-widest text-center mb-2.5"><i class="fa-solid fa-circle-user text-orange-500 mr-1"></i> LÜTFEN İSMİNİZİ SEÇİNİZ</label>
                 <select id="staff-dropdown" onchange="displayStaffCards()" class="w-full bg-slate-50 border-2 border-slate-200 text-slate-800 text-sm font-black rounded-xl px-4 py-3.5 focus:outline-none focus:border-orange-500 transition-all cursor-pointer shadow-inner">
                     <option value="" disabled selected>Personel Listesi Bekleniyor...</option>
                 </select>
             </div>
 
-            <!-- Bilgi ve Saat Başlığı -->
             <div id="schedule-wrapper" class="hidden space-y-3">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white p-4 rounded-xl border border-slate-200 gap-2 shadow-sm">
                     <div>
@@ -137,6 +135,39 @@
                 </div>
             </div>
 
+            <!-- GELİŞMİŞ TARİH VE YIL SEÇİM FİLTRELERİ BAR BAR -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-1 sm:grid-cols-4 gap-3 items-center">
+                <div class="flex flex-col">
+                    <label class="text-[10px] font-black text-slate-400 uppercase mb-1">Başlangıç Tarihi</label>
+                    <input type="date" id="analysis-start-date" onchange="applyLogFilters()" class="bg-slate-50 border border-slate-200 text-xs font-bold rounded-lg p-2 focus:outline-none focus:border-orange-500">
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-[10px] font-black text-slate-400 uppercase mb-1">Bitiş Tarihi</label>
+                    <input type="date" id="analysis-end-date" onchange="applyLogFilters()" class="bg-slate-50 border border-slate-200 text-xs font-bold rounded-lg p-2 focus:outline-none focus:border-orange-500">
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-[10px] font-black text-slate-400 uppercase mb-1">Hızlı Ay Filtresi</label>
+                    <select id="filter-month" onchange="syncDateFiltersFromDropdowns()" class="bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold p-2 focus:outline-none">
+                        <option value="ALL">Tüm Aylar</option>
+                        <option value="01">Ocak</option><option value="02">Şubat</option><option value="03">Mart</option>
+                        <option value="04">Nisan</option><option value="05">Mayıs</option><option value="06" selected>Haziran</option>
+                        <option value="07">Temmuz</option><option value="08">Ağustos</option><option value="09">Eylül</option>
+                        <option value="10">Ekim</option><option value="11">Kasım</option><option value="12">Aralık</option>
+                    </select>
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-[10px] font-black text-slate-400 uppercase mb-1">Yıl Filtresi</label>
+                    <select id="filter-year" onchange="syncDateFiltersFromDropdowns()" class="bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold p-2 focus:outline-none">
+                        <option value="ALL">Tüm Yıllar</option>
+                        <option value="2026" selected>2026</option>
+                        <option value="2027">2027</option>
+                        <option value="2028">2028</option>
+                        <option value="2029">2029</option>
+                        <option value="2030">2030</option>
+                    </select>
+                </div>
+            </div>
+
             <!-- ÖZET İSTATİSTİK KARTLARI -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <div class="bg-gradient-to-br from-sky-500 to-blue-600 p-4 rounded-2xl shadow-sm text-white flex flex-col justify-between">
@@ -144,39 +175,23 @@
                     <h4 id="metric-total-staff" class="text-2xl font-black mt-1">0</h4>
                 </div>
                 <div class="bg-gradient-to-br from-orange-500 to-amber-600 p-4 rounded-2xl shadow-sm text-white flex flex-col justify-between">
-                    <span class="text-[10px] font-black text-orange-100 uppercase tracking-wider">Toplam Kesin Görev</span>
+                    <span class="text-[10px] font-black text-orange-100 uppercase tracking-wider">Filtreli Kesin Görev</span>
                     <h4 id="metric-total-shifts" class="text-2xl font-black mt-1">0</h4>
                 </div>
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">En Yoğun Çalışan</span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Dönem En Yoğunu</span>
                     <h4 id="metric-max-staff" class="text-xs font-black text-slate-800 mt-2 truncate">-</h4>
                 </div>
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Filtre Dönemi</span>
-                    <h4 id="metric-active-date" class="text-xs font-black text-blue-600 mt-2">-</h4>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Aktif Tarih Aralığı</span>
+                    <h4 id="metric-active-date" class="text-[11px] font-black text-blue-600 mt-2 truncate">-</h4>
                 </div>
             </div>
 
             <!-- ANA GRAFİK VE DAĞILIM TABLOSU -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2 flex flex-col">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-                        <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider"><i class="fa-solid fa-chart-column text-orange-500 mr-1"></i> Genel Personel Yoğunluk Grafiği</h4>
-                        <div class="flex gap-1">
-                            <select id="filter-month" onchange="applyLogFilters()" class="bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-bold px-2 py-1.5 focus:outline-none">
-                                <option value="ALL">Tüm Aylar</option>
-                                <option value="01">Ocak</option><option value="02">Şubat</option><option value="03">Mart</option>
-                                <option value="04">Nisan</option><option value="05">Mayıs</option><option value="06" selected>Haziran</option>
-                                <option value="07">Temmuz</option><option value="08">Ağustos</option><option value="09">Eylül</option>
-                                <option value="10">Ekim</option><option value="11">Kasım</option><option value="12">Aralık</option>
-                            </select>
-                            <select id="filter-year" onchange="applyLogFilters()" class="bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-bold px-2 py-1.5 focus:outline-none">
-                                <option value="ALL">Tüm Yıllar</option>
-                                <option value="2025">2025</option>
-                                <option value="2026" selected>2026</option>
-                            </select>
-                        </div>
-                    </div>
+                    <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider mb-4"><i class="fa-solid fa-chart-column text-orange-500 mr-1"></i> Seçili Tarih Aralığı Yoğunluk Grafiği</h4>
                     <div class="relative flex-grow min-h-[250px] max-h-[300px]">
                         <canvas id="canvas-admin-chart"></canvas>
                     </div>
@@ -200,47 +215,43 @@
                 </div>
             </div>
 
-            <!-- ================= YENİ: PERSONEL DETAY VE REKABET ANALİZİ ================= -->
+            <!-- PERSONEL DETAY VE REKABET ANALİZİ -->
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Sol Kolon: Seçim ve Periyot Analizleri -->
                 <div class="space-y-4">
                     <div>
-                        <label for="admin-search-staff" class="block text-slate-900 text-xs font-black uppercase tracking-wider mb-2"><i class="fa-solid fa-user-zoom text-orange-500 mr-1"></i> DETAYLI PERSONEL İNCELEME</label>
+                        <label class="block text-slate-900 text-xs font-black uppercase tracking-wider mb-2"><i class="fa-solid fa-user-zoom text-orange-500 mr-1"></i> DETAYLI PERSONEL İNCELEME</label>
                         <select id="admin-search-staff" onchange="calculatePersonalDeepAnalysis()" class="w-full bg-slate-50 border-2 border-slate-200 text-slate-800 text-xs font-black rounded-xl p-3 focus:outline-none focus:border-sky-500 cursor-pointer shadow-inner">
                             <!-- JS ile doldurulacak -->
                         </select>
                     </div>
 
-                    <!-- Periyot Özetleri -->
                     <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2.5">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block"><i class="fa-solid fa-clock-rotate-left text-sky-600"></i> PERİYOT BAZLI GÖREV DAĞILIMI</span>
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block"><i class="fa-solid fa-clock-rotate-left text-sky-600"></i> SEÇİLİ PERİYOT GÖREV DAĞILIMI</span>
                         <div class="grid grid-cols-2 gap-2 text-center">
                             <div class="bg-white p-2.5 rounded-lg border border-slate-100 shadow-sm">
                                 <div class="text-[10px] font-bold text-slate-400 uppercase">Bu Hafta</div>
                                 <div id="deep-metric-week" class="text-base font-black text-slate-800">0</div>
                             </div>
                             <div class="bg-white p-2.5 rounded-lg border border-slate-100 shadow-sm">
-                                <div class="text-[10px] font-bold text-slate-400 uppercase">Bu Ay (Haziran)</div>
+                                <div class="text-[10px] font-bold text-slate-400 uppercase">Seçili Dönem</div>
                                 <div id="deep-metric-month" class="text-base font-black text-emerald-600">0</div>
                             </div>
                             <div class="bg-white p-2.5 rounded-lg border border-slate-100 shadow-sm">
-                                <div class="text-[10px] font-bold text-slate-400 uppercase">Bu Yıl (2026)</div>
+                                <div class="text-[10px] font-bold text-slate-400 uppercase">Toplam (Genel)</div>
                                 <div id="deep-metric-year" class="text-base font-black text-blue-600">0</div>
                             </div>
                             <div class="bg-white p-2.5 rounded-lg border border-slate-100 shadow-sm">
-                                <div class="text-[10px] font-bold text-slate-400 uppercase">Haftalık Ort.</div>
+                                <div class="text-[10px] font-bold text-slate-400 uppercase">Aylık Ort.</div>
                                 <div id="deep-metric-avg" class="text-base font-black text-orange-500">0</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Orta Kolon: Servis İçi Kıyaslama ve Rekabet (Progress Bars) -->
                 <div class="flex flex-col justify-between bg-gradient-to-b from-slate-900 to-slate-800 text-white p-4 rounded-xl shadow-md">
                     <div>
                         <span class="text-[10px] font-black text-orange-400 uppercase tracking-widest block mb-3"><i class="fa-solid fa-scale-balanced"></i> SERVİS İÇİ KIYASLAMA METRİKLERİ</span>
                         
-                        <!-- Kıyaslama 1 -->
                         <div class="space-y-1 mb-4">
                             <div class="flex justify-between text-xs font-bold text-slate-300">
                                 <span>Servis Ortalamasına Göre Durum</span>
@@ -249,10 +260,8 @@
                             <div class="w-full bg-slate-700 h-2.5 rounded-full overflow-hidden">
                                 <div id="comparison-bar-avg" class="bg-gradient-to-r from-sky-400 to-blue-500 h-full transition-all duration-500" style="width: 0%"></div>
                             </div>
-                            <p class="text-[10px] text-slate-400">Tüm ekibin genel ortalama iş yüküne kıyaslanma oranıdır.</p>
                         </div>
 
-                        <!-- Kıyaslama 2 -->
                         <div class="space-y-1">
                             <div class="flex justify-between text-xs font-bold text-slate-300">
                                 <span>Lidere (En Yoğuna) Göre Oran</span>
@@ -261,18 +270,16 @@
                             <div class="w-full bg-slate-700 h-2.5 rounded-full overflow-hidden">
                                 <div id="comparison-bar-max" class="bg-gradient-to-r from-orange-400 to-amber-500 h-full transition-all duration-500" style="width: 0%"></div>
                             </div>
-                            <p class="text-[10px] text-slate-400">Serviste şu an en çok kesin iş alan personele göre doluluk oranı.</p>
                         </div>
                     </div>
 
                     <div class="mt-3 bg-slate-800/80 p-2.5 rounded-lg border border-slate-700 text-[11px] font-bold text-slate-300">
-                        <i class="fa-solid fa-circle-info text-orange-400 mr-1"></i> <span id="deep-analysis-summary-text">Seçilen personelin iş dağılım dengesi hesaplanıyor.</span>
+                        <i class="fa-solid fa-circle-info text-orange-400 mr-1"></i> <span id="deep-analysis-summary-text">Hesaplanıyor...</span>
                     </div>
                 </div>
 
-                <!-- Sağ Kolon: Kişisel Görev Trend Grafiği -->
                 <div class="flex flex-col">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2"><i class="fa-solid fa-chart-line text-emerald-500"></i> BİREYSEL AYLIK GÖREV TRENDİ</span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2"><i class="fa-solid fa-chart-line text-emerald-500"></i> SEÇİLEN YILIN AYLIK TRENDİ</span>
                     <div class="relative flex-grow min-h-[180px] max-h-[220px]">
                         <canvas id="canvas-personal-trend-chart"></canvas>
                     </div>
@@ -328,6 +335,10 @@
         let personalTrendChartInstance = null;
 
         window.addEventListener('DOMContentLoaded', () => {
+            // Varsayılan Haziran 2026 Başlangıç Filtresini Ata
+            document.getElementById('analysis-start-date').value = "2026-06-01";
+            document.getElementById('analysis-end-date').value = "2026-12-31";
+
             loadDatabaseFromLocalStorage();
             rebuildStaffDropdownOptions();
             fetchExcelFromGithub(false);
@@ -472,7 +483,6 @@
                         curKey = dayColumn.dateTitle + "_" + actualColIdx + "_b_" + rIdx; continue;
                     }
 
-                    // AKILLI NOKTA YÖNETİMİ: Noktalı isim ihtimaldir, orijinal adı korunur ama bayrak eklenir.
                     let hasDot = cleanStr.endsWith(".");
                     let sanitizedName = cleanStr.replace(/\.+$/, "").trim();
 
@@ -486,7 +496,7 @@
                             program: curProg || "Genel Görev",
                             hour: curHour || "Belirtilmedi",
                             uniqueKey: curKey || (dayColumn.dateTitle + "_" + rIdx),
-                            isProbability: hasDot, // Nokta varsa İhtimal Görevidir!
+                            isProbability: hasDot,
                             isExtra: !hasDot && cleanStr.includes("EK") 
                         });
                     }
@@ -506,6 +516,7 @@
             });
         }
 
+        // ================= GÜNCELLENDİ: BÖLÜCÜ BAR GERİ GETİRİLDİ =================
         function displayStaffCards() {
             const selectedStaffName = document.getElementById('staff-dropdown').value; if(!selectedStaffName) return;
             document.getElementById('worker-title-name').innerHTML = `<i class="fa-solid fa-user-check text-orange-500 mr-2"></i> ${selectedStaffName}`;
@@ -514,7 +525,25 @@
             const personalShiftsList = mainShiftsLogPool.filter(s => s.workerName === selectedStaffName);
             const todayStr = new Date().toLocaleDateString('tr-TR', {day:'2-digit', month:'2-digit', year:'numeric'}).replace(/\//g,'.');
 
+            let displayedDaysCounter = 0;
+            let dividerInjected = false;
+
             timePeriodDaysList.forEach((dayItem) => {
+                displayedDaysCounter++;
+                
+                // İLK 3 GÜNDEN SONRA GELECEK HAFTA / GÜNLER BARI ENJEKTE EDİLİR
+                if(displayedDaysCounter > 3 && !dividerInjected) {
+                    dividerInjected = true;
+                    const dividerRow = document.createElement('tr');
+                    dividerRow.className = "bg-gradient-to-r from-amber-500 to-orange-600 text-white font-black text-xs";
+                    dividerRow.innerHTML = `
+                        <td colspan="5" class="p-3 text-center tracking-widest uppercase shadow-inner">
+                            <i class="fa-solid fa-calendar-days mr-2 animate-pulse"></i> DAHA SONRAKİ GÜNLERİN PLANI / GELECEK HAFTA
+                        </td>
+                    `;
+                    tableBody.appendChild(dividerRow);
+                }
+
                 const activeShifts = personalShiftsList.filter(s => s.date === dayItem.dateTitle);
                 const isToday = (dayItem.dateTitle === todayStr);
                 let dateBadgeHtml = `<div class="font-black text-slate-800 text-sm">${dayItem.dateTitle}</div><div class="text-[11px] text-sky-600 font-extrabold uppercase">${dayItem.dayTitle}</div>`;
@@ -528,7 +557,6 @@
                 } else {
                     activeShifts.forEach((shift, sIdx) => {
                         const row = document.createElement('tr');
-                        // İhtimal durumunda sarı arka plan efekti
                         row.className = shift.isProbability ? "bg-amber-50/60 hover:bg-amber-50" : (isToday ? "bg-orange-50/60" : "bg-white hover:bg-slate-50");
                         
                         let badge = `<span class="bg-sky-600 text-white text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm">KESİN GÖREV</span>`;
@@ -561,15 +589,43 @@
         }
         function closeTeamModal() { document.getElementById('modal-team-view').classList.add('hidden'); }
 
+        // ================= GÜNCELLENDİ: HIZLI DROPDOWN VE TARİH SENKRONİZASYONU =================
+        function syncDateFiltersFromDropdowns() {
+            const mm = document.getElementById('filter-month').value;
+            const yy = document.getElementById('filter-year').value;
+            
+            if(mm !== 'ALL' && yy !== 'ALL') {
+                document.getElementById('analysis-start-date').value = `${yy}-${mm}-01`;
+                // Ay sonunu kabaca belirle
+                document.getElementById('analysis-end-date').value = `${yy}-${mm}-${mm==='02'?'28':['04','06','09','11'].includes(mm)?'30':'31'}`;
+            } else if(yy !== 'ALL') {
+                document.getElementById('analysis-start-date').value = `${yy}-01-01`;
+                document.getElementById('analysis-end-date').value = `${yy}-12-31`;
+            }
+            applyLogFilters();
+        }
+
+        // ================= GÜNCELLENDİ: TARİH ARALIĞINA GÖRE GELİŞMİŞ ANALİZ MOTORU =================
         function applyLogFilters() {
-            const selectedMonth = document.getElementById('filter-month').value;
-            const selectedYear = document.getElementById('filter-year').value;
+            const startDateVal = document.getElementById('analysis-start-date').value;
+            const endDateVal = document.getElementById('analysis-end-date').value;
+
+            let startDate = startDateVal ? new Date(startDateVal) : null;
+            let endDate = endDateVal ? new Date(endDateVal) : null;
 
             let localFiltered = {}; let totalKesinCount = 0;
             
-            // ANALİZ FİLTRESİ: Sadece kesin (isProbability === false) işler sayılır!
             mainShiftsLogPool.forEach(log => {
-                if(!log.isProbability && (selectedMonth === 'ALL' || log.month === selectedMonth) && (selectedYear === 'ALL' || log.year === selectedYear)) {
+                // Tarih dönüşüm kontrolü
+                let parts = log.date.split('.');
+                let logDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+
+                let dateInRange = true;
+                if(startDate && logDate < startDate) dateInRange = false;
+                if(endDate && logDate > endDate) dateInRange = false;
+
+                // Sadece kesin görevler ve seçilen tarih aralığı
+                if(!log.isProbability && dateInRange) {
                     totalKesinCount++;
                     localFiltered[log.workerName] = (localFiltered[log.workerName] || 0) + 1;
                 }
@@ -581,7 +637,12 @@
             document.getElementById('metric-total-staff').textContent = USER_EXPLICIT_25.length;
             document.getElementById('metric-total-shifts').textContent = totalKesinCount;
             document.getElementById('metric-max-staff').textContent = diagArr[0].count > 0 ? `${diagArr[0].name} (${diagArr[0].count} İş)` : '-';
-            document.getElementById('metric-active-date').textContent = selectedMonth === 'ALL' ? 'Tüm Dönem' : `${selectedMonth}/${selectedYear}`;
+            
+            // Aktif filtre başlığını yazdır
+            let formatOpt = {year:'numeric', month:'short', day:'numeric'};
+            document.getElementById('metric-active-date').textContent = 
+                (startDate ? startDate.toLocaleDateString('tr-TR', formatOpt) : "Başlangıçsız") + " - " + 
+                (endDate ? endDate.toLocaleDateString('tr-TR', formatOpt) : "Sonsuz");
 
             const tBody = document.getElementById('table-body-admin-logs'); tBody.innerHTML = "";
             diagArr.forEach(st => {
@@ -603,29 +664,48 @@
             calculatePersonalDeepAnalysis();
         }
 
-        // ================= YENİ: DERİNLEMESİNE BİREYSEL VE KIYASLAMALI ANALİZ MOTORU =================
+        // PERSONNEL DERİN ANALİZİNİ DE TARİH ARALIĞINA GÖRE GÜNCELLE
         function calculatePersonalDeepAnalysis() {
             const targetUser = document.getElementById('admin-search-staff').value;
             if(!targetUser) return;
 
+            const startDateVal = document.getElementById('analysis-start-date').value;
+            const endDateVal = document.getElementById('analysis-end-date').value;
+            let startDate = startDateVal ? new Date(startDateVal) : null;
+            let endDate = endDateVal ? new Date(endDateVal) : null;
+
             // Sadece Kesin Görevler
-            const userKesinShifts = mainShiftsLogPool.filter(s => s.workerName === targetUser && !s.isProbability);
-            const totalKesinPool = mainShiftsLogPool.filter(s => !s.isProbability);
-
-            // 1. Periyot Hesaplamaları
-            const wCount = userKesinShifts.filter(s => s.month === "06" && s.year === "2026").length; // Örnek aktif hafta/ay simülasyonu
-            const mCount = userKesinShifts.filter(s => s.month === "06").length;
-            const yCount = userKesinShifts.filter(s => s.year === "2026").length;
+            const userAllKesin = mainShiftsLogPool.filter(s => s.workerName === targetUser && !s.isProbability);
             
-            document.getElementById('deep-metric-week').textContent = wCount;
-            document.getElementById('deep-metric-month').textContent = mCount;
-            document.getElementById('deep-metric-year').textContent = yCount;
-            document.getElementById('deep-metric-avg').textContent = (yCount / 4).toFixed(1); // Aylık ortalamadan haftalığa geçiş trendi
+            // Seçili Tarih Aralığı Filtresi
+            let userFilteredKesin = userAllKesin.filter(log => {
+                let parts = log.date.split('.');
+                let logDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                if(startDate && logDate < startDate) return false;
+                if(endDate && logDate > endDate) return false;
+                return true;
+            });
 
-            // 2. Servis İçi Kıyaslama ve Oran Çubukları (Progress Bars)
+            // Tüm havuzu filtrele (kıyaslama için)
+            let totalFilteredPool = mainShiftsLogPool.filter(log => {
+                if(log.isProbability) return false;
+                let parts = log.date.split('.');
+                let logDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                if(startDate && logDate < startDate) return false;
+                if(endDate && logDate > endDate) return false;
+                return true;
+            });
+
+            // Metrikleri Ekrana Yaz
+            document.getElementById('deep-metric-week').textContent = userFilteredKesin.slice(0,7).length; // Trend örneklem
+            document.getElementById('deep-metric-month').textContent = userFilteredKesin.length;
+            document.getElementById('deep-metric-year').textContent = userAllKesin.length;
+            document.getElementById('deep-metric-avg').textContent = (userAllKesin.length / 6).toFixed(1);
+
+            // Servis Kıyaslama Çubukları
             let totalActiveStaffCounts = {};
             USER_EXPLICIT_25.forEach(n => {
-                totalActiveStaffCounts[n] = totalKesinPool.filter(s => s.workerName === n).length;
+                totalActiveStaffCounts[n] = totalFilteredPool.filter(s => s.workerName === n).length;
             });
             
             let maxJobCount = Math.max(...Object.values(totalActiveStaffCounts), 1);
@@ -634,34 +714,35 @@
 
             let userTotalCount = totalActiveStaffCounts[targetUser] || 0;
 
-            // Oranlar
-            let pctOfAvg = Math.min(Math.round((userTotalCount / avgJobCount) * 100), 200); // Max %200 limitle görselleşsin
+            let pctOfAvg = Math.min(Math.round((userTotalCount / avgJobCount) * 100), 200);
             let pctOfMax = Math.round((userTotalCount / maxJobCount) * 100);
 
             document.getElementById('comparison-label-avg').textContent = `%${pctOfAvg}`;
             document.getElementById('comparison-bar-avg').style.width = `${Math.min(pctOfAvg, 100)}%`;
-            if(pctOfAvg > 100) document.getElementById('comparison-bar-avg').className = "bg-gradient-to-r from-emerald-400 to-green-500 h-full transition-all";
-
             document.getElementById('comparison-label-max').textContent = `%${pctOfMax}`;
             document.getElementById('comparison-bar-max').style.width = `${pctOfMax}%`;
 
-            // Özet Metni Düzenleme
             const summaryNode = document.getElementById('deep-analysis-summary-text');
             if(userTotalCount > avgJobCount) {
-                summaryNode.innerHTML = `🔥 ${targetUser} servis ortalamasının <b>üzerinde</b> iş yüküne sahip, aktif bir dönem geçiriyor.`;
+                summaryNode.innerHTML = `🔥 ${targetUser} seçili dönem ortalamasının <b>üzerinde</b> bir yoğunluğa sahip.`;
             } else if(userTotalCount === 0) {
-                summaryNode.innerHTML = `💤 Seçilen personelin bu dönemde henüz kesinleşmiş bir görevi bulunmuyor.`;
+                summaryNode.innerHTML = `💤 Seçilen personelin belirtilen tarih aralığında kesinleşmiş görevi bulunmuyor.`;
             } else {
-                summaryNode.innerHTML = `⚖️ ${targetUser} servis içi dengeli iş dağılımı listesinde ortalamaya yakın konumda.`;
+                summaryNode.innerHTML = `⚖️ ${targetUser} seçili dönemde servis genelinde dengeli bir iş dağılımında.`;
             }
 
-            // 3. Kişisel Aylık Trend Grafiği (Çizgi Grafik)
+            // Seçilen Yıla Göre Aylık Dağılım Trend Eğrisi
+            let currentFilterYear = document.getElementById('filter-year').value;
+            if(currentFilterYear === 'ALL') currentFilterYear = "2026";
+
             let monthsLabels = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"];
             let userMonthlyData = Array(12).fill(0);
             
-            userKesinShifts.forEach(s => {
-                let mIdx = parseInt(s.month) - 1;
-                if(mIdx >= 0 && mIdx < 12) userMonthlyData[mIdx]++;
+            userAllKesin.forEach(s => {
+                if(s.year === currentFilterYear) {
+                    let mIdx = parseInt(s.month) - 1;
+                    if(mIdx >= 0 && mIdx < 12) userMonthlyData[mIdx]++;
+                }
             });
 
             if(personalTrendChartInstance) personalTrendChartInstance.destroy();
