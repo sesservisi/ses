@@ -3,223 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ses Servisi Çalışma Planı & Detaylı Analiz Paneli</title>
+    <title>Ses Servisi Çalışma Planı Paneli</title>
+    <!-- Tailwind CSS v4 & FontAwesome İkon Seti -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Excel İşleme Kütüphanesi -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Grafik Kütüphanesi -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f0fdf4; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #fdba74; border-radius: 4px; }
+        body { -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
 
-    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-2 cursor-pointer" onclick="switchSection('personnel')">
-                <div class="bg-teal-500 text-slate-900 p-2 rounded-xl shadow-inner">
-                    <i class="fa-solid fa-microphone-lines text-base block"></i>
+    <!-- ÜST NAVİGASYON BAR -->
+    <header class="bg-gradient-to-r from-sky-600 via-blue-600 to-orange-500 text-white shadow-lg sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-3.5 flex justify-between items-center">
+            <div class="flex items-center space-x-2.5 cursor-pointer" onclick="switchSection('personnel')">
+                <div class="bg-white text-orange-500 p-2 rounded-xl shadow-md flex items-center justify-center">
+                    <i class="fa-solid fa-microphone-lines text-lg block"></i>
                 </div>
                 <div>
-                    <h1 class="text-sm font-black tracking-wider leading-none">SES SERVİSİ</h1>
-                    <span class="text-[9px] text-teal-400 font-semibold tracking-widest uppercase">Yönetim Paneli</span>
+                    <h1 class="text-base font-black tracking-wide leading-none text-white">SES SERVİSİ</h1>
+                    <span class="text-[10px] text-orange-100 font-bold tracking-widest uppercase">Çalışma Planı</span>
                 </div>
             </div>
             
             <div class="flex items-center space-x-2">
-                <button onclick="switchSection('personnel')" id="btn-nav-personnel" class="px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 bg-teal-500 text-slate-950 shadow">
+                <button onclick="switchSection('personnel')" id="btn-nav-personnel" class="px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center space-x-1.5 bg-white text-sky-700 shadow">
                     <i class="fa-solid fa-calendar-week"></i>
                     <span class="hidden sm:inline">Haftalık Plan</span>
                 </button>
-                <button onclick="checkAdminAccess()" id="btn-nav-admin" class="px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 bg-slate-800 text-slate-300 hover:bg-slate-700">
+                <button onclick="checkAdminAccess()" id="btn-nav-admin" class="px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center space-x-1.5 bg-sky-700/50 text-sky-100 hover:bg-sky-700">
                     <i class="fa-solid fa-chart-line"></i>
-                    <span>Yönetici Analiz</span>
+                    <span>Yönetici</span>
                 </button>
             </div>
         </div>
     </header>
 
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6">
+    <!-- ANA İÇERİK ALANI -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-3 py-4 sm:py-6 space-y-4">
 
-        <div id="loader-live-data" class="bg-white border border-slate-200 rounded-2xl p-8 text-center max-w-md mx-auto my-6 shadow-sm flex flex-col items-center justify-center">
-            <i class="fa-solid fa-circle-notch text-teal-500 text-4xl mb-3 animate-spin"></i>
-            <h3 class="text-sm font-bold text-slate-900">Güncel Çalışma Planı Alınıyor</h3>
-            <p class="text-xs text-slate-500 mt-1">Bulut sunucusundan en son veriler senkronize ediliyor, lütfen bekleyin...</p>
+        <!-- CANLI VERİ YÜKLENİYOR PANELİ -->
+        <div id="loader-live-data" class="bg-white border border-sky-100 rounded-2xl p-8 text-center max-w-md mx-auto my-6 shadow-md flex flex-col items-center justify-center">
+            <i class="fa-solid fa-circle-notch text-orange-500 text-4xl mb-3 animate-spin"></i>
+            <h3 class="text-sm font-black text-slate-900">Güncel Plan Yükleniyor</h3>
+            <p class="text-xs text-slate-500 mt-1">GitHub deposundan yeni haftalık veriler senkronize ediliyor ve geçmişle birleştiriliyor...</p>
         </div>
 
-        <div id="alert-no-data" class="bg-amber-50 border-2 border-dashed border-amber-200 rounded-2xl p-6 text-center max-w-md mx-auto my-6 hidden animate-pulse">
-            <i class="fa-solid fa-triangle-exclamation text-amber-500 text-3xl mb-2 block"></i>
-            <h3 class="text-sm font-bold text-slate-900">Canlı Veriye Erişilemedi</h3>
-            <p class="text-xs text-slate-600 mt-1 mb-4">Dropbox bağlantısı sağlanamadı veya henüz veri yüklenmedi. Yönetici panelinden manuel yükleme yapabilirsiniz.</p>
-            <button onclick="checkAdminAccess()" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow transition-all cursor-pointer">
-                Manuel Excel Yükle
+        <!-- VERİ YOK UYARISI -->
+        <div id="alert-no-data" class="bg-orange-50 border-2 border-dashed border-orange-200 rounded-2xl p-6 text-center max-w-md mx-auto my-6 hidden">
+            <i class="fa-solid fa-cloud-bounce text-orange-500 text-4xl mb-2 block animate-bounce"></i>
+            <h3 class="text-sm font-bold text-slate-900">Otomatik Veri Bağlantısı Kurulamadı</h3>
+            <p class="text-xs text-slate-600 mt-1 mb-4">GitHub deposuna erişilemedi veya henüz hiç veri yüklenmedi. Manuel yükleme yapabilirsiniz.</p>
+            <button onclick="checkAdminAccess()" class="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-black px-5 py-3 rounded-xl shadow-md transition-all active:scale-95 cursor-pointer">
+                <i class="fa-solid fa-file-excel mr-1"></i> Manuel Excel Yükle
             </button>
         </div>
 
-        <section id="section-personnel" class="space-y-6 hidden">
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 max-w-md mx-auto">
-                <label for="staff-dropdown" class="block text-slate-400 text-xs font-black uppercase tracking-widest text-center mb-2"><i class="fa-solid fa-circle-user text-teal-500 mr-1"></i> İSMİNİZİ SEÇİNİZ</label>
-                <select id="staff-dropdown" onchange="displayStaffCards()" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm font-bold rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all cursor-pointer">
-                    <option value="" disabled selected>Liste Bekleniyor...</option>
+        <!-- ================= BÖLÜM 1: PERSONEL HAFTALIK PLAN GÖRÜNÜMÜ ================= -->
+        <section id="section-personnel" class="space-y-4 hidden">
+            <!-- Personel Seçim Alanı -->
+            <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 max-w-md mx-auto">
+                <label for="staff-dropdown" class="block text-sky-600 text-xs font-black uppercase tracking-widest text-center mb-2.5"><i class="fa-solid fa-circle-user text-orange-500 mr-1"></i> LÜTFEN İSMİNİZİ SEÇİNİZ</label>
+                <select id="staff-dropdown" onchange="displayStaffCards()" class="w-full bg-slate-50 border-2 border-slate-200 text-slate-800 text-sm font-black rounded-xl px-4 py-3.5 focus:outline-none focus:border-orange-500 transition-all cursor-pointer shadow-inner">
+                    <option value="" disabled selected>Personel Listesi Bekleniyor...</option>
                 </select>
             </div>
 
-            <div id="schedule-wrapper" class="hidden space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+            <!-- Bilgi ve Saat Başlığı -->
+            <div id="schedule-wrapper" class="hidden space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white p-4 rounded-xl border border-slate-200 gap-2 shadow-sm">
                     <div>
-                        <h2 id="worker-title-name" class="text-lg font-black text-slate-900 uppercase tracking-tight">-</h2>
-                        <p class="text-xs text-slate-500">Haftalık tüm çalışma ve boş gün takviminiz. "BUGÜN" işareti güncel zamanı gösterir.</p>
+                        <h2 id="worker-title-name" class="text-base font-black text-slate-900 uppercase tracking-tight flex items-center">-</h2>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Hafızada biriken geçmiş ve güncel tüm görev planlarınız aşağıda listelenmiştir.</p>
                     </div>
-                    <div id="sync-timestamp-badge" class="text-[10px] bg-slate-200 text-slate-700 px-3 py-1 rounded-full font-bold shadow-sm">Henüz Yüklenmedi</div>
+                    <div id="sync-timestamp-badge" class="text-[10px] bg-orange-100 text-orange-700 px-3 py-1.5 rounded-lg font-black self-start sm:self-center shadow-sm border border-orange-200">Veri Durumu: Bilinmiyor</div>
                 </div>
 
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <!-- HAFTALIK PLAN TABLOSU -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
                     <div class="overflow-x-auto custom-scroll">
-                        <table class="w-full text-left border-collapse min-w-[600px]">
+                        <table class="w-full text-left border-collapse min-w-[650px]">
                             <thead>
-                                <tr class="bg-slate-900 text-slate-200 text-[11px] font-bold uppercase tracking-wider">
-                                    <th class="p-3.5 pl-5 w-32">Tarih / Gün</th>
-                                    <th class="p-3.5 w-28 text-center">Durum</th>
-                                    <th class="p-3.5">Görevlendirilen Program / Stüdyo</th>
-                                    <th class="p-3.5 w-32 text-center">Yayın Saati</th>
-                                    <th class="p-3.5 w-44 text-right pr-5">Aksiyon</th>
+                                <tr class="bg-gradient-to-r from-sky-600 to-blue-600 text-white text-[11px] font-black uppercase tracking-wider">
+                                    <th class="p-4 pl-5 w-36">Tarih / Gün</th>
+                                    <th class="p-4 w-28 text-center">Durum</th>
+                                    <th class="p-4">Görevlendirilen Program / Stüdyo</th>
+                                    <th class="p-4 w-32 text-center">Yayın Saati</th>
+                                    <th class="p-4 w-44 text-right pr-5">İşlemler</th>
                                 </tr>
                             </thead>
-                            <tbody id="weekly-schedule-table-body" class="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
-                                </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-
-        <section id="section-admin" class="hidden space-y-6">
-            
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                <div class="md:col-span-1">
-                    <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                        <i class="fa-solid fa-rotate text-indigo-600"></i> Veri Güncelleme Merkezi
-                    </h3>
-                    <p class="text-[11px] text-slate-500 mt-0.5">Dropbox canlı bağlantısını test edin veya manuel dosyayı sisteme entegre edin.</p>
-                </div>
-                
-                <div class="md:col-span-2 flex flex-wrap gap-2 justify-end">
-                    <button onclick="testDropboxLiveSync(true)" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-3 rounded-xl shadow transition-all flex items-center gap-1.5 cursor-pointer">
-                        <i class="fa-brands fa-dropbox text-sm"></i>
-                        <span>Dropbox Bağlantısını Denetle</span>
-                    </button>
-                    
-                    <div class="relative bg-emerald-50 hover:bg-emerald-100 rounded-xl px-4 py-3 border border-emerald-200 flex items-center justify-center cursor-pointer transition-colors">
-                        <label class="text-xs font-bold text-emerald-800 cursor-pointer flex items-center gap-1.5">
-                            <i class="fa-solid fa-file-excel text-emerald-600 text-sm"></i>
-                            <span>Manuel Excel Dosyası Yükle</span>
-                        </label>
-                        <input type="file" id="upload-excel-input" accept=".xlsx, .xls" class="absolute inset-0 opacity-0 cursor-pointer w-full" />
-                    </div>
-                    
-                    <button onclick="clearAdminSession()" class="bg-red-50 hover:bg-red-100 text-red-600 text-[10px] font-bold px-3 py-2 rounded-lg border border-red-200 transition-colors">
-                        <i class="fa-solid fa-lock"></i> Oturumu Kapat
-                    </button>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Aktif Çalışan Ekip</span>
-                    <h4 id="metric-total-staff" class="text-xl font-black text-slate-800 mt-1">0</h4>
-                </div>
-                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Planlanan Toplam İş</span>
-                    <h4 id="metric-total-shifts" class="text-xl font-black text-slate-800 mt-1">0</h4>
-                </div>
-                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">En Çok Görevli Personel</span>
-                    <h4 id="metric-max-staff" class="text-xs font-bold text-teal-600 mt-2 truncate">-</h4>
-                </div>
-                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Aktif Dönem / Yıl</span>
-                    <h4 id="metric-active-date" class="text-xs font-bold text-indigo-600 mt-2">-</h4>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2 flex flex-col">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-                        <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider"><i class="fa-solid fa-chart-column text-teal-500 mr-1"></i> Dönemsel Yoğunluk Grafiği</h4>
-                        <div class="flex gap-1.5">
-                            <select id="filter-month" onchange="applyLogFilters()" class="bg-slate-100 border border-slate-200 rounded-lg text-[11px] font-bold px-2 py-1 focus:outline-none">
-                                <option value="ALL">Tüm Aylar</option>
-                                <option value="01">Ocak</option><option value="02">Şubat</option><option value="03">Mart</option>
-                                <option value="04">Nisan</option><option value="05">Mayıs</option><option value="06" selected>Haziran</option>
-                                <option value="07">Temmuz</option><option value="08">Ağustos</option><option value="09">Eylül</option>
-                                <option value="10">Ekim</option><option value="11">Kasım</option><option value="12">Aralık</option>
-                            </select>
-                            <select id="filter-year" onchange="applyLogFilters()" class="bg-slate-100 border border-slate-200 rounded-lg text-[11px] font-bold px-2 py-1 focus:outline-none">
-                                <option value="ALL">Tüm Yıllar</option>
-                                <option value="2025">2025</option>
-                                <option value="2026" selected>2026</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="relative flex-grow min-h-[280px] max-h-[360px]">
-                        <canvas id="canvas-admin-chart"></canvas>
-                    </div>
-                </div>
-                
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
-                    <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider mb-3"><i class="fa-solid fa-receipt text-indigo-500 mr-1"></i> Görev Dağılım Listesi</h4>
-                    <div class="overflow-y-auto flex-grow max-h-[300px] border border-slate-100 rounded-xl custom-scroll">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-400 text-[10px] font-bold uppercase sticky top-0 z-10">
-                                    <th class="p-2.5">Personel Adı</th>
-                                    <th class="p-2.5 text-center">Toplam Nöbet</th>
-                                </tr>
-                            </thead>
-                            <tbody id="table-body-admin-logs" class="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
-                                </tbody>
+                            <tbody id="weekly-schedule-table-body" class="divide-y divide-slate-100 text-xs font-bold text-slate-700">
+                                <!-- Dinamik veri -->
+                            </tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </section>
 
+        <!-- ================= BÖLÜM 2: YÖNETİCİ PANELİ ================= -->
+        <section id="section-admin" class="hidden space-y-4">
+            <!-- Veri Güncelleme Kartı -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                <div class="md:col-span-1">
+                    <h3 class="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                        <i class="fa-solid fa-cloud-arrow-up text-orange-500"></i> Yönetim & Birikimli Veri Havuzu
+                    </h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Her hafta yeni yüklediğiniz Excel dosyaları eskilerin üzerine eklenerek birikir.</p>
+                </div>
+                
+                <div class="md:col-span-2 flex flex-wrap gap-2 justify-start md:justify-end">
+                    <button onclick="fetchExcelFromGithub(true)" class="bg-gradient-to-r from-sky-600 to-blue-600 text-white text-xs font-black px-4 py-3 rounded-xl shadow-md transition-all active:scale-95 cursor-pointer flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span>Depodan Yeni Haftayı Çek</span>
+                    </button>
+                    
+                    <div class="relative bg-orange-50 hover:bg-orange-100 rounded-xl px-4 py-3 border-2 border-dashed border-orange-200 flex items-center justify-center cursor-pointer transition-colors">
+                        <label class="text-xs font-black text-orange-800 cursor-pointer flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-excel text-orange-600 text-sm"></i>
+                            <span>Elle Yeni Excel Yükle</span>
+                        </label>
+                        <input type="file" id="upload-excel-input" accept=".xlsx, .xls" class="absolute inset-0 opacity-0 cursor-pointer w-full" />
+                    </div>
+                    
+                    <button onclick="resetAllStoredData()" class="bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-bold px-3 py-2 rounded-xl border border-red-200 transition-colors">
+                        <i class="fa-solid fa-trash-can"></i> Tüm Hafızayı Sıfırla
+                    </button>
+                </div>
+            </div>
+
+            <!-- ÖZET İSTATİSTİK KARTLARI -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Toplam Personel</span>
+                    <h4 id="metric-total-staff" class="text-lg font-black text-sky-600 mt-1">0</h4>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Hafızadaki Toplam Görev</span>
+                    <h4 id="metric-total-shifts" class="text-lg font-black text-orange-500 mt-1">0</h4>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">En Yoğun Çalışan</span>
+                    <h4 id="metric-max-staff" class="text-xs font-black text-slate-700 mt-2 truncate">-</h4>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Aktif Filtre</span>
+                    <h4 id="metric-active-date" class="text-xs font-black text-blue-600 mt-2">-</h4>
+                </div>
+            </div>
+
+            <!-- GRAFİK VE TABLO -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2 flex flex-col">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                        <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider"><i class="fa-solid fa-chart-column text-orange-500 mr-1"></i> Görev Yoğunluk Analitiği (Kümülâtif)</h4>
+                        <div class="flex gap-1">
+                            <select id="filter-month" onchange="applyLogFilters()" class="bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-bold px-2 py-1.5 focus:outline-none">
+                                <option value="ALL">Tüm Aylar</option>
+                                <option value="01">Ocak</option><option value="02">Şubat</option><option value="03">Mart</option>
+                                <option value="04">Nisan</option><option value="05">Mayıs</option><option value="06" selected>Haziran</option>
+                                <option value="07">Temmuz</option><option value="08">Ağustos</option><option value="09">Eylül</option>
+                                <option value="10">Ekim</option><option value="11">Kasım</option><option value="12">Aralık</option>
+                            </select>
+                            <select id="filter-year" onchange="applyLogFilters()" class="bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-bold px-2 py-1.5 focus:outline-none">
+                                <option value="ALL">Tüm Yıllar</option>
+                                <option value="2025">2025</option>
+                                <option value="2026" selected>2026</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="relative flex-grow min-h-[250px] max-h-[320px]">
+                        <canvas id="canvas-admin-chart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                    <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider mb-3"><i class="fa-solid fa-list-ol text-sky-500 mr-1"></i> Toplam Görev Dağılımı</h4>
+                    <div class="overflow-y-auto flex-grow max-h-[280px] border border-slate-100 rounded-xl custom-scroll">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-400 text-[10px] font-black uppercase sticky top-0 z-10">
+                                    <th class="p-2">Personel Adı</th>
+                                    <th class="p-2 text-center">Toplam</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body-admin-logs" class="divide-y divide-slate-100 text-xs font-bold text-slate-700">
+                                <!-- Dinamik veri -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
-    <div id="modal-team-view" class="fixed inset-0 bg-slate-950/60 z-50 hidden flex justify-center items-center p-4 backdrop-blur-sm">
+    <!-- MODAL: EKİP ARKADAŞLARI POPUP -->
+    <div id="modal-team-view" class="fixed inset-0 bg-slate-950/50 z-50 hidden flex justify-center items-center p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-5 border border-slate-100 transform scale-95 transition-all">
             <div class="flex justify-between items-center mb-3">
-                <h3 class="font-bold text-xs uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                    <i class="fa-solid fa-users text-teal-500"></i> Görev Ekip Üyeleri
+                <h3 class="font-black text-xs uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                    <i class="fa-solid fa-users text-orange-500"></i> Görev Ekip Arkadaşlar Bürgüsü
                 </h3>
-                <button onclick="closeTeamModal()" class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="closeTeamModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div id="modal-info-header" class="text-xs bg-slate-50 border border-slate-200 p-3 rounded-xl font-black text-slate-700 mb-4 leading-tight"></div>
+            <div id="modal-info-header" class="text-xs bg-sky-50 border border-sky-100 p-3 rounded-xl font-black text-sky-950 mb-4 leading-tight"></div>
             <ul id="modal-staff-list" class="space-y-1.5 text-xs font-bold text-slate-800 max-h-[220px] overflow-y-auto custom-scroll pr-1">
-                </ul>
+                <!-- Dinamik veri -->
+            </ul>
         </div>
     </div>
 
-    <div id="modal-auth-gate" class="fixed inset-0 bg-slate-950/60 z-50 hidden flex justify-center items-center p-4 backdrop-blur-sm">
+    <!-- MODAL: YÖNETİCİ ŞİFRE GİRİŞİ -->
+    <div id="modal-auth-gate" class="fixed inset-0 bg-slate-950/50 z-50 hidden flex justify-center items-center p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-xs rounded-2xl shadow-2xl p-6 border border-slate-100 text-center">
-            <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3 text-xl shadow-inner">
-                <i class="fa-solid fa-shield-halved"></i>
+            <div class="w-12 h-12 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-3 text-xl shadow-inner">
+                <i class="fa-solid fa-lock"></i>
             </div>
-            <h3 class="font-bold text-slate-900 text-sm mb-1">Yönetici Kimlik Doğrulaması</h3>
-            <p class="text-xs text-slate-500 mb-4">Lütfen tanımlanmış olan özel şifreyi giriniz.</p>
-            <input type="password" id="field-gate-pass" placeholder="•••••••" class="w-full text-center tracking-widest font-bold text-xl border border-slate-200 rounded-xl py-2 mb-3 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <h3 class="font-black text-slate-900 text-sm mb-1">Yönetici Girişi</h3>
+            <p class="text-xs text-slate-500 mb-4">Lütfen tanımlı yönetim şifresini giriniz.</p>
+            <input type="password" id="field-gate-pass" placeholder="•••••••" class="w-full text-center tracking-widest font-black text-xl border-2 border-slate-200 rounded-xl py-2 mb-3 bg-slate-50 focus:outline-none focus:border-orange-500">
             <div id="wrapper-pass-error" class="text-red-500 text-xs font-bold hidden mb-3"><i class="fa-solid fa-circle-exclamation"></i> Şifre Hatalı!</div>
             <div class="flex space-x-2">
-                <button onclick="closeAuthModal()" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs py-2.5 rounded-xl transition-colors cursor-pointer">İptal</button>
-                <button onclick="submitAuthGatePassword()" class="w-1/2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 rounded-xl transition-colors cursor-pointer">Giriş Yap</button>
+                <button onclick="closeAuthModal()" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs py-3 rounded-xl transition-colors cursor-pointer">İptal</button>
+                <button onclick="submitAuthGatePassword()" class="w-1/2 bg-gradient-to-r from-sky-600 to-blue-600 text-white font-black text-xs py-3 rounded-xl shadow transition-colors cursor-pointer">Giriş Yap</button>
             </div>
         </div>
     </div>
 
+    <!-- JAVASCRIPT ÇALIŞMA MANTIĞI -->
     <script>
-        const DROPBOX_LIVE_URL = "https://www.dropbox.com/scl/fi/qryt9lhx1l7igmi6qg3ak/Gorev-Listesi.xlsx?rlkey=w97mop9zlow5xt0d0cwxg8wp2&dl=1";
+        const GITHUB_LIVE_EXCEL = "Gorev-Listesi.xlsx"; 
         const SUPER_KEY = "7124624";
 
         const USER_EXPLICIT_25 = [
@@ -230,47 +250,63 @@
             "K.GÜNGÖR", "Ç.TAŞ", "E.DÖNMEZ", "Ö.KARAKUŞ", "E.SAVAŞ"
         ].sort();
 
-        let rawMatrixData = null;
-        let staffSchedules = {};
+        // TÜM CİHAZLARDA ORTAK ÇALIŞAN GLOBAL HAVUZLAR
         let mainShiftsLogPool = [];
         let timePeriodDaysList = []; 
         let currentActiveTab = 'personnel';
         let chartInstanceReference = null;
 
-        // SİTE AÇILDIĞINDA OTOMATİK OLARAK DROPBOX BULUTUNDAN VERİYİ ÇEKER
         window.addEventListener('DOMContentLoaded', () => {
+            loadDatabaseFromLocalStorage();
             rebuildStaffDropdownOptions();
-            
-            // İlk açılışta direkt canlı Dropbox senkronizasyonunu başlatıyoruz
-            testDropboxLiveSync(false);
-
+            fetchExcelFromGithub(false);
             document.getElementById('upload-excel-input').addEventListener('change', processManualFileLoad, false);
         });
+
+        function loadDatabaseFromLocalStorage() {
+            const savedPool = localStorage.getItem('ses_cumulative_shifts_pool');
+            const savedDays = localStorage.getItem('ses_cumulative_days_list');
+            if(savedPool) mainShiftsLogPool = JSON.parse(savedPool);
+            if(savedDays) timePeriodDaysList = JSON.parse(savedDays);
+        }
+
+        function saveDatabaseToLocalStorage() {
+            localStorage.setItem('ses_cumulative_shifts_pool', JSON.stringify(mainShiftsLogPool));
+            localStorage.setItem('ses_cumulative_days_list', JSON.stringify(timePeriodDaysList));
+        }
+
+        function resetAllStoredData() {
+            if(confirm("TÜM GEÇMİŞ HAFIZA SİLİNECEK! Emin misiniz?")) {
+                localStorage.removeItem('ses_cumulative_shifts_pool');
+                localStorage.removeItem('ses_cumulative_days_list');
+                mainShiftsLogPool = [];
+                timePeriodDaysList = [];
+                saveDatabaseToLocalStorage();
+                alert("Hafıza sıfırlandı. Güncel Excel'i tekrar çekebilirsiniz.");
+                location.reload();
+            }
+        }
 
         function switchSection(tabName) {
             currentActiveTab = tabName;
             if(tabName === 'personnel') {
                 document.getElementById('section-personnel').classList.remove('hidden');
                 document.getElementById('section-admin').classList.add('hidden');
-                document.getElementById('btn-nav-personnel').className = "px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 bg-teal-500 text-slate-950 shadow";
-                document.getElementById('btn-nav-admin').className = "px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 bg-slate-800 text-slate-300 hover:bg-slate-700";
+                document.getElementById('btn-nav-personnel').className = "px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center space-x-1.5 bg-white text-sky-700 shadow";
+                document.getElementById('btn-nav-admin').className = "px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center space-x-1.5 bg-sky-700/50 text-sky-100 hover:bg-sky-700";
+                displayStaffCards();
             } else {
                 document.getElementById('section-personnel').classList.add('hidden');
                 document.getElementById('section-admin').classList.remove('hidden');
-                document.getElementById('btn-nav-admin').className = "px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 bg-indigo-600 text-white shadow";
-                document.getElementById('btn-nav-personnel').className = "px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 bg-slate-800 text-slate-300 hover:bg-slate-700";
+                document.getElementById('btn-nav-admin').className = "px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center space-x-1.5 bg-white text-orange-600 shadow";
+                document.getElementById('btn-nav-personnel').className = "px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center space-x-1.5 bg-sky-700/50 text-sky-100 hover:bg-sky-700";
                 applyLogFilters();
             }
         }
 
         function checkAdminAccess() {
-            const sessionIsLive = localStorage.getItem('ses_admin_session_live');
-            if(sessionIsLive === 'true') {
-                switchSection('admin');
-            } else {
-                document.getElementById('modal-auth-gate').classList.remove('hidden');
-                document.getElementById('field-gate-pass').focus();
-            }
+            if(localStorage.getItem('ses_admin_session_live') === 'true') { switchSection('admin'); } 
+            else { document.getElementById('modal-auth-gate').classList.remove('hidden'); document.getElementById('field-gate-pass').focus(); }
         }
 
         function closeAuthModal() {
@@ -280,60 +316,44 @@
         }
 
         function submitAuthGatePassword() {
-            const userInp = document.getElementById('field-gate-pass').value;
-            if(userInp === SUPER_KEY) {
-                localStorage.setItem('ses_admin_session_live', 'true');
-                closeAuthModal();
-                switchSection('admin');
-            } else {
-                document.getElementById('wrapper-pass-error').classList.remove('hidden');
+            if(document.getElementById('field-gate-pass').value === SUPER_KEY) {
+                localStorage.setItem('ses_admin_session_live', 'true'); closeAuthModal(); switchSection('admin');
+            } else { document.getElementById('wrapper-pass-error').classList.remove('hidden'); }
+        }
+
+        async function fetchExcelFromGithub(isManualClick = false) {
+            if(!isManualClick) {
+                document.getElementById('loader-live-data').classList.remove('hidden');
+                document.getElementById('alert-no-data').classList.add('hidden');
+                document.getElementById('section-personnel').classList.add('hidden');
             }
-        }
-
-        function clearAdminSession() {
-            localStorage.removeItem('ses_admin_session_live');
-            alert("Yönetici oturumu güvenli bir şekilde kapatıldı.");
-            switchSection('personnel');
-        }
-
-        // DROPBOX'TAN HERKES İÇİN CANLI VERİ ÇEKME MOTORU
-        async function testDropboxLiveSync(isManualClick = false) {
             try {
-                if(!isManualClick) {
-                    document.getElementById('loader-live-data').classList.remove('hidden');
-                    document.getElementById('alert-no-data').classList.add('hidden');
-                    document.getElementById('section-personnel').classList.add('hidden');
-                }
-
-                const response = await fetch(DROPBOX_LIVE_URL);
-                if(!response.ok) throw new Error("Ağ bağlantı hatası");
-                const arrayBuffer = await response.arrayBuffer();
-                const uintArray = new Uint8Array(arrayBuffer);
-                const workbook = XLSX.read(uintArray, {type: 'array', cellDates: true});
-                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                const parsedMatrixRows = XLSX.utils.sheet_to_json(firstSheet, {header: 1, defval: null});
-                
-                commitDataToStorage(parsedMatrixRows);
-                
-                document.getElementById('loader-live-data').classList.add('hidden');
-                document.getElementById('section-personnel').classList.remove('hidden');
-
-                if(isManualClick) alert("Dropbox senkronizasyonu başarılı! Güncel liste sisteme aktarıldı.");
-            } catch (error) {
-                console.error(error);
-                document.getElementById('loader-live-data').classList.add('hidden');
-                
-                // Eğer canlı veri çekilemediyse ve tarayıcıda eski yerel veri varsa onu kurtarma olarak yükle
-                const localRaw = localStorage.getItem('ses_stored_matrix');
-                if(localRaw) {
-                    rawMatrixData = JSON.parse(localRaw);
-                    compileExcelMatrix(rawMatrixData);
+                const res = await fetch(GITHUB_LIVE_EXCEL + "?t=" + new Date().getTime());
+                if(res.ok) {
+                    const buffer = await res.arrayBuffer();
+                    const uintArray = new Uint8Array(buffer);
+                    const workbook = XLSX.read(uintArray, {type: 'array', cellDates: true});
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const parsedMatrixRows = XLSX.utils.sheet_to_json(firstSheet, {header: 1, defval: null});
+                    
+                    compileExcelAndMerge(parsedMatrixRows);
+                    
+                    document.getElementById('loader-live-data').classList.add('hidden');
                     document.getElementById('section-personnel').classList.remove('hidden');
-                    if(isManualClick) alert("Canlı bağlantı başarısız fakat cihazdaki eski kayıtlı veri yüklendi.");
-                } else {
-                    document.getElementById('alert-no-data').classList.remove('hidden');
-                    if(isManualClick) alert("Dropbox canlı bağlantısı başarısız oldu. Lütfen manuel dosya yükleyin.");
-                }
+                    document.getElementById('schedule-wrapper').classList.remove('hidden');
+                    
+                    const dateObj = new Date();
+                    document.getElementById('sync-timestamp-badge').textContent = `Canlı Entegre (${dateObj.getHours()}:${dateObj.getMinutes() < 10 ? '0'+dateObj.getMinutes() : dateObj.getMinutes()})`;
+                    if(isManualClick) alert("Yeni haftalık plan depodan başarıyla çekildi ve geçmişle birleştirildi!");
+                    displayStaffCards();
+                } else { throw new Error("Dosya okunamadı"); }
+            } catch(e) {
+                document.getElementById('loader-live-data').classList.add('hidden');
+                if(mainShiftsLogPool.length > 0) {
+                    document.getElementById('section-personnel').classList.remove('hidden');
+                    document.getElementById('schedule-wrapper').classList.remove('hidden');
+                    document.getElementById('sync-timestamp-badge').textContent = "Hafızadaki Kayıtlardan Gösteriliyor";
+                } else { document.getElementById('alert-no-data').classList.remove('hidden'); }
             }
         }
 
@@ -342,42 +362,31 @@
             if(!uploadedFile) return;
             const fileReader = new FileReader();
             fileReader.onload = function(e) {
-                const arrayBufferData = new Uint8Array(e.target.result);
-                const workbookInstance = XLSX.read(arrayBufferData, {type: 'array', cellDates: true});
-                const matrixRows = XLSX.utils.sheet_to_json(workbookInstance.Sheets[workbookInstance.SheetNames[0]], {header: 1, defval: null});
-                commitDataToStorage(matrixRows);
+                const uintArray = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(uintArray, {type: 'array', cellDates: true});
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const parsedMatrixRows = XLSX.utils.sheet_to_json(firstSheet, {header: 1, defval: null});
                 
+                compileExcelAndMerge(parsedMatrixRows);
                 document.getElementById('alert-no-data').classList.add('hidden');
                 document.getElementById('section-personnel').classList.remove('hidden');
-                alert("Excel dosyası başarıyla yüklendi, tüm veriler güncellendi!");
+                document.getElementById('schedule-wrapper').classList.remove('hidden');
+                document.getElementById('sync-timestamp-badge').textContent = "Manuel Yüklendi (Birikimli)";
+                alert("Yüklediğiniz dosyadaki tarihler geçmiş hafızaya başarıyla eklendi!");
+                displayStaffCards();
             };
             fileReader.readAsArrayBuffer(uploadedFile);
         }
 
-        function commitDataToStorage(matrixRows) {
-            rawMatrixData = matrixRows;
-            localStorage.setItem('ses_stored_matrix', JSON.stringify(matrixRows));
-            const dateObj = new Date();
-            const dateString = `${dateObj.getDate()}.${dateObj.getMonth()+1}.${dateObj.getFullYear()} ${dateObj.getHours()}:${dateObj.getMinutes() < 10 ? '0' + dateObj.getMinutes() : dateObj.getMinutes()}`;
-            localStorage.setItem('ses_stored_timestamp', dateString);
-            document.getElementById('sync-timestamp-badge').textContent = "Son Güncelleme: " + dateString;
-            
-            staffSchedules = {};
-            mainShiftsLogPool = [];
-            timePeriodDaysList = [];
-            
-            compileExcelMatrix(matrixRows);
-        }
-
-        function compileExcelMatrix(matrix) {
+        // AKILLI BİRLEŞTİRME MOTORU (ESKİYİ SİLMEZ, YENİYİ ÜZERİNE EKLER)
+        function compileExcelAndMerge(matrix) {
             if(!matrix || matrix.length < 3) return;
-
-            document.getElementById('schedule-wrapper').classList.remove('hidden');
 
             const rowDays = matrix[0];
             const rowDates = matrix[1];
 
-            let parsedDayColumns = [];
+            let newIncomingDays = [];
+
             for (let columnIndex = 1; columnIndex < rowDays.length; columnIndex += 4) {
                 if(rowDays[columnIndex] || rowDates[columnIndex]) {
                     let excelDateValue = rowDates[columnIndex];
@@ -397,26 +406,42 @@
                     }
 
                     const dayItem = {
-                        cIndex: columnIndex,
-                        dayTitle: String(rowDays[columnIndex]).replace(/\.\d+/g, '').trim(),
                         dateTitle: formattedDateStr,
+                        dayTitle: String(rowDays[columnIndex]).replace(/\.\d+/g, '').trim(),
                         month: targetMonth,
                         year: targetYear
                     };
-                    parsedDayColumns.push(dayItem);
-                    timePeriodDaysList.push(dayItem);
+                    newIncomingDays.push(dayItem);
+
+                    // Gün listesinde yoksa ekle (Tekilleştirme)
+                    if(!timePeriodDaysList.some(d => d.dateTitle === dayItem.dateTitle)) {
+                        timePeriodDaysList.push(dayItem);
+                    }
                 }
             }
 
-            parsedDayColumns.forEach(dayColumn => {
+            // Tarih sırasına göre günleri diz
+            timePeriodDaysList.sort((a,b) => {
+                let parseA = a.dateTitle.split('.').reverse().join('');
+                let parseB = b.dateTitle.split('.').reverse().join('');
+                return parseA.localeCompare(parseB);
+            });
+
+            // Gelen yeni tarihlerdeki ESKİ kayıtları temizle ki mükerrer (çift) kayıt olmasın
+            const newDatesSet = newIncomingDays.map(d => d.dateTitle);
+            mainShiftsLogPool = mainShiftsLogPool.filter(log => !newDatesSet.includes(log.date));
+
+            // Şimdi matrisi tara ve yeni verileri ekle
+            newIncomingDays.forEach((dayColumn, idx) => {
+                let actualExcelColIdx = 1 + (idx * 4);
                 let currentProgramName = "";
                 let currentProgramHour = "";
                 let currentBlockUniqueKey = "";
                 
                 for(let rowIndex = 4; rowIndex < matrix.length; rowIndex++) {
-                    let cellCoreValue = matrix[rowIndex][dayColumn.cIndex];
-                    let cellHourValue = matrix[rowIndex][dayColumn.cIndex + 2];
-                    let cellNoteValue = matrix[rowIndex][dayColumn.cIndex + 3];
+                    let cellCoreValue = matrix[rowIndex][actualExcelColIdx];
+                    let cellHourValue = matrix[rowIndex][actualExcelColIdx + 2];
+                    let cellNoteValue = matrix[rowIndex][actualExcelColIdx + 3];
 
                     if(!cellCoreValue) continue;
                     let cleanStringValue = String(cellCoreValue).trim();
@@ -429,7 +454,7 @@
                             let timeFragments = currentProgramHour.split(" ");
                             currentProgramHour = timeFragments.length > 1 ? timeFragments[1].substring(0,5) : currentProgramHour;
                         }
-                        currentBlockUniqueKey = dayColumn.cIndex + "_blockStart_" + rowIndex;
+                        currentBlockUniqueKey = dayColumn.dateTitle + "_" + actualExcelColIdx + "_b_" + rowIndex;
                         continue;
                     }
 
@@ -438,30 +463,22 @@
                     if(USER_EXPLICIT_25.includes(sanitizedStaffName)) {
                         if(String(cellNoteValue).toLowerCase().includes("izin") || cleanStringValue.toLowerCase().includes("izin")) continue;
 
-                        if(!staffSchedules[sanitizedStaffName]) staffSchedules[sanitizedStaffName] = [];
-
-                        let isExtraJob = cleanStringValue.endsWith(".");
-
-                        let blockShiftObject = {
+                        mainShiftsLogPool.push({
+                            workerName: sanitizedStaffName,
                             date: dayColumn.dateTitle,
                             dayName: dayColumn.dayTitle,
                             month: dayColumn.month,
                             year: dayColumn.year,
                             program: currentProgramName || "Genel Görev",
                             hour: currentProgramHour || "Belirtilmedi",
-                            uniqueKey: currentBlockUniqueKey || (dayColumn.cIndex + "_row_" + rowIndex),
-                            isExtra: isExtraJob
-                        };
-
-                        staffSchedules[sanitizedStaffName].push(blockShiftObject);
-                        mainShiftsLogPool.push({
-                            workerName: sanitizedStaffName,
-                            ...blockShiftObject
+                            uniqueKey: currentBlockUniqueKey || (dayColumn.dateTitle + "_" + rowIndex),
+                            isExtra: cleanStringValue.endsWith(".")
                         });
                     }
                 }
             });
 
+            saveDatabaseToLocalStorage();
             rebuildStaffDropdownOptions();
             if(currentActiveTab === 'admin') applyLogFilters();
         }
@@ -470,110 +487,76 @@
             const selectElement = document.getElementById('staff-dropdown');
             const cachedSelectedValue = selectElement.value;
             selectElement.innerHTML = "";
-            
-            USER_EXPLICIT_25.forEach(staffName => {
-                const optionNode = document.createElement('option');
-                optionNode.value = staffName;
-                optionNode.textContent = staffName;
-                selectElement.appendChild(optionNode);
+            USER_EXPLICIT_25.forEach(name => {
+                const opt = document.createElement('option'); opt.value = name; opt.textContent = name; selectElement.appendChild(opt);
             });
-
-            if(cachedSelectedValue && USER_EXPLICIT_25.includes(cachedSelectedValue)) {
-                selectElement.value = cachedSelectedValue;
-            } else if(USER_EXPLICIT_25.includes("A.DEMİRKAYA")) {
-                selectElement.value = "A.DEMİRKAYA";
-            } else {
-                selectElement.value = USER_EXPLICIT_25[0];
-            }
-            displayStaffCards();
+            if(cachedSelectedValue && USER_EXPLICIT_25.includes(cachedSelectedValue)) selectElement.value = cachedSelectedValue;
+            else selectElement.value = USER_EXPLICIT_25[0];
         }
 
         function displayStaffCards() {
             const selectedStaffName = document.getElementById('staff-dropdown').value;
             if(!selectedStaffName) return;
 
-            document.getElementById('worker-title-name').innerHTML = `<i class="fa-solid fa-user text-teal-500 mr-1.5"></i> ${selectedStaffName}`;
+            document.getElementById('worker-title-name').innerHTML = `<i class="fa-solid fa-user-check text-orange-500 mr-2"></i> ${selectedStaffName}`;
             const tableBody = document.getElementById('weekly-schedule-table-body');
             tableBody.innerHTML = "";
 
-            const personalShiftsList = staffSchedules[selectedStaffName] || [];
+            const personalShiftsList = mainShiftsLogPool.filter(s => s.workerName === selectedStaffName);
 
             const todayObj = new Date();
-            const tDay = todayObj.getDate();
-            const tMonth = todayObj.getMonth() + 1;
-            const tYear = todayObj.getFullYear();
-            const todayFormattedString = `${tDay < 10 ? '0'+tDay : tDay}.${tMonth < 10 ? '0'+tMonth : tMonth}.${tYear}`;
+            const todayStr = `${todayObj.getDate() < 10 ? '0'+todayObj.getDate() : todayObj.getDate()}.${(todayObj.getMonth() + 1) < 10 ? '0'+(todayObj.getMonth() + 1) : (todayObj.getMonth() + 1)}.${todayObj.getFullYear()}`;
 
             let previousDayName = "";
 
-            timePeriodDaysList.forEach((dayItem, index) => {
+            timePeriodDaysList.forEach((dayItem) => {
                 const activeShiftsOnThisDay = personalShiftsList.filter(s => s.date === dayItem.dateTitle);
-                const isToday = (dayItem.dateTitle === todayFormattedString);
+                const isToday = (dayItem.dateTitle === todayStr);
 
+                // HAFTA SEPARATÖRÜ
                 if (previousDayName === "PAZAR" && dayItem.dayTitle === "PAZARTESİ") {
-                    const separatorRow = document.createElement('tr');
-                    separatorRow.className = "bg-slate-800 text-white select-none";
-                    separatorRow.innerHTML = `
-                        <td colspan="5" class="p-2 text-center font-black text-[10px] tracking-widest uppercase border-y-2 border-slate-950">
-                            <i class="fa-solid fa-arrow-down-long text-teal-400 mr-1"></i> YENİ HAFTALIK LİSTE BAŞLANGICI <i class="fa-solid fa-arrow-down-long text-teal-400 ml-1"></i>
-                        </td>
-                    `;
-                    tableBody.appendChild(separatorRow);
+                    const sep = document.createElement('tr');
+                    sep.className = "bg-gradient-to-r from-orange-500 via-amber-500 to-sky-600 text-white font-black text-center shadow-inner";
+                    sep.innerHTML = `<td colspan="5" class="p-2.5 text-center text-[11px] tracking-widest uppercase border-y border-orange-600"><i class="fa-solid fa-angles-down text-white mr-1.5 animate-bounce"></i> SONRAKİ HAFTANIN LİSTESİ <i class="fa-solid fa-angles-down text-white ml-1.5 animate-bounce"></i></td>`;
+                    tableBody.appendChild(sep);
                 }
                 previousDayName = dayItem.dayTitle;
 
-                let rowBgClass = "bg-white hover:bg-slate-50/80 transition-all";
-                let dateBadgeHtml = `<div class="font-bold text-slate-900">${dayItem.dateTitle}</div><div class="text-[10px] text-slate-400 font-bold">${dayItem.dayTitle}</div>`;
+                let rowBgClass = "bg-white hover:bg-slate-50 transition-all";
+                let dateBadgeHtml = `<div class="font-black text-slate-800 text-sm">${dayItem.dateTitle}</div><div class="text-[11px] text-sky-600 font-extrabold uppercase tracking-wide">${dayItem.dayTitle}</div>`;
                 
                 if (isToday) {
-                    rowBgClass = "bg-teal-50/60 ring-2 ring-teal-500 ring-inset hover:bg-teal-50 transition-all";
-                    dateBadgeHtml = `
-                        <div class="flex items-center gap-1 mb-0.5">
-                            <span class="bg-teal-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm tracking-wider uppercase animate-pulse"><i class="fa-solid fa-location-crosshairs text-[8px]"></i> BUGÜN</span>
-                        </div>
-                        <div class="font-extrabold text-teal-950">${dayItem.dateTitle}</div>
-                        <div class="text-[10px] text-teal-700 font-black">${dayItem.dayTitle}</div>
-                    `;
+                    rowBgClass = "bg-orange-50/70 ring-2 ring-orange-400 ring-inset hover:bg-orange-50 transition-all";
+                    dateBadgeHtml = `<div class="flex items-center gap-1 mb-0.5"><span class="bg-orange-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm uppercase animate-pulse">BUGÜN</span></div><div class="font-black text-orange-950 text-sm">${dayItem.dateTitle}</div><div class="text-[11px] text-orange-600 font-black uppercase">${dayItem.dayTitle}</div>`;
                 }
 
                 if (activeShiftsOnThisDay.length === 0) {
                     const rowNode = document.createElement('tr');
-                    rowNode.className = isToday ? rowBgClass : "bg-rose-50/50 hover:bg-rose-100/60 transition-all text-slate-600";
+                    rowNode.className = isToday ? rowBgClass : "bg-rose-50/20 hover:bg-rose-50 transition-all text-slate-400";
                     rowNode.innerHTML = `
-                        <td class="p-3.5 pl-5 border-b border-slate-100">${dateBadgeHtml}</td>
-                        <td class="p-3.5 border-b border-slate-100 text-center">
-                            <span class="bg-rose-600 text-white border border-rose-700 text-[10px] font-black tracking-wide px-2 py-1 rounded-xl block w-full max-w-[110px] mx-auto shadow-sm text-center"><i class="fa-solid fa-mug-hot text-[10px] mr-1"></i> BOŞ / GÖREVSİZ</span>
-                        </td>
-                        <td class="p-3.5 border-b border-slate-100 text-rose-800 font-bold italic flex items-center gap-1.5 pt-4">
-                            <i class="fa-solid fa-circle-minus text-rose-400 text-sm"></i> Bu tarihte adınıza kayıtlı herhangi bir çalışma veya stüdyo yayını bulunmamaktadır.
-                        </td>
-                        <td class="p-3.5 border-b border-slate-100 text-center text-rose-300">-</td>
-                        <td class="p-3.5 border-b border-slate-100 text-right pr-5">
-                            <span class="text-[11px] text-rose-600 font-bold bg-rose-100/80 border border-rose-200 px-2.5 py-1 rounded-lg shadow-inner">İzinli / Dinlenme</span>
-                        </td>
+                        <td class="p-4 pl-5 border-b border-slate-100">${dateBadgeHtml}</td>
+                        <td class="p-4 border-b border-slate-100 text-center"><span class="bg-slate-200 text-slate-600 border border-slate-300 text-[10px] font-black tracking-wide px-2.5 py-1 rounded-xl block w-full text-center">BOŞ GÜN</span></td>
+                        <td class="p-4 border-b border-slate-100 italic text-[11px]">Planlanmış stüdyo görevi bulunmamaktadır.</td>
+                        <td class="p-4 border-b border-slate-100 text-center">-</td>
+                        <td class="p-4 border-b border-slate-100 text-right pr-5"><span class="text-[10px] text-slate-400 font-black bg-slate-100 border border-slate-200 px-2 py-1 rounded-lg">İzinli</span></td>
                     `;
                     tableBody.appendChild(rowNode);
                 } else {
-                    activeShiftsOnThisDay.forEach((shift, index) => {
+                    activeShiftsOnThisDay.forEach((shift, shiftIdx) => {
                         const rowNode = document.createElement('tr');
                         rowNode.className = rowBgClass;
-
                         const statusBadge = shift.isExtra 
-                            ? `<span class="bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-black px-2 py-1 rounded-xl block w-full max-w-[100px] mx-auto shadow-sm text-center"><i class="fa-solid fa-circle-plus"></i> EK GÖREV</span>`
-                            : `<span class="bg-emerald-600 text-white border border-emerald-700 text-[10px] font-black px-2 py-1 rounded-xl block w-full max-w-[100px] mx-auto shadow-sm text-center"><i class="fa-solid fa-briefcase text-[10px]"></i> GÖREVLİ</span>`;
+                            ? `<span class="bg-amber-500 text-white text-[10px] font-black px-2.5 py-1 rounded-xl block w-full shadow-sm text-center">EK GÖREV</span>`
+                            : `<span class="bg-sky-600 text-white text-[10px] font-black px-2.5 py-1 rounded-xl block w-full shadow-sm text-center">GÖREVLİ</span>`;
 
                         rowNode.innerHTML = `
-                            <td class="p-3.5 pl-5 border-b border-slate-100">${index === 0 ? dateBadgeHtml : ''}</td>
-                            <td class="p-3.5 border-b border-slate-100 text-center">${statusBadge}</td>
-                            <td class="p-3.5 border-b border-slate-100">
-                                <div class="text-slate-900 font-extrabold text-sm tracking-tight">${shift.program}</div>
-                            </td>
-                            <td class="p-3.5 border-b border-slate-100 text-center">
-                                <span class="bg-slate-100 border border-slate-200 text-slate-800 px-2.5 py-1 rounded-lg font-black text-[11px]"><i class="fa-solid fa-clock text-slate-400 mr-0.5"></i> ${shift.hour}</span>
-                            </td>
-                            <td class="p-3.5 border-b border-slate-100 text-right pr-5">
-                                <button onclick="triggerTeamDiscoveryModal('${shift.uniqueKey}', '${shift.program}', '${shift.date}')" class="bg-slate-50 hover:bg-teal-50 text-slate-600 hover:text-teal-700 border border-slate-200 hover:border-teal-300 font-bold text-[11px] px-3 py-1.5 rounded-xl transition-all inline-flex items-center gap-1 cursor-pointer shadow-sm">
-                                    <i class="fa-solid fa-user-group text-[10px]"></i> Ekip Arkadaşlarım
+                            <td class="p-4 pl-5 border-b border-slate-100">${shiftIdx === 0 ? dateBadgeHtml : ''}</td>
+                            <td class="p-4 border-b border-slate-100 text-center">${statusBadge}</td>
+                            <td class="p-4 border-b border-slate-100"><div class="text-slate-900 font-black text-sm tracking-tight">${shift.program}</div></td>
+                            <td class="p-4 border-b border-slate-100 text-center"><span class="bg-slate-100 border border-slate-200 text-slate-800 px-2.5 py-1 rounded-xl font-black text-[11px] inline-block shadow-sm"><i class="fa-solid fa-clock text-orange-500 mr-1"></i> ${shift.hour}</span></td>
+                            <td class="p-4 border-b border-slate-100 text-right pr-5">
+                                <button onclick="triggerTeamDiscoveryModal('${shift.uniqueKey}', '${shift.program}', '${shift.date}')" class="bg-white hover:bg-orange-500 text-slate-700 hover:text-white border border-slate-300 hover:border-orange-500 font-black text-[11px] px-3 py-2 rounded-xl transition-all inline-flex items-center gap-1 cursor-pointer shadow-sm active:scale-95">
+                                    <i class="fa-solid fa-user-group text-[10px]"></i> Ekip
                                 </button>
                             </td>
                         `;
@@ -586,30 +569,22 @@
         function triggerTeamDiscoveryModal(uniqueKey, programName, dateString) {
             const listContainer = document.getElementById('modal-staff-list');
             const headerContainer = document.getElementById('modal-info-header');
-            listContainer.innerHTML = "";
-            headerContainer.textContent = `${dateString} - ${programName}`;
+            listContainer.innerHTML = ""; headerContainer.textContent = `${dateString} - ${programName}`;
 
-            const teamMembers = mainShiftsLogPool
-                .filter(s => s.uniqueKey === uniqueKey)
-                .map(s => s.workerName);
-            
+            const teamMembers = mainShiftsLogPool.filter(s => s.uniqueKey === uniqueKey).map(s => s.workerName);
             const uniqueTeam = [...new Set(teamMembers)];
             const currentViewer = document.getElementById('staff-dropdown').value;
 
             if(uniqueTeam.length <= 1) {
-                listContainer.innerHTML = `<li class="text-slate-400 italic text-center py-4 bg-slate-50 rounded-xl">Bu stüdyo/yayın görevinde tek çalışmaktasınız.</li>`;
+                listContainer.innerHTML = `<li class="text-slate-400 italic text-center py-4 bg-slate-50 rounded-xl">Bu görevde tek çalışmaktasınız.</li>`;
             } else {
                 uniqueTeam.forEach(member => {
                     const listItem = document.createElement('li');
-                    listItem.className = `flex items-center gap-2 p-2.5 rounded-xl border ${member === currentViewer ? 'bg-teal-50 border-teal-200 text-teal-950 font-black' : 'bg-slate-50 border-slate-100 text-slate-700'}`;
-                    listItem.innerHTML = `
-                        <i class="fa-solid fa-circle-user text-base ${member === currentViewer ? 'text-teal-600' : 'text-slate-400'}"></i>
-                        <span>${member} ${member === currentViewer ? '(Siz)' : ''}</span>
-                    `;
+                    listItem.className = `flex items-center gap-2 p-2.5 rounded-xl border ${member === currentViewer ? 'bg-orange-50 border-orange-200 text-orange-950 font-black' : 'bg-slate-50 border-slate-100 text-slate-700'}`;
+                    listItem.innerHTML = `<i class="fa-solid fa-circle-user text-base ${member === currentViewer ? 'text-orange-500' : 'text-slate-400'}"></i><span>${member} ${member === currentViewer ? '(Siz)' : ''}</span>`;
                     listContainer.appendChild(listItem);
                 });
             }
-
             document.getElementById('modal-team-view').classList.remove('hidden');
         }
 
@@ -620,32 +595,21 @@
             const selectedYear = document.getElementById('filter-year').value;
 
             let localFilteredSchedules = {};
-            let localStaffSet = new Set();
             let subsetShiftsCount = 0;
             let samplePeriodStr = "-";
 
             mainShiftsLogPool.forEach(log => {
-                const monthMatch = (selectedMonth === 'ALL' || log.month === selectedMonth);
-                const yearMatch = (selectedYear === 'ALL' || log.year === selectedYear);
-
-                if(monthMatch && yearMatch) {
-                    localStaffSet.add(log.workerName);
+                if((selectedMonth === 'ALL' || log.month === selectedMonth) && (selectedYear === 'ALL' || log.year === selectedYear)) {
                     subsetShiftsCount++;
                     samplePeriodStr = `${log.month} / ${log.year}`;
-
-                    if(!localFilteredSchedules[log.workerName]) {
-                        localFilteredSchedules[log.workerName] = 0;
-                    }
-                    localFilteredSchedules[log.workerName]++;
+                    localFilteredSchedules[log.workerName] = (localFilteredSchedules[log.workerName] || 0) + 1;
                 }
             });
 
             let diagnosticStatisticsArray = [];
             USER_EXPLICIT_25.forEach(pName => {
-                let shiftCount = localFilteredSchedules[pName] || 0;
-                diagnosticStatisticsArray.push({ name: pName, count: shiftCount });
+                diagnosticStatisticsArray.push({ name: pName, count: localFilteredSchedules[pName] || 0 });
             });
-            
             diagnosticStatisticsArray.sort((a,b) => b.count - a.count);
 
             document.getElementById('metric-total-staff').textContent = USER_EXPLICIT_25.length;
@@ -657,14 +621,8 @@
             tableBodyNode.innerHTML = "";
             
             diagnosticStatisticsArray.forEach(stat => {
-                const rowNode = document.createElement('tr');
-                rowNode.className = "hover:bg-slate-50 transition-all";
-                rowNode.innerHTML = `
-                    <td class="p-2.5 font-bold text-slate-800 flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full ${stat.count > 0 ? 'bg-teal-500' : 'bg-slate-300'} shadow-sm block"></span>${stat.name}
-                    </td>
-                    <td class="p-2.5 text-center font-black ${stat.count > 0 ? 'text-slate-800 bg-slate-50' : 'text-slate-400 bg-slate-50/50'}">${stat.count} Gün</td>
-                `;
+                const rowNode = document.createElement('tr'); rowNode.className = "hover:bg-slate-50 transition-all";
+                rowNode.innerHTML = `<td class="p-2 font-bold text-slate-800 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full ${stat.count > 0 ? 'bg-orange-500' : 'bg-slate-300'} block"></span>${stat.name}</td><td class="p-2 text-center font-black ${stat.count > 0 ? 'text-slate-800 bg-slate-50' : 'text-slate-400'}">${stat.count} Gün</td>`;
                 tableBodyNode.appendChild(rowNode);
             });
 
@@ -676,13 +634,12 @@
                 data: {
                     labels: diagnosticStatisticsArray.map(s => s.name),
                     datasets: [{
-                        label: 'Çalışılan Toplam Gün',
+                        label: 'Toplam Görev Günü',
                         data: diagnosticStatisticsArray.map(s => s.count),
-                        backgroundColor: 'rgba(20, 184, 166, 0.85)',
-                        borderColor: 'rgb(13, 148, 136)',
+                        backgroundColor: 'rgba(249, 115, 22, 0.85)',
+                        borderColor: 'rgb(234, 88, 12)',
                         borderWidth: 1.5,
-                        borderRadius: 4,
-                        barPercentage: 0.6
+                        borderRadius: 4
                     }]
                 },
                 options: {
@@ -690,8 +647,8 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { beginAtZero: true, ticks: { stepSize: 1, font: { weight: 'bold' }, color: '#94a3b8' }, grid: { color: '#f1f5f9' } },
-                        x: { ticks: { font: { size: 9, weight: 'bold' }, color: '#64748b', maxRotation: 45, minRotation: 45 }, grid: { display: false } }
+                        y: { beginAtZero: true, ticks: { font: { weight: 'bold' } } },
+                        x: { ticks: { font: { size: 8, weight: 'bold' }, maxRotation: 45, minRotation: 45 } }
                     }
                 }
             });
