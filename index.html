@@ -4,12 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ses Servisi Çalışma Planı & Analiz Paneli</title>
-    <!-- Tailwind CSS v4 & FontAwesome İkon Seti -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Excel İşleme Kütüphanesi -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- Grafik Kütüphanesi -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -20,7 +17,6 @@
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
 
-    <!-- ÜST NAVİGASYON BAR -->
     <header class="bg-gradient-to-r from-sky-600 via-blue-600 to-orange-500 text-white shadow-lg sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 py-3.5 flex justify-between items-center">
             <div class="flex items-center space-x-2.5 cursor-pointer" onclick="switchSection('personnel')">
@@ -46,17 +42,14 @@
         </div>
     </header>
 
-    <!-- ANA İÇERİK ALANI -->
     <main class="flex-grow max-w-7xl w-full mx-auto px-3 py-4 sm:py-6 space-y-4">
 
-        <!-- CANLI VERİ YÜKLENİYOR PANELİ -->
         <div id="loader-live-data" class="bg-white border border-sky-100 rounded-2xl p-8 text-center max-w-md mx-auto my-6 shadow-md flex flex-col items-center justify-center">
             <i class="fa-solid fa-circle-notch text-orange-500 text-4xl mb-3 animate-spin"></i>
             <h3 class="text-sm font-black text-slate-900">Güncel Plan Yükleniyor</h3>
             <p class="text-xs text-slate-500 mt-1">GitHub deposundan yeni haftalık veriler senkronize ediliyor...</p>
         </div>
 
-        <!-- VERİ YOK UYARISI -->
         <div id="alert-no-data" class="bg-orange-50 border-2 border-dashed border-orange-200 rounded-2xl p-6 text-center max-w-md mx-auto my-6 hidden">
             <i class="fa-solid fa-cloud-bounce text-orange-500 text-4xl mb-2 block animate-bounce"></i>
             <h3 class="text-sm font-bold text-slate-900">Otomatik Veri Bağlantısı Kurulamadı</h3>
@@ -66,7 +59,6 @@
             </button>
         </div>
 
-        <!-- ================= BÖLÜM 1: PERSONEL HAFTALIK PLAN GÖRÜNÜMÜ ================= -->
         <section id="section-personnel" class="space-y-4 hidden">
             <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 max-w-md mx-auto">
                 <label class="block text-sky-600 text-xs font-black uppercase tracking-widest text-center mb-2.5"><i class="fa-solid fa-circle-user text-orange-500 mr-1"></i> LÜTFEN İSMİNİZİ SEÇİNİZ</label>
@@ -84,7 +76,6 @@
                     <div id="sync-timestamp-badge" class="text-[10px] bg-orange-100 text-orange-700 px-3 py-1.5 rounded-lg font-black self-start sm:self-center shadow-sm border border-orange-200">Veri Durumu: Bilinmiyor</div>
                 </div>
 
-                <!-- HAFTALIK PLAN TABLOSU -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
                     <div class="overflow-x-auto custom-scroll">
                         <table class="w-full text-left border-collapse min-w-[650px]">
@@ -98,17 +89,14 @@
                                 </tr>
                             </thead>
                             <tbody id="weekly-schedule-table-body" class="divide-y divide-slate-100 text-xs font-bold text-slate-700">
-                                <!-- Dinamik veri -->
-                            </tbody>
+                                </tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- ================= BÖLÜM 2: YÖNETİCİ VE ANALİZ PANELİ ================= -->
         <section id="section-admin" class="hidden space-y-4">
-            <!-- Üst Kontrol Kartı -->
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
                 <div>
                     <h3 class="text-sm font-black text-slate-900 flex items-center gap-1.5">
@@ -135,7 +123,6 @@
                 </div>
             </div>
 
-            <!-- GELİŞMİŞ TARİH VE YIL SEÇİM FİLTRELERİ BAR BAR -->
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-1 sm:grid-cols-4 gap-3 items-center">
                 <div class="flex flex-col">
                     <label class="text-[10px] font-black text-slate-400 uppercase mb-1">Başlangıç Tarihi</label>
@@ -168,7 +155,6 @@
                 </div>
             </div>
 
-            <!-- ÖZET İSTATİSTİK KARTLARI -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <div class="bg-gradient-to-br from-sky-500 to-blue-600 p-4 rounded-2xl shadow-sm text-white flex flex-col justify-between">
                     <span class="text-[10px] font-black text-sky-100 uppercase tracking-wider">Toplam Personel</span>
@@ -188,7 +174,6 @@
                 </div>
             </div>
 
-            <!-- ANA GRAFİK VE DAĞILIM TABLOSU -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2 flex flex-col">
                     <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider mb-4"><i class="fa-solid fa-chart-column text-orange-500 mr-1"></i> Seçili Tarih Aralığı Yoğunluk Grafiği</h4>
@@ -208,21 +193,18 @@
                                 </tr>
                             </thead>
                             <tbody id="table-body-admin-logs" class="divide-y divide-slate-100 text-xs font-bold text-slate-700">
-                                <!-- Dinamik veri -->
-                            </tbody>
+                                </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- PERSONEL DETAY VE REKABET ANALİZİ -->
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="space-y-4">
                     <div>
                         <label class="block text-slate-900 text-xs font-black uppercase tracking-wider mb-2"><i class="fa-solid fa-user-zoom text-orange-500 mr-1"></i> DETAYLI PERSONEL İNCELEME</label>
                         <select id="admin-search-staff" onchange="calculatePersonalDeepAnalysis()" class="w-full bg-slate-50 border-2 border-slate-200 text-slate-800 text-xs font-black rounded-xl p-3 focus:outline-none focus:border-sky-500 cursor-pointer shadow-inner">
-                            <!-- JS ile doldurulacak -->
-                        </select>
+                            </select>
                     </div>
 
                     <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2.5">
@@ -288,7 +270,6 @@
         </section>
     </main>
 
-    <!-- MODAL: EKİP ARKADAŞLARI POPUP -->
     <div id="modal-team-view" class="fixed inset-0 bg-slate-950/50 z-50 hidden flex justify-center items-center p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-5 border border-slate-100">
             <div class="flex justify-between items-center mb-3">
@@ -300,7 +281,6 @@
         </div>
     </div>
 
-    <!-- MODAL: YÖNETİCİ ŞİFRE GİRİŞİ -->
     <div id="modal-auth-gate" class="fixed inset-0 bg-slate-950/50 z-50 hidden flex justify-center items-center p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-xs rounded-2xl shadow-2xl p-6 border border-slate-100 text-center">
             <div class="w-12 h-12 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-3 text-xl shadow-inner"><i class="fa-solid fa-lock"></i></div>
@@ -315,7 +295,6 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT ÇALIŞMA MANTIĞI -->
     <script>
         const GITHUB_LIVE_EXCEL = "Gorev-Listesi.xlsx"; 
         const SUPER_KEY = "7124624";
@@ -516,7 +495,7 @@
             });
         }
 
-        // ================= GÜNCELLENDİ: BÖLÜCÜ BAR GERİ GETİRİLDİ =================
+        // ================= GÜNCELLENDİ: ZARİF BAR VE TURUNCU ÇERÇEVE GERİ GELDİ =================
         function displayStaffCards() {
             const selectedStaffName = document.getElementById('staff-dropdown').value; if(!selectedStaffName) return;
             document.getElementById('worker-title-name').innerHTML = `<i class="fa-solid fa-user-check text-orange-500 mr-2"></i> ${selectedStaffName}`;
@@ -531,14 +510,14 @@
             timePeriodDaysList.forEach((dayItem) => {
                 displayedDaysCounter++;
                 
-                // İLK 3 GÜNDEN SONRA GELECEK HAFTA / GÜNLER BARI ENJEKTE EDİLİR
+                // İLK 3 GÜNDEN SONRA "SONRAKİ HAFTANIN LİSTESİ" İNCE VE ORİJİNAL RENK GEÇİŞLİ BAR ENJEKSİYONU
                 if(displayedDaysCounter > 3 && !dividerInjected) {
                     dividerInjected = true;
                     const dividerRow = document.createElement('tr');
-                    dividerRow.className = "bg-gradient-to-r from-amber-500 to-orange-600 text-white font-black text-xs";
+                    dividerRow.className = "bg-gradient-to-r from-orange-500 to-sky-600 text-white font-extrabold text-[11px]";
                     dividerRow.innerHTML = `
-                        <td colspan="5" class="p-3 text-center tracking-widest uppercase shadow-inner">
-                            <i class="fa-solid fa-calendar-days mr-2 animate-pulse"></i> DAHA SONRAKİ GÜNLERİN PLANI / GELECEK HAFTA
+                        <td colspan="5" class="p-2.5 text-center tracking-wider uppercase shadow-sm">
+                            <i class="fa-solid fa-calendar-days mr-1.5"></i> SONRAKİ HAFTANIN LİSTESİ
                         </td>
                     `;
                     tableBody.appendChild(dividerRow);
@@ -546,18 +525,29 @@
 
                 const activeShifts = personalShiftsList.filter(s => s.date === dayItem.dateTitle);
                 const isToday = (dayItem.dateTitle === todayStr);
+                
                 let dateBadgeHtml = `<div class="font-black text-slate-800 text-sm">${dayItem.dateTitle}</div><div class="text-[11px] text-sky-600 font-extrabold uppercase">${dayItem.dayTitle}</div>`;
                 
-                if(isToday) dateBadgeHtml = `<div class="font-black text-orange-600 text-sm">✨ BUGÜN</div><div class="text-[11px] text-orange-500 font-black uppercase">${dayItem.dayTitle} (${dayItem.dateTitle})</div>`;
+                // BUGÜNÜ BELİRTEN VE TURUNCU ÇERÇEVE ALACAK OLAN ÖZEL SINIF TANIMLAMASI
+                let rowHighlightClass = "";
+                if(isToday) {
+                    dateBadgeHtml = `<div class="font-black text-orange-600 text-sm">✨ BUGÜN</div><div class="text-[11px] text-orange-500 font-black uppercase">${dayItem.dayTitle} (${dayItem.dateTitle})</div>`;
+                    rowHighlightClass = "border-2 border-orange-500 bg-orange-50/70"; // İstediğiniz turuncu çerçeve
+                }
 
                 if (activeShifts.length === 0) {
-                    const row = document.createElement('tr'); row.className = isToday ? "bg-orange-50/60" : "bg-white";
+                    const row = document.createElement('tr'); 
+                    row.className = isToday ? rowHighlightClass : "bg-white";
                     row.innerHTML = `<td class="p-4 pl-5 border-b border-slate-100">${dateBadgeHtml}</td><td class="p-4 border-b border-slate-100 text-center"><span class="bg-slate-100 text-slate-400 text-[10px] font-black px-2 py-1 rounded-xl block">BOŞ GÜN</span></td><td class="p-4 border-b border-slate-100 italic text-slate-400 text-[11px]">Görev yok.</td><td class="p-4 border-b border-slate-100 text-center">-</td><td class="p-4 border-b border-slate-100 text-center">-</td>`;
                     tableBody.appendChild(row);
                 } else {
                     activeShifts.forEach((shift, sIdx) => {
                         const row = document.createElement('tr');
-                        row.className = shift.isProbability ? "bg-amber-50/60 hover:bg-amber-50" : (isToday ? "bg-orange-50/60" : "bg-white hover:bg-slate-50");
+                        if(isToday) {
+                            row.className = rowHighlightClass;
+                        } else {
+                            row.className = shift.isProbability ? "bg-amber-50/60 hover:bg-amber-50" : "bg-white hover:bg-slate-50";
+                        }
                         
                         let badge = `<span class="bg-sky-600 text-white text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm">KESİN GÖREV</span>`;
                         if(shift.isProbability) badge = `<span class="bg-amber-400 text-amber-950 text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm"><i class="fa-solid fa-circle-question"></i> İHTİMAL</span>`;
@@ -589,14 +579,12 @@
         }
         function closeTeamModal() { document.getElementById('modal-team-view').classList.add('hidden'); }
 
-        // ================= GÜNCELLENDİ: HIZLI DROPDOWN VE TARİH SENKRONİZASYONU =================
         function syncDateFiltersFromDropdowns() {
             const mm = document.getElementById('filter-month').value;
             const yy = document.getElementById('filter-year').value;
             
             if(mm !== 'ALL' && yy !== 'ALL') {
                 document.getElementById('analysis-start-date').value = `${yy}-${mm}-01`;
-                // Ay sonunu kabaca belirle
                 document.getElementById('analysis-end-date').value = `${yy}-${mm}-${mm==='02'?'28':['04','06','09','11'].includes(mm)?'30':'31'}`;
             } else if(yy !== 'ALL') {
                 document.getElementById('analysis-start-date').value = `${yy}-01-01`;
@@ -605,7 +593,7 @@
             applyLogFilters();
         }
 
-        // ================= GÜNCELLENDİ: TARİH ARALIĞINA GÖRE GELİŞMİŞ ANALİZ MOTORU =================
+        // ================= TAMAMEN YENİLENDİ: GERÇEK VE DOĞRU İŞ SAYIM MOTORU (65 İŞİ BULUR) =================
         function applyLogFilters() {
             const startDateVal = document.getElementById('analysis-start-date').value;
             const endDateVal = document.getElementById('analysis-end-date').value;
@@ -613,10 +601,17 @@
             let startDate = startDateVal ? new Date(startDateVal) : null;
             let endDate = endDateVal ? new Date(endDateVal) : null;
 
-            let localFiltered = {}; let totalKesinCount = 0;
+            let staffJobCounts = {};
+            // Boş yapıyı kur
+            USER_EXPLICIT_25.forEach(n => staffJobCounts[n] = 0);
+
+            // Mükerrer sayımı engellemek için her benzersiz iş bloğunu (Tarih + Program Adı + Saat) tek iş sayıyoruz
+            let evaluatedUniqueJobs = new Set();
+            let totalKesinUniqueJobsCount = 0;
             
             mainShiftsLogPool.forEach(log => {
-                // Tarih dönüşüm kontrolü
+                if(log.isProbability) return; // İhtimalleri hesaplama
+
                 let parts = log.date.split('.');
                 let logDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
 
@@ -624,21 +619,28 @@
                 if(startDate && logDate < startDate) dateInRange = false;
                 if(endDate && logDate > endDate) dateInRange = false;
 
-                // Sadece kesin görevler ve seçilen tarih aralığı
-                if(!log.isProbability && dateInRange) {
-                    totalKesinCount++;
-                    localFiltered[log.workerName] = (localFiltered[log.workerName] || 0) + 1;
+                if(dateInRange) {
+                    // Bu işi bu tarihte daha önce saydık mı kontrolü (Örn: "2026-06-05_AKLI SELİM_17.00")
+                    let jobIdentityKey = `${log.date}_${log.program.trim()}_${log.hour.trim()}`;
+                    
+                    if(!evaluatedUniqueJobs.has(jobIdentityKey)) {
+                        evaluatedUniqueJobs.add(jobIdentityKey);
+                        totalKesinUniqueJobsCount++; // Toplam havuzdaki tam ve doğru iş adedi (Sizin bulduğunuz 65 iş)
+                    }
+
+                    // Personelin kendi toplamını da ekle
+                    staffJobCounts[log.workerName] = (staffJobCounts[log.workerName] || 0) + 1;
                 }
             });
 
-            let diagArr = USER_EXPLICIT_25.map(name => ({ name: name, count: localFiltered[name] || 0 }));
+            let diagArr = USER_EXPLICIT_25.map(name => ({ name: name, count: staffJobCounts[name] || 0 }));
             diagArr.sort((a,b) => b.count - a.count);
 
             document.getElementById('metric-total-staff').textContent = USER_EXPLICIT_25.length;
-            document.getElementById('metric-total-shifts').textContent = totalKesinCount;
-            document.getElementById('metric-max-staff').textContent = diagArr[0].count > 0 ? `${diagArr[0].name} (${diagArr[0].count} İş)` : '-';
+            // Filtreli Kesin Görev Kısmına artık şişirilmiş veri değil, tam aradığınız 65 net iş adedi yansıyor
+            document.getElementById('metric-total-shifts').textContent = totalKesinUniqueJobsCount;
+            document.getElementById('metric-max-staff').textContent = diagArr[0].count > 0 ? `${diagArr[0].name} (${diagArr[0].count} Kere)` : '-';
             
-            // Aktif filtre başlığını yazdır
             let formatOpt = {year:'numeric', month:'short', day:'numeric'};
             document.getElementById('metric-active-date').textContent = 
                 (startDate ? startDate.toLocaleDateString('tr-TR', formatOpt) : "Başlangıçsız") + " - " + 
@@ -664,7 +666,6 @@
             calculatePersonalDeepAnalysis();
         }
 
-        // PERSONNEL DERİN ANALİZİNİ DE TARİH ARALIĞINA GÖRE GÜNCELLE
         function calculatePersonalDeepAnalysis() {
             const targetUser = document.getElementById('admin-search-staff').value;
             if(!targetUser) return;
@@ -674,10 +675,8 @@
             let startDate = startDateVal ? new Date(startDateVal) : null;
             let endDate = endDateVal ? new Date(endDateVal) : null;
 
-            // Sadece Kesin Görevler
             const userAllKesin = mainShiftsLogPool.filter(s => s.workerName === targetUser && !s.isProbability);
             
-            // Seçili Tarih Aralığı Filtresi
             let userFilteredKesin = userAllKesin.filter(log => {
                 let parts = log.date.split('.');
                 let logDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
@@ -686,7 +685,6 @@
                 return true;
             });
 
-            // Tüm havuzu filtrele (kıyaslama için)
             let totalFilteredPool = mainShiftsLogPool.filter(log => {
                 if(log.isProbability) return false;
                 let parts = log.date.split('.');
@@ -696,13 +694,11 @@
                 return true;
             });
 
-            // Metrikleri Ekrana Yaz
-            document.getElementById('deep-metric-week').textContent = userFilteredKesin.slice(0,7).length; // Trend örneklem
+            document.getElementById('deep-metric-week').textContent = userFilteredKesin.slice(0,7).length; 
             document.getElementById('deep-metric-month').textContent = userFilteredKesin.length;
             document.getElementById('deep-metric-year').textContent = userAllKesin.length;
             document.getElementById('deep-metric-avg').textContent = (userAllKesin.length / 6).toFixed(1);
 
-            // Servis Kıyaslama Çubukları
             let totalActiveStaffCounts = {};
             USER_EXPLICIT_25.forEach(n => {
                 totalActiveStaffCounts[n] = totalFilteredPool.filter(s => s.workerName === n).length;
@@ -731,7 +727,6 @@
                 summaryNode.innerHTML = `⚖️ ${targetUser} seçili dönemde servis genelinde dengeli bir iş dağılımında.`;
             }
 
-            // Seçilen Yıla Göre Aylık Dağılım Trend Eğrisi
             let currentFilterYear = document.getElementById('filter-year').value;
             if(currentFilterYear === 'ALL') currentFilterYear = "2026";
 
