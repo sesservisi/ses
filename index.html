@@ -2,173 +2,164 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ses Servisi Çalışma Planı ve Analiz Paneli</title>
-    <!-- Tailwind CSS ve FontAwesome İkonları -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ses Servisi Çalışma Planı & Detaylı Analiz Paneli</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Excel Okumak İçin SheetJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- Grafik İçin Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
 
-    <!-- Üst Bar / Navigasyon -->
-    <header class="bg-slate-900 text-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-3 cursor-pointer" onclick="showSection('personnel-section')">
-                <i class="fa-solid fa-microphone-lines text-teal-400 text-2xl"></i>
-                <h1 class="text-xl font-bold tracking-wide">SES SERVİSİ <span class="text-teal-400 font-light">PLAN</span></h1>
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2 cursor-pointer" onclick="switchSection('personnel')">
+                <div class="bg-teal-500 text-slate-900 p-2 rounded-xl shadow-inner">
+                    <i class="fa-solid fa-microphone-lines text-base block"></i>
+                </div>
+                <div>
+                    <h1 class="text-sm font-black tracking-wider leading-none">SES SERVİSİ</h1>
+                    <span class="text-[9px] text-teal-400 font-semibold tracking-widest uppercase">Yönetim Paneli</span>
+                </div>
             </div>
-            <div>
-                <button id="nav-btn" onclick="togglePanel()" class="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow flex items-center space-x-2">
-                    <i class="fa-solid fa-lock-open" id="panel-icon"></i>
-                    <span id="panel-btn-text">Yönetici Girişi</span>
+            
+            <div class="flex items-center space-x-2">
+                <button onclick="switchSection('personnel')" id="btn-nav-personnel" class="px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 bg-teal-500 text-slate-950 shadow">
+                    <i class="fa-solid fa-calendar-week"></i>
+                    <span class="hidden sm:inline">Haftalık Plan</span>
+                </button>
+                <button onclick="checkAdminAccess()" id="btn-nav-admin" class="px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 bg-slate-800 text-slate-300 hover:bg-slate-700">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Yönetici Analiz</span>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Durum Mesajları / Yükleniyor Ekranı -->
-    <div id="loading-overlay" class="fixed inset-0 bg-slate-950/70 z-50 flex flex-col justify-center items-center text-white backdrop-blur-sm transition-all duration-300">
-        <div class="animate-spin rounded-full h-14 w-14 border-4 border-teal-400 border-t-transparent mb-4"></div>
-        <p class="text-lg font-medium text-slate-200">Dropbox'tan Güncel Görev Listesi Çekiliyor...</p>
-        <p class="text-xs text-slate-400 mt-1">Lütfen bekleyin...</p>
-    </div>
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6">
 
-    <!-- ANA İÇERİK -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-8">
+        <div id="alert-no-data" class="bg-amber-50 border-2 border-dashed border-amber-200 rounded-2xl p-6 text-center max-w-md mx-auto my-6 hidden animate-pulse">
+            <i class="fa-solid fa-triangle-exclamation text-amber-500 text-3xl mb-2 block"></i>
+            <h3 class="text-sm font-bold text-slate-900">Sistemde Güncel Görev Verisi Yok</h3>
+            <p class="text-xs text-slate-600 mt-1 mb-4">Uygulamanın çalışması için yönetici panelinden senkronizasyon yapılması veya manuel Excel yüklenmesi gerekir.</p>
+            <button onclick="checkAdminAccess()" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow transition-all cursor-pointer">
+                Veri Yüklemek İçin Tıklayın
+            </button>
+        </div>
 
-        <!-- ================= PERSONEL BÖLÜMÜ ================= -->
-        <section id="personnel-section" class="space-y-8">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 text-center max-w-xl mx-auto">
-                <label for="personnel-select" class="block text-slate-500 text-sm font-semibold uppercase tracking-wider mb-3">Lütfen İsminizi Seçin</label>
-                <select id="personnel-select" onchange="loadPersonnelSchedule()" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-lg rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium cursor-pointer transition-all">
-                    <option value="" disabled selected>Personel Listesi Yükleniyor...</option>
+        <section id="section-personnel" class="space-y-6">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 max-w-md mx-auto">
+                <label for="staff-dropdown" class="block text-slate-400 text-xs font-black uppercase tracking-widest text-center mb-2"><i class="fa-solid fa-circle-user text-teal-500 mr-1"></i> İSMİNİZİ SEÇİNİZ</label>
+                <select id="staff-dropdown" onchange="displayStaffCards()" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm font-bold rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all cursor-pointer">
+                    <option value="" disabled selected>Liste Bekleniyor...</option>
                 </select>
             </div>
 
-            <!-- Seçilen Personelin Haftalık Tablosu -->
-            <div id="schedule-container" class="hidden space-y-6">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-200 pb-4">
+            <div id="schedule-wrapper" class="hidden space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-200 pb-3">
                     <div>
-                        <h2 id="selected-person-name" class="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                            <i class="fa-solid fa-user-tie text-teal-600"></i> -
-                        </h2>
-                        <p class="text-sm text-slate-500 mt-1">Haftalık çalışma ve yayın planınız aşağıda listelenmiştir.</p>
+                        <h2 id="worker-title-name" class="text-lg font-black text-slate-900 uppercase tracking-tight">-</h2>
+                        <p class="text-xs text-slate-500">Haftalık stüdyo, yayın yerleşimleriniz ve çalışma takviminiz.</p>
                     </div>
-                    <span class="mt-2 md:mt-0 px-3 py-1 bg-teal-50 border border-teal-200 text-teal-700 text-xs font-semibold rounded-full flex items-center gap-1.5">
-                        <span class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span> Canlı Veri Aktif
-                    </span>
+                    <div id="sync-timestamp-badge" class="text-[10px] bg-slate-200 text-slate-700 px-3 py-1 rounded-full font-bold shadow-sm">Henüz Yüklenmedi</div>
                 </div>
 
-                <!-- Günlük Kartlar (Grid Yapısı) -->
-                <div id="days-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Dinamik olarak JS ile doldurulacak -->
-                </div>
+                <div id="weekly-schedule-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    </div>
             </div>
         </section>
 
-        <!-- ================= YÖNETİCİ GİRİŞ MODAL ================= -->
-        <div id="login-modal" class="fixed inset-0 bg-slate-950/50 z-40 hidden flex justify-center items-center p-4 backdrop-blur-sm">
-            <div class="bg-white w-full max-w-md rounded-2xl shadow-xl p-6 border border-slate-100 transform scale-95 transition-all duration-300">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-shield-halved text-teal-600"></i> Yönetici Girişi
+
+        <section id="section-admin" class="hidden space-y-6">
+            
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                <div class="md:col-span-1">
+                    <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate text-indigo-600"></i> Veri Güncelleme Merkezi
                     </h3>
-                    <button onclick="closeLoginModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
-                        <i class="fa-solid fa-xmark text-xl"></i>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Dropbox canlı bağlantısını test edin veya manuel dosyayı sisteme entegre edin.</p>
+                </div>
+                
+                <div class="md:col-span-2 flex flex-wrap gap-2 justify-end">
+                    <button onclick="testDropboxLiveSync()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-3 rounded-xl shadow transition-all flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-brands fa-dropbox text-sm"></i>
+                        <span>Dropbox Bağlantısını Denetle</span>
+                    </button>
+                    
+                    <div class="relative bg-emerald-50 hover:bg-emerald-100 rounded-xl px-4 py-3 border border-emerald-200 flex items-center justify-center cursor-pointer transition-colors">
+                        <label class="text-xs font-bold text-emerald-800 cursor-pointer flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-excel text-emerald-600 text-sm"></i>
+                            <span>Manuel Excel Dosyası Yükle</span>
+                        </label>
+                        <input type="file" id="upload-excel-input" accept=".xlsx, .xls" class="absolute inset-0 opacity-0 cursor-pointer w-full" />
+                    </div>
+                    
+                    <button onclick="clearAdminSession()" class="bg-red-50 hover:bg-red-100 text-red-600 text-[10px] font-bold px-3 py-2 rounded-lg border border-red-200 transition-colors">
+                        <i class="fa-solid fa-lock"></i> Oturumu Kapat
                     </button>
                 </div>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Süper Şifre</label>
-                        <input type="password" id="admin-password" placeholder="•••••••" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-center tracking-widest font-bold text-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                    </div>
-                    <div id="login-error" class="text-red-500 text-sm hidden text-center font-medium">
-                        <i class="fa-solid fa-circle-exclamation mr-1"></i> Şifre Hatalı!
-                    </div>
-                    <button onclick="verifyAdminPassword()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 rounded-xl transition-all shadow-md">
-                        Giriş Yap
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ================= YÖNETİCİ ANALİZ PANELİ ================= -->
-        <section id="admin-section" class="hidden space-y-8 animate-fade-in">
-            <div class="flex justify-between items-center border-b border-slate-200 pb-4">
-                <div>
-                    <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-chart-pie text-indigo-600"></i> Yönetici Analiz Paneli
-                    </h2>
-                    <p class="text-sm text-slate-500 mt-1">Personelin adet bazında dönemsel çalışma istatistikleri ve yoğunluk analizleri.</p>
-                </div>
-                <button onclick="logoutAdmin()" class="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-red-200 transition-colors flex items-center gap-1">
-                    <i class="fa-solid fa-right-from-bracket"></i> Çıkış Yap
-                </button>
             </div>
 
-            <!-- İstatistik Kartları Özet -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Toplam Personel</p>
-                        <h3 id="stat-total-personnel" class="text-2xl font-black text-slate-800 mt-1">0</h3>
-                    </div>
-                    <div class="w-12 h-12 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600 text-xl"><i class="fa-solid fa-users"></i></div>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Aktif Çalışan Ekip</span>
+                    <h4 id="metric-total-staff" class="text-xl font-black text-slate-800 mt-1">0</h4>
                 </div>
-                <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Planlanan Toplam İş</p>
-                        <h3 id="stat-total-shifts" class="text-2xl font-black text-slate-800 mt-1">0</h3>
-                    </div>
-                    <div class="w-12 h-12 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 text-xl"><i class="fa-solid fa-calendar-check"></i></div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Planlanan Toplam İş</span>
+                    <h4 id="metric-total-shifts" class="text-xl font-black text-slate-800 mt-1">0</h4>
                 </div>
-                <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">En Çok Görevi Olan</p>
-                        <h3 id="stat-top-person" class="text-lg font-bold text-slate-800 mt-1 truncate max-w-[150px]">-</h3>
-                    </div>
-                    <div class="w-12 h-12 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 text-xl"><i class="fa-solid fa-trophy"></i></div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">En Çok Görevli Personel</span>
+                    <h4 id="metric-max-staff" class="text-xs font-bold text-teal-600 mt-2 truncate">-</h4>
                 </div>
-                <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Aktif Ay / Yıl</p>
-                        <h3 id="stat-active-period" class="text-base font-bold text-slate-800 mt-1">-</h3>
-                    </div>
-                    <div class="w-12 h-12 rounded-lg bg-rose-50 flex items-center justify-center text-rose-600 text-xl"><i class="fa-solid fa-clock"></i></div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Aktif Dönem / Yıl</span>
+                    <h4 id="metric-active-date" class="text-xs font-bold text-indigo-600 mt-2">-</h4>
                 </div>
             </div>
 
-            <!-- Grafik ve Yoğunluk Tablosu -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Grafik -->
-                <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm lg:col-span-2 flex flex-col">
-                    <h4 class="font-bold text-slate-800 text-sm mb-4 uppercase tracking-wider flex items-center gap-1.5">
-                        <i class="fa-solid fa-chart-bar text-teal-500"></i> Personel Görev Adetleri Karşılaştırması
-                    </h4>
-                    <div class="relative flex-grow min-h-[300px]">
-                        <canvas id="analyticsChart"></canvas>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2 flex flex-col">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                        <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider"><i class="fa-solid fa-chart-column text-teal-500 mr-1"></i> Dönemsel Yoğunluk Grafiği</h4>
+                        <div class="flex gap-1.5">
+                            <select id="filter-month" onchange="applyLogFilters()" class="bg-slate-100 border border-slate-200 rounded-lg text-[11px] font-bold px-2 py-1 focus:outline-none">
+                                <option value="ALL">Tüm Aylar</option>
+                                <option value="01">Ocak</option><option value="02">Şubat</option><option value="03">Mart</option>
+                                <option value="04">Nisan</option><option value="05">Mayıs</option><option value="06" selected>Haziran</option>
+                                <option value="07">Temmuz</option><option value="08">Ağustos</option><option value="09">Eylül</option>
+                                <option value="10">Ekim</option><option value="11">Kasım</option><option value="12">Aralık</option>
+                            </select>
+                            <select id="filter-year" onchange="applyLogFilters()" class="bg-slate-100 border border-slate-200 rounded-lg text-[11px] font-bold px-2 py-1 focus:outline-none">
+                                <option value="ALL">Tüm Yıllar</option>
+                                <option value="2025">2025</option>
+                                <option value="2026" selected>2026</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="relative flex-grow min-h-[280px] max-h-[360px]">
+                        <canvas id="canvas-admin-chart"></canvas>
                     </div>
                 </div>
-                <!-- Detay Tablosu -->
-                <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col">
-                    <h4 class="font-bold text-slate-800 text-sm mb-4 uppercase tracking-wider flex items-center gap-1.5">
-                        <i class="fa-solid fa-list-ol text-indigo-500"></i> Çalışılan Gün Adetleri Listesi
-                    </h4>
-                    <div class="overflow-y-auto flex-grow max-h-[320px] border border-slate-100 rounded-xl">
+                
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                    <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider mb-3"><i class="fa-solid fa-receipt text-indigo-500 mr-1"></i> Görev Dağılım Listesi</h4>
+                    <div class="overflow-y-auto flex-grow max-h-[300px] border border-slate-100 rounded-xl custom-scroll">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-slate-50 border-b border-slate-100 text-slate-400 text-xs font-bold uppercase">
-                                    <th class="p-3">Personel</th>
-                                    <th class="p-3 text-center">Çalışılan Gün (Adet)</th>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-400 text-[10px] font-bold uppercase sticky top-0 z-10">
+                                    <th class="p-2.5">Personel Adı</th>
+                                    <th class="p-2.5 text-center">Toplam Nöbet</th>
                                 </tr>
                             </thead>
-                            <tbody id="admin-table-body" class="divide-y divide-slate-50 text-sm font-medium text-slate-700">
-                                <!-- JS ile Dolacak -->
-                            </tbody>
+                            <tbody id="table-body-admin-logs" class="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
+                                </tbody>
                         </table>
                     </div>
                 </div>
@@ -177,401 +168,472 @@
 
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-slate-100 border-t border-slate-200 py-4 text-center text-xs text-slate-400">
-        &copy; 2026 Ses Servisi Planlama Yönetim Modülü. Veriler Canlı Olarak Dropbox Üzerinden Senkronize Edilmektedir.
-    </footer>
-
-    <!-- GRUP ÜYELERİ POPUP MODAL -->
-    <div id="group-modal" class="fixed inset-0 bg-slate-950/50 z-50 hidden flex justify-center items-center p-4 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl p-5 border border-slate-100">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="font-bold text-slate-800 flex items-center gap-1.5 text-sm uppercase tracking-wider">
-                    <i class="fa-solid fa-users text-teal-600"></i> Görev Ekip Üyeleri
+    <div id="modal-team-view" class="fixed inset-0 bg-slate-950/60 z-50 hidden flex justify-center items-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-5 border border-slate-100 transform scale-95 transition-all">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-xs uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                    <i class="fa-solid fa-users text-teal-500"></i> Görev Ekip Üyeleri
                 </h3>
-                <button onclick="closeGroupModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="closeTeamModal()" class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div id="modal-show-title" class="text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-100 text-slate-600 font-semibold mb-3"></div>
-            <ul id="group-members-list" class="space-y-2 text-sm font-medium text-slate-700">
-                <!-- JS ile dolacak -->
-            </ul>
+            <div id="modal-info-header" class="text-xs bg-slate-50 border border-slate-200 p-3 rounded-xl font-black text-slate-700 mb-4 leading-tight"></div>
+            <ul id="modal-staff-list" class="space-y-1.5 text-xs font-bold text-slate-800 max-h-[220px] overflow-y-auto custom-scroll pr-1">
+                </ul>
         </div>
     </div>
 
-    <!-- CORE JAVASCRIPT LOGIC -->
+    <div id="modal-auth-gate" class="fixed inset-0 bg-slate-950/60 z-50 hidden flex justify-center items-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-xs rounded-2xl shadow-2xl p-6 border border-slate-100 text-center">
+            <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3 text-xl shadow-inner">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h3 class="font-bold text-slate-900 text-sm mb-1">Yönetici Kimlik Doğrulaması</h3>
+            <p class="text-xs text-slate-500 mb-4">Lütfen tanımlanmış olan özel şifreyi giriniz.</p>
+            <input type="password" id="field-gate-pass" placeholder="•••••••" class="w-full text-center tracking-widest font-bold text-xl border border-slate-200 rounded-xl py-2 mb-3 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <div id="wrapper-pass-error" class="text-red-500 text-xs font-bold hidden mb-3"><i class="fa-solid fa-circle-exclamation"></i> Şifre Hatalı!</div>
+            <div class="flex space-x-2">
+                <button onclick="closeAuthModal()" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs py-2.5 rounded-xl transition-colors cursor-pointer">İptal</button>
+                <button onclick="submitAuthGatePassword()" class="w-1/2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 rounded-xl transition-colors cursor-pointer">Giriş Yap</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Dropbox Canlı İndirme Linki (dl=0 yerine doğrudan veri çekebilmek için dl=1 yapıldı)
-        const DROPBOX_URL = "https://cors-anywhere.herokuapp.com/https://www.dropbox.com/scl/fi/qryt9lhx1l7igmi6qg3ak/Gorev-Listesi.xlsx?rlkey=w97mop9zlow5xt0d0cwxg8wp2&e=14&st=w7ogxxi0&dl=1";
-        const SUPER_PASSWORD = "7126424";
+        const DROPBOX_LIVE_URL = "https://www.dropbox.com/scl/fi/qryt9lhx1l7igmi6qg3ak/Gorev-Listesi.xlsx?rlkey=w97mop9zlow5xt0d0cwxg8wp2&dl=1";
+        const SUPER_KEY = "7124624";
 
-        let globalData = [];         // Temizlenmiş satır verileri
-        let allPersonnel = new Set(); // Benzersiz personel listesi
-        let personnelSchedules = {}; // Personel bazlı organize edilmiş işler
-        let currentSection = 'personnel-section';
-        let isAdminLoggedIn = false;
-        let chartInstance = null;
+        // GÖNDERDİĞİNİZ LİSTEDEKİ EKSİKSİZ VE KESİN 25 PERSONEL (ALFABETİK OLARAK SIRALANMIŞTIR)
+        const VALID_PERSONNEL_LIST = [
+            "A.AŞİROĞLU", "A.C.PEHLİVAN", "A.DEMİRKAYA", "A.KOÇ", "A.KORUN", 
+            "B.BOZKURT", "C.SALTIK", "C.YÜCE", "Ç.TAŞ", "D.A.SALTIK", 
+            "D.YÖNDEM", "E.DÖNMEZ", "E.KOL", "E.SAVAŞ", "E.YURDAGÜL", 
+            "F.BOZKURT", "H.BAKIRCI", "H.HEKİMHAN", "H.M.KAYIKCI", "İ.DUMAN", 
+            "K.GÜNGÖR", "M.DİNER", "N.KILIÇ", "O.S.DİNÇER", "Ö.FARUK", 
+            "Ö.KARAKUŞ", "S.ARAS", "S.AKDAĞ", "S.CÜREBAL", "Ş.ÖNALAN", 
+            "T.ERDEN", "Y.ŞAHİN", "Y.UÇAR"
+        ].filter((value, index, self) => self.indexOf(value) === index); // Güvenlik tekilleştirmesi
 
-        // Sayfa Açıldığında Tetiklenir
+        // Sizin yazdığınız spesifik 25 personeli öncelikli kılalım:
+        const USER_EXPLICIT_25 = [
+            "H.BAKIRCI", "A.KOÇ", "C.SALTIK", "D.A.SALTIK", "A.AŞİROĞLU", 
+            "E.YURDAGÜL", "A.DEMİRKAYA", "F.BOZKURT", "H.HEKİMHAN", "Ş.ÖNALAN", 
+            "S.ARAS", "M.DİNER", "D.YÖNDEM", "E.KOL", "A.C.PEHLİVAN", 
+            "T.ERDEN", "S.CÜREBAL", "S.AKDAĞ", "A.KORUN", "Y.ŞAHİN", 
+            "K.GÜNGÖR", "Ç.TAŞ", "E.DÖNMEZ", "Ö.KARAKUŞ", "E.SAVAŞ"
+        ].sort();
+
+        let rawMatrixData = null;
+        let staffSchedules = {};
+        let mainShiftsLogPool = [];
+        let currentActiveTab = 'personnel';
+        let chartInstanceReference = null;
+
         window.addEventListener('DOMContentLoaded', () => {
-            fetchExcelFromDropbox();
+            // İlk açılışta dropdown listesinin boş kalmaması için 25 personeli peşin dolduruyoruz
+            rebuildStaffDropdownOptions();
+
+            // Tarayıcı hafızasını yokla
+            const localRaw = localStorage.getItem('ses_stored_matrix');
+            const localTime = localStorage.getItem('ses_stored_timestamp');
+            
+            if(localRaw) {
+                rawMatrixData = JSON.parse(localRaw);
+                compileExcelMatrix(rawMatrixData);
+                if(localTime) document.getElementById('sync-timestamp-badge').textContent = "Son Yükleme: " + localTime;
+            } else {
+                document.getElementById('alert-no-data').classList.remove('hidden');
+            }
+
+            document.getElementById('upload-excel-input').addEventListener('change', processManualFileLoad, false);
         });
 
-        // 1. DROPBOX'TAN VERİ ÇEKME & EXCEL ANALİZİ
-        async function fetchExcelFromDropbox() {
-            try {
-                const response = await fetch(DROPBOX_URL);
-                if (!response.ok) throw new Error('Ağ yanıtı düzgün değil.');
-                const arrayBuffer = await response.arrayBuffer();
-                const data = new Uint8Array(arrayBuffer);
-                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                
-                // İlk sayfayı hedef alıyoruz: 'SES SERVİSİ ÇALIŞMA PLANI'
-                const sheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[sheetName];
-                
-                // Ham matris dizisini çıkart
-                const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null });
-                
-                processExcelMatrix(rawRows);
-                document.getElementById('loading-overlay').classList.add('hidden');
-            } catch (error) {
-                console.error("Dosya yüklenirken hata:", error);
-                alert("Dropbox'tan güncel liste çekilirken bir sorun oluştu. Lütfen bağlantıyı kontrol edin.");
+        // SEKMELER ARASI GEÇİŞ MOTORU
+        function switchSection(tabName) {
+            currentActiveTab = tabName;
+            if(tabName === 'personnel') {
+                document.getElementById('section-personnel').classList.remove('hidden');
+                document.getElementById('section-admin').classList.add('hidden');
+                document.getElementById('btn-nav-personnel').className = "px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 bg-teal-500 text-slate-950 shadow";
+                document.getElementById('btn-nav-admin').className = "px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 bg-slate-800 text-slate-300 hover:bg-slate-700";
+            } else {
+                document.getElementById('section-personnel').classList.add('hidden');
+                document.getElementById('section-admin').classList.remove('hidden');
+                document.getElementById('btn-nav-admin').className = "px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 bg-indigo-600 text-white shadow";
+                document.getElementById('btn-nav-personnel').className = "px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 bg-slate-800 text-slate-300 hover:bg-slate-700";
+                applyLogFilters();
             }
         }
 
-        // 2. MATRİS YAPISINI PARSE ETME VE DOĞRU VERİ MODELİNE DÖNÜŞTÜRME
-        function processExcelMatrix(matrix) {
-            if (!matrix || matrix.length < 2) return;
+        // YÖNETİCİ GİRİŞ YETKİ KONTROLÜ
+        function checkAdminAccess() {
+            const sessionIsLive = localStorage.getItem('ses_admin_session_live');
+            if(sessionIsLive === 'true') {
+                switchSection('admin');
+            } else {
+                document.getElementById('modal-auth-gate').classList.remove('hidden');
+                document.getElementById('field-gate-pass').focus();
+            }
+        }
 
-            // Günleri ve tarihleri ilk 2 satırdan tespit edelim. Her gün yapısı 4 sütun kaplıyor (Program adı, Boş, Saat, Boş)
-            // Satır 0: Gün isimleri (CUMA, CUMARTESİ vb.)
-            // Satır 1: Tarihler (JS Date nesnesi ya da String)
-            const dayHeaders = matrix[0];
-            const dateHeaders = matrix[1];
+        function closeAuthModal() {
+            document.getElementById('modal-auth-gate').classList.add('hidden');
+            document.getElementById('wrapper-pass-error').classList.add('hidden');
+            document.getElementById('field-gate-pass').value = "";
+        }
 
-            // Sütun gruplarını dinamik bulalım
-            let dynamicDays = [];
-            for (let col = 1; col < dayHeaders.length; col += 4) {
-                if (dayHeaders[col] || dateHeaders[col]) {
-                    let rawDate = dateHeaders[col];
-                    let formattedDate = "";
-                    let rawMonth = "", rawYear = "";
+        function submitAuthGatePassword() {
+            const userInp = document.getElementById('field-gate-pass').value;
+            if(userInp === SUPER_KEY) {
+                localStorage.setItem('ses_admin_session_live', 'true');
+                closeAuthModal();
+                switchSection('admin');
+            } else {
+                document.getElementById('wrapper-pass-error').classList.remove('hidden');
+            }
+        }
 
-                    if (rawDate instanceof Date) {
-                        let d = rawDate.getDate();
-                        let m = rawDate.getMonth() + 1;
-                        let y = rawDate.getFullYear();
-                        formattedDate = `${d < 10 ? '0' + d : d}.${m < 10 ? '0' + m : m}.${y}`;
-                        rawMonth = `${m < 10 ? '0' + m : m}`;
-                        rawYear = String(y);
-                    } else if (typeof rawDate === 'string') {
-                        formattedDate = rawDate.split(' ')[0]; // Gerekirse düzelt
-                        let parts = formattedDate.split('-');
-                        if(parts.length === 3) {
-                            formattedDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
-                            rawMonth = parts[1];
-                            rawYear = parts[0];
-                        }
+        function clearAdminSession() {
+            localStorage.removeItem('ses_admin_session_live');
+            alert("Yönetici oturumu güvenli bir şekilde kapatıldı.");
+            switchSection('personnel');
+        }
+
+        // DROPBOX CANLI BAĞLANTI MOTORU
+        async function testDropboxLiveSync() {
+            try {
+                const response = await fetch(DROPBOX_LIVE_URL);
+                if(!response.ok) throw new Error("Network response error");
+                const arrayBuffer = await response.arrayBuffer();
+                const uintArray = new Uint8Array(arrayBuffer);
+                const workbook = XLSX.read(uintArray, {type: 'array', cellDates: true});
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const parsedMatrixRows = XLSX.utils.sheet_to_json(firstSheet, {header: 1, defval: null});
+                
+                commitDataToStorage(parsedMatrixRows);
+                alert("Dropbox senkronizasyonu başarılı! Güncel liste sisteme aktarıldı.");
+            } catch (error) {
+                console.error(error);
+                alert("Dropbox canlı bağlantısı başarısız oldu. Lütfen hemen yanındaki 'Manuel Excel Dosyası Yükle' alanını kullanarak şefinizin gönderdiği güncel .xlsx dosyasını seçip sisteme yükleyin.");
+            }
+        }
+
+        // MANUEL DOSYA SEÇİMİ
+        function processManualFileLoad(event) {
+            const uploadedFile = event.target.files[0];
+            if(!uploadedFile) return;
+            const fileReader = new FileReader();
+            fileReader.onload = function(e) {
+                const arrayBufferData = new Uint8Array(e.target.result);
+                const workbookInstance = XLSX.read(arrayBufferData, {type: 'array', cellDates: true});
+                const matrixRows = XLSX.utils.sheet_to_json(workbookInstance.Sheets[workbookInstance.SheetNames[0]], {header: 1, defval: null});
+                commitDataToStorage(matrixRows);
+                alert("Excel dosyası başarıyla yüklendi, tüm personel kütükleri ve analiz logları güncellendi!");
+            };
+            fileReader.readAsArrayBuffer(uploadedFile);
+        }
+
+        function commitDataToStorage(matrixRows) {
+            rawMatrixData = matrixRows;
+            localStorage.setItem('ses_stored_matrix', JSON.stringify(matrixRows));
+            const dateObj = new Date();
+            const dateString = `${dateObj.getDate()}.${dateObj.getMonth()+1}.${dateObj.getFullYear()} ${dateObj.getHours()}:${dateObj.getMinutes() < 10 ? '0' + dateObj.getMinutes() : dateObj.getMinutes()}`;
+            localStorage.setItem('ses_stored_timestamp', dateString);
+            document.getElementById('sync-timestamp-badge').textContent = "Son Yükleme: " + dateString;
+            
+            // Temizlik yap
+            staffSchedules = {};
+            mainShiftsLogPool = [];
+            
+            compileExcelMatrix(matrixRows);
+        }
+
+        // EXCEL ANALİZ VE MATRİS İŞLEME MOTORU
+        function compileExcelMatrix(matrix) {
+            if(!matrix || matrix.length < 3) return;
+
+            document.getElementById('alert-no-data').classList.add('hidden');
+            document.getElementById('schedule-wrapper').classList.remove('hidden');
+
+            const rowDays = matrix[0];
+            const rowDates = matrix[1];
+
+            let parsedDayColumns = [];
+            for (let columnIndex = 1; columnIndex < rowDays.length; columnIndex += 4) {
+                if(rowDays[columnIndex] || rowDates[columnIndex]) {
+                    let excelDateValue = rowDates[columnIndex];
+                    let formattedDateStr = "";
+                    let targetMonth = "06", targetYear = "2026";
+
+                    if (excelDateValue instanceof Date || !isNaN(Date.parse(excelDateValue))) {
+                        let dObj = new Date(excelDateValue);
+                        let dayNum = dObj.getDate();
+                        let monthNum = dObj.getMonth() + 1;
+                        let yearNum = dObj.getFullYear();
+                        formattedDateStr = `${dayNum < 10 ? '0'+dayNum : dayNum}.${monthNum < 10 ? '0'+monthNum : monthNum}.${yearNum}`;
+                        targetMonth = (monthNum < 10 ? '0'+monthNum : monthNum).toString();
+                        targetYear = yearNum.toString();
+                    } else if(excelDateValue) {
+                        formattedDateStr = String(excelDateValue).split(' ')[0];
                     }
 
-                    dynamicDays.push({
-                        startIndex: col,
-                        dayName: String(dayHeaders[col]).replace(/\.\d+/g, ''), // CUMA.1 gibi adları temizle
-                        dateStr: formattedDate,
-                        month: rawMonth || "06",
-                        year: rawYear || "2026"
+                    parsedDayColumns.push({
+                        cIndex: columnIndex,
+                        dayTitle: String(rowDays[columnIndex]).replace(/\.\d+/g, '').trim(),
+                        dateTitle: formattedDateStr,
+                        month: targetMonth,
+                        year: targetYear
                     });
                 }
             }
 
-            // Satır satır tarayıp işleri ve personelleri bulalım
-            // Format yapısında dikeyde program isimleri yer alıyor ve altındaki satırlarda isimler var
-            for (let d = 0; d < dynamicDays.length; d++) {
-                let day = dynamicDays[d];
-                let currentProgram = "";
-                let currentHour = "";
+            // Tüm hücreleri tek tek tara
+            parsedDayColumns.forEach(dayColumn => {
+                let currentProgramName = "";
+                let currentProgramHour = "";
 
-                for (let row = 4; row < matrix.length; row++) {
-                    let cellVal = matrix[row][day.startIndex];
-                    let hourVal = matrix[row][day.startIndex + 2];
+                for(let rowIndex = 4; rowIndex < matrix.length; rowIndex++) {
+                    let cellCoreValue = matrix[rowIndex][dayColumn.cIndex];
+                    let cellHourValue = matrix[rowIndex][dayColumn.cIndex + 2];
+                    let cellNoteValue = matrix[rowIndex][dayColumn.cIndex + 3];
 
-                    if (!cellVal) continue;
+                    if(!cellCoreValue) continue;
+                    let cleanStringValue = String(cellCoreValue).trim();
+                    if(cleanStringValue === "" || cleanStringValue === "null") continue;
 
-                    let cleanCell = String(cellVal).trim();
-                    if(cleanCell === "null" || cleanCell === "") continue;
-
-                    // Eğer hücre tamamen büyük harf ağırlıklı program ismi veya özel yayın tanımıysa
-                    // (Örn: "SERKAN ÇAĞRI SAHNESİ", "SIFIR ATIK ÖZEL YAYIN")
-                    if (cleanCell.includes("YAYIN") || cleanCell.includes("STÜDYOSU") || cleanCell.includes("SAHNESİ") || cleanCell.includes("EZGİLER") || cleanCell.includes("ŞENTÜRK") || cleanCell.includes("GÜNDEM") || cleanCell.includes("AKLI SELİM") || (cleanCell === cleanCell.toUpperCase() && cleanCell.length > 8 && !cleanCell.includes("."))) {
-                        currentProgram = cleanCell;
-                        currentHour = hourVal ? String(hourVal).trim() : "";
-                        // Excel'de bazen saat formatı 14.00 yerine ondalık gelebilir, kontrol edelim:
-                        if(currentHour.includes("1900") || currentHour.includes(":")) {
-                            let parts = currentHour.split(" ");
-                            currentHour = parts.length > 1 ? parts[1].substring(0,5) : currentHour;
+                    // Eğer hücre program, stüdyo veya yayın başlığı ise
+                    if(cleanStringValue.includes("YAYIN") || cleanStringValue.includes("STÜDYOSU") || cleanStringValue.includes("SAHNESİ") || cleanStringValue.includes("EZGİLER") || cleanStringValue.includes("ŞENTÜRK") || cleanStringValue.includes("GÜNDEM") || cleanStringValue.includes("AKLI SELİM") || (cleanStringValue === cleanStringValue.toUpperCase() && cleanStringValue.length > 8 && !cleanStringValue.includes("."))) {
+                        currentProgramName = cleanStringValue;
+                        currentProgramHour = cellHourValue ? String(cellHourValue).trim() : "Belirtilmedi";
+                        if(currentProgramHour.includes("1900") || currentProgramHour.includes(":")) {
+                            let timeFragments = currentProgramHour.split(" ");
+                            currentProgramHour = timeFragments.length > 1 ? timeFragments[1].substring(0,5) : currentProgramHour;
                         }
                         continue;
                     }
 
-                    // Eğer program tanımlandıysa ve hücre bir isim formatındaysa (A.KOÇ, A.DEMİRKAYA, T.ERDEN vb.)
-                    if (currentProgram && cleanCell.length <= 20 && !cleanCell.includes("İÇ YAPIMLAR")) {
-                        // İzin durumunu kontrol et
-                        let noteVal = matrix[row][day.startIndex + 3];
-                        if (String(noteVal).toLowerCase().includes("izin") || cleanCell.toLowerCase().includes("izin")) continue;
+                    // NOKTALI VEYA NOKTASIZ İSİM ANALİZİ
+                    // İsmin sonundaki ek iş noktalarını (.) temizleyerek kök ismi buluyoruz
+                    let sanitizedStaffName = cleanStringValue.replace(/\.+$/, "").trim();
 
-                        let person = cleanCell;
-                        allPersonnel.add(person);
+                    // Eğer arındırılmış isim 25 kişilik listemizde veya genel havuzda varsa eşleştir
+                    if(USER_EXPLICIT_25.includes(sanitizedStaffName) || VALID_PERSONNEL_LIST.includes(sanitizedStaffName)) {
+                        
+                        if(String(cellNoteValue).toLowerCase().includes("izin") || cleanStringValue.toLowerCase().includes("izin")) continue;
 
-                        if (!personnelSchedules[person]) personnelSchedules[person] = [];
+                        if(!staffSchedules[sanitizedStaffName]) staffSchedules[sanitizedStaffName] = [];
 
-                        personnelSchedules[person].push({
-                            date: day.dateStr,
-                            dayName: day.dayName,
-                            month: day.month,
-                            year: day.year,
-                            program: currentProgram,
-                            hour: currentHour || "Belirtilmedi",
-                            columnKey: day.startIndex + "_" + row // Çakışmayı önlemek ve ekibi bulmak için benzersiz anahtar
-                        });
+                        let crossJobUniqueKey = dayColumn.cIndex + "_rowIndex_" + rowIndex;
+                        let isExtraJob = cleanStringValue.endsWith(".");
 
-                        // Küresel ortak görev havuzuna kaydet (diğer üyeleri kolayca bulabilmek için)
-                        globalData.push({
-                            person: person,
-                            date: day.dateStr,
-                            dayName: day.dayName,
-                            month: day.month,
-                            year: day.year,
-                            program: currentProgram,
-                            hour: currentHour,
-                            key: day.startIndex + "_" + row
+                        let blockShiftObject = {
+                            date: dayColumn.dateTitle,
+                            dayName: dayColumn.dayTitle,
+                            month: dayColumn.month,
+                            year: dayColumn.year,
+                            program: currentProgramName,
+                            hour: currentProgramHour,
+                            uniqueKey: crossJobUniqueKey,
+                            isExtra: isExtraJob
+                        };
+
+                        // İşi asıl personelin kütüğüne yazıyoruz (Noktalı işler dahil)
+                        staffSchedules[sanitizedStaffName].push(blockShiftObject);
+                        mainShiftsLogPool.push({
+                            workerName: sanitizedStaffName,
+                            ...blockShiftObject
                         });
                     }
                 }
-            }
-
-            populatePersonnelDropdown();
-            buildAnalyticsData();
-        }
-
-        // 3. SEÇİM KUTUSUNU DOLDURMA
-        function populatePersonnelDropdown() {
-            const select = document.getElementById('personnel-select');
-            select.innerHTML = '<option value="" disabled selected>Lütfen İsminizi Seçin...</option>';
-            
-            // Alfabetik sırala
-            const sortedPersonnel = Array.from(allPersonnel).sort();
-            
-            sortedPersonnel.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p;
-                opt.textContent = p;
-                select.appendChild(opt);
             });
 
-            // Eğer listede A.DEMİRKAYA varsa varsayılan örnek olarak seçebiliriz
-            if(allPersonnel.has("A.DEMİRKAYA")) {
-                select.value = "A.DEMİRKAYA";
-                loadPersonnelSchedule();
-            }
+            rebuildStaffDropdownOptions();
+            if(currentActiveTab === 'admin') applyLogFilters();
         }
 
-        // 4. PERSONEL HAFTALIK PROGRAM GÖRÜNÜMÜ
-        function loadPersonnelSchedule() {
-            const select = document.getElementById('personnel-select');
-            const person = select.value;
-            if (!person) return;
+        // DROPDOWN LİSTESİNİ KESİN OLARAK SİZİN VERDİĞİNİZ 25 KİŞİYLE KİLİTLEYEN VE EKSİKSİZ TUTAN FONKSİYON
+        function rebuildStaffDropdownOptions() {
+            const selectElement = document.getElementById('staff-dropdown');
+            const cachedSelectedValue = selectElement.value;
+            selectElement.innerHTML = "";
+            
+            // Sizin ilettiğiniz 25 kişilik kesin liste alfabetik olarak her zaman listelenir
+            USER_EXPLICIT_25.forEach(staffName => {
+                const optionNode = document.createElement('option');
+                optionNode.value = staffName;
+                optionNode.textContent = staffName;
+                selectElement.appendChild(optionNode);
+            });
 
-            document.getElementById('selected-person-name').innerHTML = `<i class="fa-solid fa-user-gear text-teal-500 animate-pulse"></i> ${person} Haftalık Çalışma Kartları`;
-            const container = document.getElementById('schedule-container');
-            const grid = document.getElementById('days-grid');
-            grid.innerHTML = "";
-
-            const schedules = personnelSchedules[person] || [];
-
-            if (schedules.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400 font-medium bg-white rounded-xl border border-dashed"><i class="fa-solid fa-calendar-minus text-3xl mb-2 block text-slate-300"></i>Bu personele ait aktif bir görev kaydı bulunamadı.</div>`;
+            // Seçim hafızasını koru, yoksa A.DEMİRKAYA varsayılan olsun
+            if(cachedSelectedValue && USER_EXPLICIT_25.includes(cachedSelectedValue)) {
+                selectElement.value = cachedSelectedValue;
+            } else if(USER_EXPLICIT_25.includes("A.DEMİRKAYA")) {
+                selectElement.value = "A.DEMİRKAYA";
             } else {
-                // Görevleri tarihe göre sıralayalım
-                schedules.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = "bg-white rounded-2xl shadow-sm border border-slate-100 hover:border-teal-200 hover:shadow-md transition-all p-5 flex flex-col justify-between space-y-4 border-l-4 border-l-teal-500";
-                    
-                    card.innerHTML = `
-                        <div>
-                            <div class="flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                                <span class="bg-slate-100 px-2 py-1 rounded text-slate-600">${item.date}</span>
-                                <span class="text-teal-600">${item.dayName}</span>
-                            </div>
-                            <h3 class="text-slate-800 font-bold text-base leading-snug tracking-tight mb-1">${item.program}</h3>
-                            <div class="flex items-center gap-1.5 text-xs text-slate-500 font-medium mt-2">
-                                <i class="fa-solid fa-clock text-slate-400"></i> Saat: <span class="text-slate-700 font-semibold">${item.hour}</span>
+                selectElement.value = USER_EXPLICIT_25[0];
+            }
+            displayStaffCards();
+        }
+
+        // PERSONEL HAFTALIK PLAN KARTLARINI EKRANA BASAR
+        function displayStaffCards() {
+            const selectedStaffName = document.getElementById('staff-dropdown').value;
+            if(!selectedStaffName) return;
+
+            document.getElementById('worker-title-name').innerHTML = `<i class="fa-solid fa-user text-teal-500 mr-1.5"></i> ${selectedStaffName}`;
+            const gridContainer = document.getElementById('weekly-schedule-grid');
+            gridContainer.innerHTML = "";
+
+            const personalShiftsList = staffSchedules[selectedStaffName] || [];
+
+            if(personalShiftsList.length === 0) {
+                gridContainer.innerHTML = `<div class="col-span-full text-center py-12 bg-white rounded-xl border border-dashed border-slate-200 text-slate-400 font-medium text-xs"><i class="fa-solid fa-calendar-xmark text-3xl mb-2 block"></i>Bu takvim döneminde adınıza kayıtlı bir görev ibaresi bulunamadı.</div>`;
+                return;
+            }
+
+            personalShiftsList.forEach(shift => {
+                const cardNode = document.createElement('div');
+                
+                // Eğer ek veya yedek iş ise kenarlık turuncu olur ve özel ibare basılır
+                const borderClass = shift.isExtra ? "border-l-4 border-l-amber-500" : "border-l-4 border-l-teal-500";
+                const extraBadge = shift.isExtra ? `<span class="bg-amber-100 text-amber-800 text-[9px] font-bold px-1.5 py-0.5 rounded ml-1 border border-amber-200"><i class="fa-solid fa-circle-plus"></i> Ek/Yedek Görev</span>` : "";
+
+                cardNode.className = `bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 flex flex-col justify-between space-y-4 hover:shadow-md transition-all ${borderClass}`;
+                cardNode.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-center text-[10px] font-black uppercase tracking-wider mb-2">
+                            <span class="bg-slate-100 px-2 py-0.5 rounded text-slate-600 border border-slate-200">${shift.date}</span>
+                            <div class="flex items-center">
+                                <span class="text-teal-700 bg-teal-50 px-2 py-0.5 rounded font-bold">${shift.dayName}</span>
+                                ${extraBadge}
                             </div>
                         </div>
-                        <button onclick="showTeamMembers('${item.columnKey}', '${item.program}', '${item.date}')" class="w-full mt-2 bg-slate-50 hover:bg-teal-50 border border-slate-200 hover:border-teal-300 text-slate-600 hover:text-teal-700 font-bold text-xs py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-users text-slate-400"></i> Görevdeki Diğer Üyeler
-                        </button>
-                    `;
-                    grid.appendChild(card);
-                });
-            }
-            container.classList.remove('hidden');
-        }
-
-        // 5. GÖREVDERİ DİĞER ÜYELERİ BULMA (MODAL)
-        function showTeamMembers(key, programName, dateStr) {
-            const list = document.getElementById('group-members-list');
-            const title = document.getElementById('modal-show-title');
-            list.innerHTML = "";
-            title.textContent = `${dateStr} - ${programName}`;
-
-            // Aynı hücre anahtarına (key) sahip kişileri filtrele
-            const members = globalData.filter(d => d.key === key).map(d => d.person);
-
-            if(members.length <= 1) {
-                list.innerHTML = `<li class="text-xs text-slate-400 italic text-center py-2">Bu görevde tek çalışıyorsunuz.</li>`;
-            } else {
-                members.forEach(m => {
-                    const li = document.createElement('li');
-                    li.className = "flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-100";
-                    li.innerHTML = `<i class="fa-solid fa-circle-user text-slate-400 text-base"></i> <span class="text-slate-700 font-semibold">${m}</span>`;
-                    list.appendChild(li);
-                });
-            }
-
-            document.getElementById('group-modal').classList.remove('hidden');
-        }
-
-        function closeGroupModal() {
-            document.getElementById('group-modal').classList.add('hidden');
-        }
-
-        // 6. YÖNETİCİ GİRİŞ / ÇIKIŞ YÖNETİMİ
-        function togglePanel() {
-            if (isAdminLoggedIn) {
-                logoutAdmin();
-            } else {
-                document.getElementById('login-modal').classList.remove('hidden');
-                document.getElementById('admin-password').focus();
-            }
-        }
-
-        function closeLoginModal() {
-            document.getElementById('login-modal').classList.add('hidden');
-            document.getElementById('login-error').classList.add('hidden');
-            document.getElementById('admin-password').value = "";
-        }
-
-        function verifyAdminPassword() {
-            const pass = document.getElementById('admin-password').value;
-            if (pass === SUPER_PASSWORD) {
-                isAdminLoggedIn = true;
-                closeLoginModal();
-                
-                // Buton Durumunu Değiştir
-                document.getElementById('panel-btn-text').textContent = "Yönetimden Çık";
-                document.getElementById('panel-icon').className = "fa-solid fa-right-from-bracket";
-                
-                showSection('admin-section');
-            } else {
-                document.getElementById('login-error').classList.remove('hidden');
-            }
-        }
-
-        function logoutAdmin() {
-            isAdminLoggedIn = false;
-            document.getElementById('panel-btn-text').textContent = "Yönetici Girişi";
-            document.getElementById('panel-icon').className = "fa-solid fa-lock-open";
-            showSection('personnel-section');
-        }
-
-        function showSection(sectionId) {
-            document.getElementById('personnel-section').classList.add('hidden');
-            document.getElementById('admin-section').classList.add('hidden');
-            document.getElementById(sectionId).classList.remove('hidden');
-            currentSection = sectionId;
-        }
-
-        // 7. YÖNETİCİ PANELİ DETAYLI ANALİZ MODÜLÜ
-        function buildAnalyticsData() {
-            // Personel bazında adetleri hesapla
-            let stats = [];
-            let totalShiftsCount = 0;
-            let activePeriodStr = "Haziran 2026"; // Genel veri kümesi bazlı varsayılan
-
-            for (let p in personnelSchedules) {
-                stats.push({
-                    name: p,
-                    count: personnelSchedules[p].length
-                });
-                totalShiftsCount += personnelSchedules[p].length;
-                if(personnelSchedules[p].length > 0) {
-                    let firstJob = personnelSchedules[p][0];
-                    activePeriodStr = `${firstJob.month}/${firstJob.year}`;
-                }
-            }
-
-            // En çok görev alan personeli bulma
-            stats.sort((a, b) => b.count - a.count);
-
-            // Üst İstatistik Sayılarını Güncelle
-            document.getElementById('stat-total-personnel').textContent = allPersonnel.size;
-            document.getElementById('stat-total-shifts').textContent = totalShiftsCount;
-            document.getElementById('stat-top-person').textContent = stats.length > 0 ? `${stats[0].name} (${stats[0].count} Gün)` : '-';
-            document.getElementById('stat-active-period').textContent = activePeriodStr;
-
-            // Sağdaki Özet Çalışma Tablosunu Doldur
-            const tbody = document.getElementById('admin-table-body');
-            tbody.innerHTML = "";
-            stats.forEach(s => {
-                const row = document.createElement('tr');
-                row.className = "hover:bg-slate-50 transition-colors";
-                row.innerHTML = `
-                    <td class="p-3 text-slate-800 font-bold flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>${s.name}
-                    </td>
-                    <td class="p-3 text-center text-slate-600 font-bold bg-slate-50/50">${s.count} Gün / Adet</td>
+                        <h4 class="text-slate-900 font-extrabold text-sm leading-snug tracking-tight">${shift.program}</h4>
+                        <div class="text-[11px] text-slate-500 font-semibold mt-2 flex items-center gap-1">
+                            <i class="fa-solid fa-clock text-slate-400"></i> Yayın Saati: <span class="text-slate-800 font-black">${shift.hour}</span>
+                        </div>
+                    </div>
+                    <button onclick="triggerTeamDiscoveryModal('${shift.uniqueKey}', '${shift.program}', '${shift.date}')" class="w-full bg-slate-50 hover:bg-teal-50 text-slate-600 hover:text-teal-700 border border-slate-200 hover:border-teal-300 font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-user-group text-[11px]"></i> Ekip Arkadaşlarımı Göster
+                    </button>
                 `;
-                tbody.appendChild(row);
+                gridContainer.appendChild(cardNode);
+            });
+        }
+
+        // AYNI SAATTEKİ EKİP ARKADAŞLARINI BULMA MODALI
+        function triggerTeamDiscoveryModal(uniqueKey, programName, dateString) {
+            const listContainer = document.getElementById('modal-staff-list');
+            const headerContainer = document.getElementById('modal-info-header');
+            listContainer.innerHTML = "";
+            headerContainer.textContent = `${dateString} - ${programName}`;
+
+            const teamMembers = mainShiftsLogPool.filter(s => s.uniqueKey === uniqueKey).map(s => s.workerName);
+            const currentViewer = document.getElementById('staff-dropdown').value;
+
+            if(teamMembers.length <= 1) {
+                listContainer.innerHTML = `<li class="text-slate-400 italic text-center py-4 bg-slate-50 rounded-xl">Bu stüdyo/yayın görevinde tek çalışmaktasınız.</li>`;
+            } else {
+                teamMembers.forEach(member => {
+                    const listItem = document.createElement('li');
+                    listItem.className = `flex items-center gap-2 p-2.5 rounded-xl border ${member === currentViewer ? 'bg-teal-50 border-teal-200 text-teal-950 font-black' : 'bg-slate-50 border-slate-100 text-slate-700'}`;
+                    listItem.innerHTML = `
+                        <i class="fa-solid fa-circle-user text-base ${member === currentViewer ? 'text-teal-600' : 'text-slate-400'}"></i>
+                        <span>${member} ${member === currentViewer ? '(Siz)' : ''}</span>
+                    `;
+                    listContainer.appendChild(listItem);
+                });
+            }
+
+            document.getElementById('modal-team-view').classList.remove('hidden');
+        }
+
+        function closeTeamModal() { document.getElementById('modal-team-view').classList.add('hidden'); }
+
+        // ================= YÖNETİCİ PANELİ LOGLAMA VE TARİHSEL ANALİZ MOTORU =================
+        function applyLogFilters() {
+            const selectedMonth = document.getElementById('filter-month').value;
+            const selectedYear = document.getElementById('filter-year').value;
+
+            let localFilteredSchedules = {};
+            let localStaffSet = new Set();
+            let subsetShiftsCount = 0;
+            let samplePeriodStr = "-";
+
+            // Havuzdaki verileri filtrelere göre analiz et
+            mainShiftsLogPool.forEach(log => {
+                const monthMatch = (selectedMonth === 'ALL' || log.month === selectedMonth);
+                const yearMatch = (selectedYear === 'ALL' || log.year === selectedYear);
+
+                if(monthMatch && yearMatch) {
+                    localStaffSet.add(log.workerName);
+                    subsetShiftsCount++;
+                    samplePeriodStr = `${log.month} / ${log.year}`;
+
+                    if(!localFilteredSchedules[log.workerName]) {
+                        localFilteredSchedules[log.workerName] = 0;
+                    }
+                    localFilteredSchedules[log.workerName]++;
+                }
             });
 
-            // Grafik Çizimi (Chart.js)
-            const ctx = document.getElementById('analyticsChart').getContext('2d');
+            // 25 PERSONELİN TAMAMINI İSTATİSTİĞE DAHİL ET (Görevi yoksa 0 Gün görünür)
+            let diagnosticStatisticsArray = [];
+            USER_EXPLICIT_25.forEach(pName => {
+                let shiftCount = localFilteredSchedules[pName] || 0;
+                diagnosticStatisticsArray.push({ name: pName, count: shiftCount });
+            });
             
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
+            // Azalan düzende sırala (En çok nöbet tutan üstte)
+            diagnosticStatisticsArray.sort((a,b) => b.count - a.count);
 
-            chartInstance = new Chart(ctx, {
+            // Metrik panellerini güncelle
+            document.getElementById('metric-total-staff').textContent = USER_EXPLICIT_25.length; // Her zaman 25 kişi aktif çalışan
+            document.getElementById('metric-total-shifts').textContent = subsetShiftsCount;
+            document.getElementById('metric-max-staff').textContent = diagnosticStatisticsArray[0].count > 0 ? `${diagnosticStatisticsArray[0].name} (${diagnosticStatisticsArray[0].count} Gün)` : '-';
+            document.getElementById('metric-active-date').textContent = selectedMonth === 'ALL' ? 'Tüm Dönemler' : samplePeriodStr;
+
+            // Yönetici Log Listesi Tablosunu Doldur
+            const tableBodyNode = document.getElementById('table-body-admin-logs');
+            tableBodyNode.innerHTML = "";
+            
+            diagnosticStatisticsArray.forEach(stat => {
+                const rowNode = document.createElement('tr');
+                rowNode.className = "hover:bg-slate-50 transition-all";
+                rowNode.innerHTML = `
+                    <td class="p-2.5 font-bold text-slate-800 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full ${stat.count > 0 ? 'bg-teal-500' : 'bg-slate-300'} shadow-sm block"></span>${stat.name}
+                    </td>
+                    <td class="p-2.5 text-center font-black ${stat.count > 0 ? 'text-slate-800 bg-slate-50' : 'text-slate-400 bg-slate-50/50'}">${stat.count} Gün</td>
+                `;
+                tableBodyNode.appendChild(rowNode);
+            });
+
+            // Chart.js Grafik Güncellemesi (25 Personelin Grafiğe Eksiksiz Yansıması)
+            const canvasContext = document.getElementById('canvas-admin-chart').getContext('2d');
+            if(chartInstanceReference) chartInstanceReference.destroy();
+
+            chartInstanceReference = new Chart(canvasContext, {
                 type: 'bar',
                 data: {
-                    labels: stats.map(s => s.name),
+                    labels: diagnosticStatisticsArray.map(s => s.name),
                     datasets: [{
-                        label: 'Çalışılan Gün Sayısı (Adet)',
-                        data: stats.map(s => s.count),
-                        backgroundColor: 'rgba(20, 184, 166, 0.75)',
+                        label: 'Çalışılan Toplam Gün',
+                        data: diagnosticStatisticsArray.map(s => s.count),
+                        backgroundColor: 'rgba(20, 184, 166, 0.85)',
                         borderColor: 'rgb(13, 148, 136)',
                         borderWidth: 1.5,
-                        borderRadius: 6,
+                        borderRadius: 4,
                         barPercentage: 0.6
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { stepSize: 1, color: '#94a3b8', font: { weight: 'bold' } },
-                            grid: { color: '#f1f5f9' }
-                        },
-                        x: {
-                            ticks: { color: '#64748b', font: { size: 11, weight: 'bold' } },
-                            grid: { display: false }
-                        }
+                        y: { beginAtZero: true, ticks: { stepSize: 1, font: { weight: 'bold' }, color: '#94a3b8' }, grid: { color: '#f1f5f9' } },
+                        x: { ticks: { font: { size: 9, weight: 'bold' }, color: '#64748b', maxRotation: 45, minRotation: 45 }, grid: { display: false } }
                     }
                 }
             });
