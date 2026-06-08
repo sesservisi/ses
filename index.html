@@ -4,12 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ses Servisi Çalışma Planı Paneli</title>
-    <!-- Tailwind CSS v4 & FontAwesome İkon Seti -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Excel İşleme Kütüphanesi -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- Grafik Kütüphanesi -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -20,7 +17,6 @@
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
 
-    <!-- ÜST NAVİGASYON BAR -->
     <header class="bg-gradient-to-r from-sky-600 via-blue-600 to-orange-500 text-white shadow-lg sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 py-3.5 flex justify-between items-center">
             <div class="flex items-center space-x-2.5 cursor-pointer" onclick="switchSection('personnel')">
@@ -46,17 +42,14 @@
         </div>
     </header>
 
-    <!-- ANA İÇERİK ALANI -->
     <main class="flex-grow max-w-7xl w-full mx-auto px-3 py-4 sm:py-6 space-y-4">
 
-        <!-- CANLI VERİ YÜKLENİYOR PANELİ -->
         <div id="loader-live-data" class="bg-white border border-sky-100 rounded-2xl p-8 text-center max-w-md mx-auto my-6 shadow-md flex flex-col items-center justify-center">
             <i class="fa-solid fa-circle-notch text-orange-500 text-4xl mb-3 animate-spin"></i>
             <h3 class="text-sm font-black text-slate-900">Güncel Plan Yükleniyor</h3>
             <p class="text-xs text-slate-500 mt-1">GitHub deposundan yeni haftalık veriler senkronize ediliyor ve geçmişle birleştiriliyor...</p>
         </div>
 
-        <!-- VERİ YOK UYARISI -->
         <div id="alert-no-data" class="bg-orange-50 border-2 border-dashed border-orange-200 rounded-2xl p-6 text-center max-w-md mx-auto my-6 hidden">
             <i class="fa-solid fa-cloud-bounce text-orange-500 text-4xl mb-2 block animate-bounce"></i>
             <h3 class="text-sm font-bold text-slate-900">Otomatik Veri Bağlantısı Kurulamadı</h3>
@@ -66,9 +59,7 @@
             </button>
         </div>
 
-        <!-- ================= BÖLÜM 1: PERSONEL HAFTALIK PLAN GÖRÜNÜMÜ ================= -->
         <section id="section-personnel" class="space-y-4 hidden">
-            <!-- Personel Seçim Alanı -->
             <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 max-w-md mx-auto">
                 <label for="staff-dropdown" class="block text-sky-600 text-xs font-black uppercase tracking-widest text-center mb-2.5"><i class="fa-solid fa-circle-user text-orange-500 mr-1"></i> LÜTFEN İSMİNİZİ SEÇİNİZ</label>
                 <select id="staff-dropdown" onchange="displayStaffCards()" class="w-full bg-slate-50 border-2 border-slate-200 text-slate-800 text-sm font-black rounded-xl px-4 py-3.5 focus:outline-none focus:border-orange-500 transition-all cursor-pointer shadow-inner">
@@ -76,7 +67,6 @@
                 </select>
             </div>
 
-            <!-- Bilgi ve Saat Başlığı -->
             <div id="schedule-wrapper" class="hidden space-y-3">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white p-4 rounded-xl border border-slate-200 gap-2 shadow-sm">
                     <div>
@@ -86,7 +76,6 @@
                     <div id="sync-timestamp-badge" class="text-[10px] bg-orange-100 text-orange-700 px-3 py-1.5 rounded-lg font-black self-start sm:self-center shadow-sm border border-orange-200">Veri Durumu: Bilinmiyor</div>
                 </div>
 
-                <!-- HAFTALIK PLAN TABLOSU -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
                     <div class="overflow-x-auto custom-scroll">
                         <table class="w-full text-left border-collapse min-w-[650px]">
@@ -100,23 +89,20 @@
                                 </tr>
                             </thead>
                             <tbody id="weekly-schedule-table-body" class="divide-y divide-slate-100 text-xs font-bold text-slate-700">
-                                <!-- Dinamik veri -->
-                            </tbody>
+                                </tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- ================= BÖLÜM 2: YÖNETİCİ PANELİ ================= -->
         <section id="section-admin" class="hidden space-y-4">
-            <!-- Veri Güncelleme Kartı -->
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
                 <div class="md:col-span-1">
                     <h3 class="text-sm font-black text-slate-900 flex items-center gap-1.5">
                         <i class="fa-solid fa-cloud-arrow-up text-orange-500"></i> Yönetim & Birikimli Veri Havuzu
                     </h3>
-                    <p class="text-[11px] text-slate-500 mt-0.5">Her hafta yeni yüklediğiniz Excel dosyaları eskilerin üzerine eklenerek birikir.</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Aynı gün yazılan birden fazla görev, analizde tek bir çalışma günü olarak sayılır.</p>
                 </div>
                 
                 <div class="md:col-span-2 flex flex-wrap gap-2 justify-start md:justify-end">
@@ -139,14 +125,13 @@
                 </div>
             </div>
 
-            <!-- ÖZET İSTATİSTİK KARTLARI -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
                     <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Toplam Personel</span>
                     <h4 id="metric-total-staff" class="text-lg font-black text-sky-600 mt-1">0</h4>
                 </div>
                 <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Hafızadaki Toplam Görev</span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Filtreli Toplam Çalışma Günü</span>
                     <h4 id="metric-total-shifts" class="text-lg font-black text-orange-500 mt-1">0</h4>
                 </div>
                 <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
@@ -159,11 +144,10 @@
                 </div>
             </div>
 
-            <!-- GRAFİK VE TABLO -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2 flex flex-col">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-                        <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider"><i class="fa-solid fa-chart-column text-orange-500 mr-1"></i> Görev Yoğunluk Analitiği (Kümülâtif)</h4>
+                        <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider"><i class="fa-solid fa-chart-column text-orange-500 mr-1"></i> Net İşe Geliş Gün Analitiği (Tekilleştirilmiş)</h4>
                         <div class="flex gap-1">
                             <select id="filter-month" onchange="applyLogFilters()" class="bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-bold px-2 py-1.5 focus:outline-none">
                                 <option value="ALL">Tüm Aylar</option>
@@ -185,18 +169,17 @@
                 </div>
                 
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
-                    <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider mb-3"><i class="fa-solid fa-list-ol text-sky-500 mr-1"></i> Toplam Görev Dağılımı</h4>
+                    <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider mb-3"><i class="fa-solid fa-list-ol text-sky-500 mr-1"></i> Net Çalışma Gün Dağılımı</h4>
                     <div class="overflow-y-auto flex-grow max-h-[280px] border border-slate-100 rounded-xl custom-scroll">
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-slate-50 border-b border-slate-200 text-slate-400 text-[10px] font-black uppercase sticky top-0 z-10">
                                     <th class="p-2">Personel Adı</th>
-                                    <th class="p-2 text-center">Toplam</th>
+                                    <th class="p-2 text-center">Net Gün</th>
                                 </tr>
                             </thead>
                             <tbody id="table-body-admin-logs" class="divide-y divide-slate-100 text-xs font-bold text-slate-700">
-                                <!-- Dinamik veri -->
-                            </tbody>
+                                </tbody>
                         </table>
                     </div>
                 </div>
@@ -204,7 +187,6 @@
         </section>
     </main>
 
-    <!-- MODAL: EKİP ARKADAŞLARI POPUP -->
     <div id="modal-team-view" class="fixed inset-0 bg-slate-950/50 z-50 hidden flex justify-center items-center p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-5 border border-slate-100 transform scale-95 transition-all">
             <div class="flex justify-between items-center mb-3">
@@ -215,12 +197,10 @@
             </div>
             <div id="modal-info-header" class="text-xs bg-sky-50 border border-sky-100 p-3 rounded-xl font-black text-sky-950 mb-4 leading-tight"></div>
             <ul id="modal-staff-list" class="space-y-1.5 text-xs font-bold text-slate-800 max-h-[220px] overflow-y-auto custom-scroll pr-1">
-                <!-- Dinamik veri -->
-            </ul>
+                </ul>
         </div>
     </div>
 
-    <!-- MODAL: YÖNETİCİ ŞİFRE GİRİŞİ -->
     <div id="modal-auth-gate" class="fixed inset-0 bg-slate-950/50 z-50 hidden flex justify-center items-center p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-xs rounded-2xl shadow-2xl p-6 border border-slate-100 text-center">
             <div class="w-12 h-12 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-3 text-xl shadow-inner">
@@ -237,7 +217,6 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT ÇALIŞMA MANTIĞI -->
     <script>
         const GITHUB_LIVE_EXCEL = "Gorev-Listesi.xlsx"; 
         const SUPER_KEY = "7124624";
@@ -250,7 +229,6 @@
             "K.GÜNGÖR", "Ç.TAŞ", "E.DÖNMEZ", "Ö.KARAKUŞ", "E.SAVAŞ"
         ].sort();
 
-        // TÜM CİHAZLARDA ORTAK ÇALIŞAN GLOBAL HAVUZLAR
         let mainShiftsLogPool = [];
         let timePeriodDaysList = []; 
         let currentActiveTab = 'personnel';
@@ -378,13 +356,11 @@
             fileReader.readAsArrayBuffer(uploadedFile);
         }
 
-        // AKILLI BİRLEŞTİRME MOTORU (ESKİYİ SİLMEZ, YENİYİ ÜZERİNE EKLER)
         function compileExcelAndMerge(matrix) {
             if(!matrix || matrix.length < 3) return;
 
             const rowDays = matrix[0];
             const rowDates = matrix[1];
-
             let newIncomingDays = [];
 
             for (let columnIndex = 1; columnIndex < rowDays.length; columnIndex += 4) {
@@ -413,25 +389,21 @@
                     };
                     newIncomingDays.push(dayItem);
 
-                    // Gün listesinde yoksa ekle (Tekilleştirme)
                     if(!timePeriodDaysList.some(d => d.dateTitle === dayItem.dateTitle)) {
                         timePeriodDaysList.push(dayItem);
                     }
                 }
             }
 
-            // Tarih sırasına göre günleri diz
             timePeriodDaysList.sort((a,b) => {
                 let parseA = a.dateTitle.split('.').reverse().join('');
                 let parseB = b.dateTitle.split('.').reverse().join('');
                 return parseA.localeCompare(parseB);
             });
 
-            // Gelen yeni tarihlerdeki ESKİ kayıtları temizle ki mükerrer (çift) kayıt olmasın
             const newDatesSet = newIncomingDays.map(d => d.dateTitle);
             mainShiftsLogPool = mainShiftsLogPool.filter(log => !newDatesSet.includes(log.date));
 
-            // Şimdi matrisi tara ve yeni verileri ekle
             newIncomingDays.forEach((dayColumn, idx) => {
                 let actualExcelColIdx = 1 + (idx * 4);
                 let currentProgramName = "";
@@ -503,7 +475,6 @@
             tableBody.innerHTML = "";
 
             const personalShiftsList = mainShiftsLogPool.filter(s => s.workerName === selectedStaffName);
-
             const todayObj = new Date();
             const todayStr = `${todayObj.getDate() < 10 ? '0'+todayObj.getDate() : todayObj.getDate()}.${(todayObj.getMonth() + 1) < 10 ? '0'+(todayObj.getMonth() + 1) : (todayObj.getMonth() + 1)}.${todayObj.getFullYear()}`;
 
@@ -513,7 +484,6 @@
                 const activeShiftsOnThisDay = personalShiftsList.filter(s => s.date === dayItem.dateTitle);
                 const isToday = (dayItem.dateTitle === todayStr);
 
-                // HAFTA SEPARATÖRÜ
                 if (previousDayName === "PAZAR" && dayItem.dayTitle === "PAZARTESİ") {
                     const sep = document.createElement('tr');
                     sep.className = "bg-gradient-to-r from-orange-500 via-amber-500 to-sky-600 text-white font-black text-center shadow-inner";
@@ -590,32 +560,44 @@
 
         function closeTeamModal() { document.getElementById('modal-team-view').classList.add('hidden'); }
 
+        // GÜN BAZLI TEKİLLEŞTİRME FİLTRESİ EKLELEN ANALİZ MOTORU
         function applyLogFilters() {
             const selectedMonth = document.getElementById('filter-month').value;
             const selectedYear = document.getElementById('filter-year').value;
 
-            let localFilteredSchedules = {};
-            let subsetShiftsCount = 0;
-            let samplePeriodStr = "-";
+            // Personel bazlı benzersiz tarihleri tutmak için küme (Set) haritası oluşturuyoruz
+            let staffUniqueDaysMap = {};
+            USER_EXPLICIT_25.forEach(pName => {
+                staffUniqueDaysMap[pName] = new Set();
+            });
 
             mainShiftsLogPool.forEach(log => {
                 if((selectedMonth === 'ALL' || log.month === selectedMonth) && (selectedYear === 'ALL' || log.year === selectedYear)) {
-                    subsetShiftsCount++;
-                    samplePeriodStr = `${log.month} / ${log.year}`;
-                    localFilteredSchedules[log.workerName] = (localFilteredSchedules[log.workerName] || 0) + 1;
+                    // Eğer personel havuzumuzda varsa, tarih bilgisini set içerisine ekle (aynı tarih 2. kez eklenemez)
+                    if(staffUniqueDaysMap[log.workerName]) {
+                        staffUniqueDaysMap[log.workerName].add(log.date);
+                    }
                 }
             });
 
             let diagnosticStatisticsArray = [];
+            let totalNetWorkDaysAcrossAll = 0;
+
             USER_EXPLICIT_25.forEach(pName => {
-                diagnosticStatisticsArray.push({ name: pName, count: localFilteredSchedules[pName] || 0 });
+                const netDaysCount = staffUniqueDaysMap[pName].size; // Set boyutu net çalışma günüdür
+                totalNetWorkDaysAcrossAll += netDaysCount;
+                diagnosticStatisticsArray.push({ name: pName, count: netDaysCount });
             });
+
+            // En çok çalışanları listele
             diagnosticStatisticsArray.sort((a,b) => b.count - a.count);
 
+            let samplePeriodStr = selectedMonth === 'ALL' ? 'Tüm Dönemler' : `${selectedMonth} / ${selectedYear}`;
+
             document.getElementById('metric-total-staff').textContent = USER_EXPLICIT_25.length;
-            document.getElementById('metric-total-shifts').textContent = subsetShiftsCount;
+            document.getElementById('metric-total-shifts').textContent = totalNetWorkDaysAcrossAll;
             document.getElementById('metric-max-staff').textContent = diagnosticStatisticsArray[0].count > 0 ? `${diagnosticStatisticsArray[0].name} (${diagnosticStatisticsArray[0].count} Gün)` : '-';
-            document.getElementById('metric-active-date').textContent = selectedMonth === 'ALL' ? 'Tüm Dönemler' : samplePeriodStr;
+            document.getElementById('metric-active-date').textContent = samplePeriodStr;
 
             const tableBodyNode = document.getElementById('table-body-admin-logs');
             tableBodyNode.innerHTML = "";
@@ -634,10 +616,10 @@
                 data: {
                     labels: diagnosticStatisticsArray.map(s => s.name),
                     datasets: [{
-                        label: 'Toplam Görev Günü',
+                        label: 'Net Çalışma Günü',
                         data: diagnosticStatisticsArray.map(s => s.count),
-                        backgroundColor: 'rgba(249, 115, 22, 0.85)',
-                        borderColor: 'rgb(234, 88, 12)',
+                        backgroundColor: 'rgba(2, 132, 199, 0.85)', // Göze hoş gelen kurumsal sky-600 rengi
+                        borderColor: 'rgb(3, 105, 161)',
                         borderWidth: 1.5,
                         borderRadius: 4
                     }]
@@ -647,7 +629,7 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { beginAtZero: true, ticks: { font: { weight: 'bold' } } },
+                        y: { beginAtZero: true, ticks: { font: { weight: 'bold' }, stepSize: 1 } },
                         x: { ticks: { font: { size: 8, weight: 'bold' }, maxRotation: 45, minRotation: 45 } }
                     }
                 }
