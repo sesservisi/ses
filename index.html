@@ -43,16 +43,22 @@
 
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6">
 
+        <div id="loader-live-data" class="bg-white border border-slate-200 rounded-2xl p-8 text-center max-w-md mx-auto my-6 shadow-sm flex flex-col items-center justify-center">
+            <i class="fa-solid fa-circle-notch text-teal-500 text-4xl mb-3 animate-spin"></i>
+            <h3 class="text-sm font-bold text-slate-900">Güncel Çalışma Planı Alınıyor</h3>
+            <p class="text-xs text-slate-500 mt-1">Bulut sunucusundan en son veriler senkronize ediliyor, lütfen bekleyin...</p>
+        </div>
+
         <div id="alert-no-data" class="bg-amber-50 border-2 border-dashed border-amber-200 rounded-2xl p-6 text-center max-w-md mx-auto my-6 hidden animate-pulse">
             <i class="fa-solid fa-triangle-exclamation text-amber-500 text-3xl mb-2 block"></i>
-            <h3 class="text-sm font-bold text-slate-900">Sistemde Güncel Görev Verisi Yok</h3>
-            <p class="text-xs text-slate-600 mt-1 mb-4">Uygulamanın çalışması için yönetici panelinden senkronizasyon yapılması veya manuel Excel yüklenmesi gerekir.</p>
+            <h3 class="text-sm font-bold text-slate-900">Canlı Veriye Erişilemedi</h3>
+            <p class="text-xs text-slate-600 mt-1 mb-4">Dropbox bağlantısı sağlanamadı veya henüz veri yüklenmedi. Yönetici panelinden manuel yükleme yapabilirsiniz.</p>
             <button onclick="checkAdminAccess()" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow transition-all cursor-pointer">
-                Veri Yüklemek İçin Tıklayın
+                Manuel Excel Yükle
             </button>
         </div>
 
-        <section id="section-personnel" class="space-y-6">
+        <section id="section-personnel" class="space-y-6 hidden">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 max-w-md mx-auto">
                 <label for="staff-dropdown" class="block text-slate-400 text-xs font-black uppercase tracking-widest text-center mb-2"><i class="fa-solid fa-circle-user text-teal-500 mr-1"></i> İSMİNİZİ SEÇİNİZ</label>
                 <select id="staff-dropdown" onchange="displayStaffCards()" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm font-bold rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all cursor-pointer">
@@ -74,8 +80,8 @@
                         <table class="w-full text-left border-collapse min-w-[600px]">
                             <thead>
                                 <tr class="bg-slate-900 text-slate-200 text-[11px] font-bold uppercase tracking-wider">
-                                    <th class="p-3.5 pl-5 w-28">Tarih / Gün</th>
-                                    <th class="p-3.5 w-24 text-center">Durum</th>
+                                    <th class="p-3.5 pl-5 w-32">Tarih / Gün</th>
+                                    <th class="p-3.5 w-28 text-center">Durum</th>
                                     <th class="p-3.5">Görevlendirilen Program / Stüdyo</th>
                                     <th class="p-3.5 w-32 text-center">Yayın Saati</th>
                                     <th class="p-3.5 w-44 text-right pr-5">Aksiyon</th>
@@ -100,7 +106,7 @@
                 </div>
                 
                 <div class="md:col-span-2 flex flex-wrap gap-2 justify-end">
-                    <button onclick="testDropboxLiveSync()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-3 rounded-xl shadow transition-all flex items-center gap-1.5 cursor-pointer">
+                    <button onclick="testDropboxLiveSync(true)" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-3 rounded-xl shadow transition-all flex items-center gap-1.5 cursor-pointer">
                         <i class="fa-brands fa-dropbox text-sm"></i>
                         <span>Dropbox Bağlantısını Denetle</span>
                     </button>
@@ -216,7 +222,6 @@
         const DROPBOX_LIVE_URL = "https://www.dropbox.com/scl/fi/qryt9lhx1l7igmi6qg3ak/Gorev-Listesi.xlsx?rlkey=w97mop9zlow5xt0d0cwxg8wp2&dl=1";
         const SUPER_KEY = "7124624";
 
-        // TALEBİNİZ ÜZERİNE EKSİKSİZ VE KESİN 25 KİŞİLİK PERSONEL LİSTESİ
         const USER_EXPLICIT_25 = [
             "H.BAKIRCI", "A.KOÇ", "C.SALTIK", "D.A.SALTIK", "A.AŞİROĞLU", 
             "E.YURDAGÜL", "A.DEMİRKAYA", "F.BOZKURT", "H.HEKİMHAN", "Ş.ÖNALAN", 
@@ -228,23 +233,16 @@
         let rawMatrixData = null;
         let staffSchedules = {};
         let mainShiftsLogPool = [];
-        let timePeriodDaysList = []; // Excel'den okunan tüm sıralı günlerin/tarihlerin global listesi
+        let timePeriodDaysList = []; 
         let currentActiveTab = 'personnel';
         let chartInstanceReference = null;
 
+        // SİTE AÇILDIĞINDA OTOMATİK OLARAK DROPBOX BULUTUNDAN VERİYİ ÇEKER
         window.addEventListener('DOMContentLoaded', () => {
             rebuildStaffDropdownOptions();
-
-            const localRaw = localStorage.getItem('ses_stored_matrix');
-            const localTime = localStorage.getItem('ses_stored_timestamp');
             
-            if(localRaw) {
-                rawMatrixData = JSON.parse(localRaw);
-                compileExcelMatrix(rawMatrixData);
-                if(localTime) document.getElementById('sync-timestamp-badge').textContent = "Son Yükleme: " + localTime;
-            } else {
-                document.getElementById('alert-no-data').classList.remove('hidden');
-            }
+            // İlk açılışta direkt canlı Dropbox senkronizasyonunu başlatıyoruz
+            testDropboxLiveSync(false);
 
             document.getElementById('upload-excel-input').addEventListener('change', processManualFileLoad, false);
         });
@@ -298,10 +296,17 @@
             switchSection('personnel');
         }
 
-        async function testDropboxLiveSync() {
+        // DROPBOX'TAN HERKES İÇİN CANLI VERİ ÇEKME MOTORU
+        async function testDropboxLiveSync(isManualClick = false) {
             try {
+                if(!isManualClick) {
+                    document.getElementById('loader-live-data').classList.remove('hidden');
+                    document.getElementById('alert-no-data').classList.add('hidden');
+                    document.getElementById('section-personnel').classList.add('hidden');
+                }
+
                 const response = await fetch(DROPBOX_LIVE_URL);
-                if(!response.ok) throw new Error("Network response error");
+                if(!response.ok) throw new Error("Ağ bağlantı hatası");
                 const arrayBuffer = await response.arrayBuffer();
                 const uintArray = new Uint8Array(arrayBuffer);
                 const workbook = XLSX.read(uintArray, {type: 'array', cellDates: true});
@@ -309,10 +314,26 @@
                 const parsedMatrixRows = XLSX.utils.sheet_to_json(firstSheet, {header: 1, defval: null});
                 
                 commitDataToStorage(parsedMatrixRows);
-                alert("Dropbox senkronizasyonu başarılı! Güncel liste sisteme aktarıldı.");
+                
+                document.getElementById('loader-live-data').classList.add('hidden');
+                document.getElementById('section-personnel').classList.remove('hidden');
+
+                if(isManualClick) alert("Dropbox senkronizasyonu başarılı! Güncel liste sisteme aktarıldı.");
             } catch (error) {
                 console.error(error);
-                alert("Dropbox canlı bağlantısı başarısız oldu. Lütfen manuel Excel dosyasını seçip sisteme yükleyin.");
+                document.getElementById('loader-live-data').classList.add('hidden');
+                
+                // Eğer canlı veri çekilemediyse ve tarayıcıda eski yerel veri varsa onu kurtarma olarak yükle
+                const localRaw = localStorage.getItem('ses_stored_matrix');
+                if(localRaw) {
+                    rawMatrixData = JSON.parse(localRaw);
+                    compileExcelMatrix(rawMatrixData);
+                    document.getElementById('section-personnel').classList.remove('hidden');
+                    if(isManualClick) alert("Canlı bağlantı başarısız fakat cihazdaki eski kayıtlı veri yüklendi.");
+                } else {
+                    document.getElementById('alert-no-data').classList.remove('hidden');
+                    if(isManualClick) alert("Dropbox canlı bağlantısı başarısız oldu. Lütfen manuel dosya yükleyin.");
+                }
             }
         }
 
@@ -325,6 +346,9 @@
                 const workbookInstance = XLSX.read(arrayBufferData, {type: 'array', cellDates: true});
                 const matrixRows = XLSX.utils.sheet_to_json(workbookInstance.Sheets[workbookInstance.SheetNames[0]], {header: 1, defval: null});
                 commitDataToStorage(matrixRows);
+                
+                document.getElementById('alert-no-data').classList.add('hidden');
+                document.getElementById('section-personnel').classList.remove('hidden');
                 alert("Excel dosyası başarıyla yüklendi, tüm veriler güncellendi!");
             };
             fileReader.readAsArrayBuffer(uploadedFile);
@@ -336,7 +360,7 @@
             const dateObj = new Date();
             const dateString = `${dateObj.getDate()}.${dateObj.getMonth()+1}.${dateObj.getFullYear()} ${dateObj.getHours()}:${dateObj.getMinutes() < 10 ? '0' + dateObj.getMinutes() : dateObj.getMinutes()}`;
             localStorage.setItem('ses_stored_timestamp', dateString);
-            document.getElementById('sync-timestamp-badge').textContent = "Son Yükleme: " + dateString;
+            document.getElementById('sync-timestamp-badge').textContent = "Son Güncelleme: " + dateString;
             
             staffSchedules = {};
             mainShiftsLogPool = [];
@@ -345,11 +369,9 @@
             compileExcelMatrix(matrixRows);
         }
 
-        // GELİŞMİŞ EXCEL MATRİS VE BLOK BAZLI EKİP GRUPLAMA MOTORU
         function compileExcelMatrix(matrix) {
             if(!matrix || matrix.length < 3) return;
 
-            document.getElementById('alert-no-data').classList.add('hidden');
             document.getElementById('schedule-wrapper').classList.remove('hidden');
 
             const rowDays = matrix[0];
@@ -382,11 +404,10 @@
                         year: targetYear
                     };
                     parsedDayColumns.push(dayItem);
-                    timePeriodDaysList.push(dayItem); // Sıralı tam liste için kaydet
+                    timePeriodDaysList.push(dayItem);
                 }
             }
 
-            // Her gün sütununu ayrı ayrı ve bloklar halinde tara
             parsedDayColumns.forEach(dayColumn => {
                 let currentProgramName = "";
                 let currentProgramHour = "";
@@ -467,7 +488,6 @@
             displayStaffCards();
         }
 
-        // PERSONEL HAFTALIK SIRALI TABLO SİSTEMİ (DOLU & BOŞ GÜNLER VE BUGÜNÜN BELLİ EDİLMESİ)
         function displayStaffCards() {
             const selectedStaffName = document.getElementById('staff-dropdown').value;
             if(!selectedStaffName) return;
@@ -478,21 +498,30 @@
 
             const personalShiftsList = staffSchedules[selectedStaffName] || [];
 
-            // Bugünün gerçek sistem tarihini alıp biçimlendiriyoruz (Örn: 08.06.2026)
             const todayObj = new Date();
             const tDay = todayObj.getDate();
             const tMonth = todayObj.getMonth() + 1;
             const tYear = todayObj.getFullYear();
             const todayFormattedString = `${tDay < 10 ? '0'+tDay : tDay}.${tMonth < 10 ? '0'+tMonth : tMonth}.${tYear}`;
 
-            // Dönemdeki tüm günleri sırayla ekrana basıyoruz (Böylece boş günler de görünür)
-            timePeriodDaysList.forEach(dayItem => {
-                // Bu tarihte personelin görevi var mı diye kontrol et
-                // Bir günde birden fazla görevi olabilir diye filter kullanıyoruz
+            let previousDayName = "";
+
+            timePeriodDaysList.forEach((dayItem, index) => {
                 const activeShiftsOnThisDay = personalShiftsList.filter(s => s.date === dayItem.dateTitle);
                 const isToday = (dayItem.dateTitle === todayFormattedString);
 
-                // Ortak satır stili ve Bugün rozeti mantığı
+                if (previousDayName === "PAZAR" && dayItem.dayTitle === "PAZARTESİ") {
+                    const separatorRow = document.createElement('tr');
+                    separatorRow.className = "bg-slate-800 text-white select-none";
+                    separatorRow.innerHTML = `
+                        <td colspan="5" class="p-2 text-center font-black text-[10px] tracking-widest uppercase border-y-2 border-slate-950">
+                            <i class="fa-solid fa-arrow-down-long text-teal-400 mr-1"></i> YENİ HAFTALIK LİSTE BAŞLANGICI <i class="fa-solid fa-arrow-down-long text-teal-400 ml-1"></i>
+                        </td>
+                    `;
+                    tableBody.appendChild(separatorRow);
+                }
+                previousDayName = dayItem.dayTitle;
+
                 let rowBgClass = "bg-white hover:bg-slate-50/80 transition-all";
                 let dateBadgeHtml = `<div class="font-bold text-slate-900">${dayItem.dateTitle}</div><div class="text-[10px] text-slate-400 font-bold">${dayItem.dayTitle}</div>`;
                 
@@ -508,30 +537,30 @@
                 }
 
                 if (activeShiftsOnThisDay.length === 0) {
-                    // => BOŞ GÜN SATIRI
                     const rowNode = document.createElement('tr');
-                    rowNode.className = rowBgClass;
+                    rowNode.className = isToday ? rowBgClass : "bg-rose-50/50 hover:bg-rose-100/60 transition-all text-slate-600";
                     rowNode.innerHTML = `
                         <td class="p-3.5 pl-5 border-b border-slate-100">${dateBadgeHtml}</td>
                         <td class="p-3.5 border-b border-slate-100 text-center">
-                            <span class="bg-slate-100 text-slate-500 border border-slate-200 text-[10px] font-bold px-2 py-1 rounded-xl block w-full max-w-[90px] mx-auto shadow-inner"><i class="fa-solid fa-bed text-[10px]"></i> Boş Gün</span>
+                            <span class="bg-rose-600 text-white border border-rose-700 text-[10px] font-black tracking-wide px-2 py-1 rounded-xl block w-full max-w-[110px] mx-auto shadow-sm text-center"><i class="fa-solid fa-mug-hot text-[10px] mr-1"></i> BOŞ / GÖREVSİZ</span>
                         </td>
-                        <td class="p-3.5 border-b border-slate-100 text-slate-400 italic font-medium">Bu tarihte adınıza kayıtlı bir çalışma veya stüdyo görevi bulunmamaktadır.</td>
-                        <td class="p-3.5 border-b border-slate-100 text-center text-slate-400">-</td>
+                        <td class="p-3.5 border-b border-slate-100 text-rose-800 font-bold italic flex items-center gap-1.5 pt-4">
+                            <i class="fa-solid fa-circle-minus text-rose-400 text-sm"></i> Bu tarihte adınıza kayıtlı herhangi bir çalışma veya stüdyo yayını bulunmamaktadır.
+                        </td>
+                        <td class="p-3.5 border-b border-slate-100 text-center text-rose-300">-</td>
                         <td class="p-3.5 border-b border-slate-100 text-right pr-5">
-                            <span class="text-[11px] text-slate-400 italic">Dinlenme</span>
+                            <span class="text-[11px] text-rose-600 font-bold bg-rose-100/80 border border-rose-200 px-2.5 py-1 rounded-lg shadow-inner">İzinli / Dinlenme</span>
                         </td>
                     `;
                     tableBody.appendChild(rowNode);
                 } else {
-                    // => DOLU GÜN SATIRI (Birden fazla görev varsa alt alta basılır)
                     activeShiftsOnThisDay.forEach((shift, index) => {
                         const rowNode = document.createElement('tr');
                         rowNode.className = rowBgClass;
 
                         const statusBadge = shift.isExtra 
-                            ? `<span class="bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-black px-2 py-1 rounded-xl block w-full max-w-[90px] mx-auto shadow-sm text-center"><i class="fa-solid fa-circle-plus"></i> Ek Görev</span>`
-                            : `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-black px-2 py-1 rounded-xl block w-full max-w-[90px] mx-auto shadow-sm text-center"><i class="fa-solid fa-briefcase text-[10px]"></i> Görevli</span>`;
+                            ? `<span class="bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-black px-2 py-1 rounded-xl block w-full max-w-[100px] mx-auto shadow-sm text-center"><i class="fa-solid fa-circle-plus"></i> EK GÖREV</span>`
+                            : `<span class="bg-emerald-600 text-white border border-emerald-700 text-[10px] font-black px-2 py-1 rounded-xl block w-full max-w-[100px] mx-auto shadow-sm text-center"><i class="fa-solid fa-briefcase text-[10px]"></i> GÖREVLİ</span>`;
 
                         rowNode.innerHTML = `
                             <td class="p-3.5 pl-5 border-b border-slate-100">${index === 0 ? dateBadgeHtml : ''}</td>
