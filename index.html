@@ -102,7 +102,7 @@
                     <h3 class="text-sm font-black text-slate-900 flex items-center gap-1.5">
                         <i class="fa-solid fa-cloud-arrow-up text-orange-500"></i> Yönetim & Birikimli Veri Havuzu
                     </h3>
-                    <p class="text-[11px] text-slate-500 mt-0.5">Aynı gün yazılan birden fazla görev, analizde tek bir çalışma günü olarak sayılır.</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Her hafta yeni yüklediğiniz Excel dosyaları eskilerin üzerine eklenerek birikir.</p>
                 </div>
                 
                 <div class="md:col-span-2 flex flex-wrap gap-2 justify-start md:justify-end">
@@ -131,7 +131,7 @@
                     <h4 id="metric-total-staff" class="text-lg font-black text-sky-600 mt-1">0</h4>
                 </div>
                 <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Filtreli Toplam Çalışma Günü</span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Hafızadaki Toplam Görev</span>
                     <h4 id="metric-total-shifts" class="text-lg font-black text-orange-500 mt-1">0</h4>
                 </div>
                 <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
@@ -147,7 +147,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2 flex flex-col">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-                        <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider"><i class="fa-solid fa-chart-column text-orange-500 mr-1"></i> Net İşe Geliş Gün Analitiği (Tekilleştirilmiş)</h4>
+                        <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider"><i class="fa-solid fa-chart-column text-orange-500 mr-1"></i> Görev Yoğunluk Analitiği (Kümülâtif)</h4>
                         <div class="flex gap-1">
                             <select id="filter-month" onchange="applyLogFilters()" class="bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-bold px-2 py-1.5 focus:outline-none">
                                 <option value="ALL">Tüm Aylar</option>
@@ -169,13 +169,13 @@
                 </div>
                 
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
-                    <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider mb-3"><i class="fa-solid fa-list-ol text-sky-500 mr-1"></i> Net Çalışma Gün Dağılımı</h4>
+                    <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider mb-3"><i class="fa-solid fa-list-ol text-sky-500 mr-1"></i> Toplam Görev Dağılımı</h4>
                     <div class="overflow-y-auto flex-grow max-h-[280px] border border-slate-100 rounded-xl custom-scroll">
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-slate-50 border-b border-slate-200 text-slate-400 text-[10px] font-black uppercase sticky top-0 z-10">
                                     <th class="p-2">Personel Adı</th>
-                                    <th class="p-2 text-center">Net Gün</th>
+                                    <th class="p-2 text-center">Toplam</th>
                                 </tr>
                             </thead>
                             <tbody id="table-body-admin-logs" class="divide-y divide-slate-100 text-xs font-bold text-slate-700">
@@ -229,6 +229,7 @@
             "K.GÜNGÖR", "Ç.TAŞ", "E.DÖNMEZ", "Ö.KARAKUŞ", "E.SAVAŞ"
         ].sort();
 
+        // TÜM CİHAZLARDA ORTAK ÇALIŞAN GLOBAL HAVUZLAR
         let mainShiftsLogPool = [];
         let timePeriodDaysList = []; 
         let currentActiveTab = 'personnel';
@@ -356,11 +357,13 @@
             fileReader.readAsArrayBuffer(uploadedFile);
         }
 
+        // AKILLI BİRLEŞTİRME MOTORU (HER GÖREVİ AYRI AYRI SAYAR, ESKİYİ SİLMEZ)
         function compileExcelAndMerge(matrix) {
             if(!matrix || matrix.length < 3) return;
 
             const rowDays = matrix[0];
             const rowDates = matrix[1];
+
             let newIncomingDays = [];
 
             for (let columnIndex = 1; columnIndex < rowDays.length; columnIndex += 4) {
@@ -389,21 +392,25 @@
                     };
                     newIncomingDays.push(dayItem);
 
+                    // Gün listesinde yoksa ekle (Tekilleştirme)
                     if(!timePeriodDaysList.some(d => d.dateTitle === dayItem.dateTitle)) {
                         timePeriodDaysList.push(dayItem);
                     }
                 }
             }
 
+            // Tarih sırasına göre günleri diz
             timePeriodDaysList.sort((a,b) => {
                 let parseA = a.dateTitle.split('.').reverse().join('');
                 let parseB = b.dateTitle.split('.').reverse().join('');
                 return parseA.localeCompare(parseB);
             });
 
+            // Gelen yeni tarihlerdeki ESKİ kayıtları temizle ki mükerrer (çift) kayıt olmasın
             const newDatesSet = newIncomingDays.map(d => d.dateTitle);
             mainShiftsLogPool = mainShiftsLogPool.filter(log => !newDatesSet.includes(log.date));
 
+            // Şimdi matrisi tara ve yeni verileri ekle
             newIncomingDays.forEach((dayColumn, idx) => {
                 let actualExcelColIdx = 1 + (idx * 4);
                 let currentProgramName = "";
@@ -475,6 +482,7 @@
             tableBody.innerHTML = "";
 
             const personalShiftsList = mainShiftsLogPool.filter(s => s.workerName === selectedStaffName);
+
             const todayObj = new Date();
             const todayStr = `${todayObj.getDate() < 10 ? '0'+todayObj.getDate() : todayObj.getDate()}.${(todayObj.getMonth() + 1) < 10 ? '0'+(todayObj.getMonth() + 1) : (todayObj.getMonth() + 1)}.${todayObj.getFullYear()}`;
 
@@ -484,6 +492,7 @@
                 const activeShiftsOnThisDay = personalShiftsList.filter(s => s.date === dayItem.dateTitle);
                 const isToday = (dayItem.dateTitle === todayStr);
 
+                // HAFTA SEPARATÖRÜ
                 if (previousDayName === "PAZAR" && dayItem.dayTitle === "PAZARTESİ") {
                     const sep = document.createElement('tr');
                     sep.className = "bg-gradient-to-r from-orange-500 via-amber-500 to-sky-600 text-white font-black text-center shadow-inner";
@@ -560,51 +569,39 @@
 
         function closeTeamModal() { document.getElementById('modal-team-view').classList.add('hidden'); }
 
-        // GÜN BAZLI TEKİLLEŞTİRME FİLTRESİ EKLELEN ANALİZ MOTORU
         function applyLogFilters() {
             const selectedMonth = document.getElementById('filter-month').value;
             const selectedYear = document.getElementById('filter-year').value;
 
-            // Personel bazlı benzersiz tarihleri tutmak için küme (Set) haritası oluşturuyoruz
-            let staffUniqueDaysMap = {};
-            USER_EXPLICIT_25.forEach(pName => {
-                staffUniqueDaysMap[pName] = new Set();
-            });
+            let localFilteredSchedules = {};
+            let subsetShiftsCount = 0;
+            let samplePeriodStr = "-";
 
             mainShiftsLogPool.forEach(log => {
                 if((selectedMonth === 'ALL' || log.month === selectedMonth) && (selectedYear === 'ALL' || log.year === selectedYear)) {
-                    // Eğer personel havuzumuzda varsa, tarih bilgisini set içerisine ekle (aynı tarih 2. kez eklenemez)
-                    if(staffUniqueDaysMap[log.workerName]) {
-                        staffUniqueDaysMap[log.workerName].add(log.date);
-                    }
+                    subsetShiftsCount++;
+                    samplePeriodStr = `${log.month} / ${log.year}`;
+                    localFilteredSchedules[log.workerName] = (localFilteredSchedules[log.workerName] || 0) + 1;
                 }
             });
 
             let diagnosticStatisticsArray = [];
-            let totalNetWorkDaysAcrossAll = 0;
-
             USER_EXPLICIT_25.forEach(pName => {
-                const netDaysCount = staffUniqueDaysMap[pName].size; // Set boyutu net çalışma günüdür
-                totalNetWorkDaysAcrossAll += netDaysCount;
-                diagnosticStatisticsArray.push({ name: pName, count: netDaysCount });
+                diagnosticStatisticsArray.push({ name: pName, count: localFilteredSchedules[pName] || 0 });
             });
-
-            // En çok çalışanları listele
             diagnosticStatisticsArray.sort((a,b) => b.count - a.count);
 
-            let samplePeriodStr = selectedMonth === 'ALL' ? 'Tüm Dönemler' : `${selectedMonth} / ${selectedYear}`;
-
             document.getElementById('metric-total-staff').textContent = USER_EXPLICIT_25.length;
-            document.getElementById('metric-total-shifts').textContent = totalNetWorkDaysAcrossAll;
-            document.getElementById('metric-max-staff').textContent = diagnosticStatisticsArray[0].count > 0 ? `${diagnosticStatisticsArray[0].name} (${diagnosticStatisticsArray[0].count} Gün)` : '-';
-            document.getElementById('metric-active-date').textContent = samplePeriodStr;
+            document.getElementById('metric-total-shifts').textContent = subsetShiftsCount;
+            document.getElementById('metric-max-staff').textContent = diagnosticStatisticsArray[0].count > 0 ? `${diagnosticStatisticsArray[0].name} (${diagnosticStatisticsArray[0].count} Görev)` : '-';
+            document.getElementById('metric-active-date').textContent = selectedMonth === 'ALL' ? 'Tüm Dönemler' : samplePeriodStr;
 
             const tableBodyNode = document.getElementById('table-body-admin-logs');
             tableBodyNode.innerHTML = "";
             
             diagnosticStatisticsArray.forEach(stat => {
                 const rowNode = document.createElement('tr'); rowNode.className = "hover:bg-slate-50 transition-all";
-                rowNode.innerHTML = `<td class="p-2 font-bold text-slate-800 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full ${stat.count > 0 ? 'bg-orange-500' : 'bg-slate-300'} block"></span>${stat.name}</td><td class="p-2 text-center font-black ${stat.count > 0 ? 'text-slate-800 bg-slate-50' : 'text-slate-400'}">${stat.count} Gün</td>`;
+                rowNode.innerHTML = `<td class="p-2 font-bold text-slate-800 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full ${stat.count > 0 ? 'bg-orange-500' : 'bg-slate-300'} block"></span>${stat.name}</td><td class="p-2 text-center font-black ${stat.count > 0 ? 'text-slate-800 bg-slate-50' : 'text-slate-400'}">${stat.count} Görev</td>`;
                 tableBodyNode.appendChild(rowNode);
             });
 
@@ -616,10 +613,10 @@
                 data: {
                     labels: diagnosticStatisticsArray.map(s => s.name),
                     datasets: [{
-                        label: 'Net Çalışma Günü',
+                        label: 'Toplam Görev Sayısı',
                         data: diagnosticStatisticsArray.map(s => s.count),
-                        backgroundColor: 'rgba(2, 132, 199, 0.85)', // Göze hoş gelen kurumsal sky-600 rengi
-                        borderColor: 'rgb(3, 105, 161)',
+                        backgroundColor: 'rgba(249, 115, 22, 0.85)',
+                        borderColor: 'rgb(234, 88, 12)',
                         borderWidth: 1.5,
                         borderRadius: 4
                     }]
@@ -629,7 +626,7 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { beginAtZero: true, ticks: { font: { weight: 'bold' }, stepSize: 1 } },
+                        y: { beginAtZero: true, ticks: { font: { weight: 'bold' } } },
                         x: { ticks: { font: { size: 8, weight: 'bold' }, maxRotation: 45, minRotation: 45 } }
                     }
                 }
