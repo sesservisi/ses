@@ -412,6 +412,27 @@
             fileReader.readAsArrayBuffer(uploadedFile);
         }
 
+        function parseExcelDate(rawDateVal) {
+            if (typeof rawDateVal === 'number') {
+                let utc_days = Math.floor(rawDateVal - 25569);
+                let date_info = new Date(utc_days * 86400 * 1000);
+                
+                let dayNum = date_info.getUTCDate();
+                let monthNum = date_info.getUTCMonth() + 1;
+                let yearNum = date_info.getUTCFullYear();
+                
+                let formatted = `${dayNum < 10 ? '0'+dayNum : dayNum}.${monthNum < 10 ? '0'+monthNum : monthNum}.${yearNum}`;
+                return { formatted, mm: (monthNum < 10 ? '0'+monthNum : monthNum).toString(), yy: yearNum.toString() };
+            } else if (rawDateVal) {
+                let cleanStr = String(rawDateVal).split(' ')[0].trim();
+                let dateParts = cleanStr.split('.');
+                if (dateParts.length === 3) {
+                    return { formatted: cleanStr, mm: dateParts[1], yy: dateParts[2] };
+                }
+            }
+            return null;
+        }
+
         function compileExcelAndMerge(matrix) {
             if(!matrix || matrix.length < 3) return;
             
@@ -427,28 +448,11 @@
                 let rawDateVal = rowDates[actualColIdx];
 
                 if (rawDateVal || rawDayVal) {
-                    let formatted = "";
-                    let mm = "06", yy = "2026";
+                    let parsedDate = parseExcelDate(rawDateVal);
+                    let formatted = parsedDate ? parsedDate.formatted : "";
+                    let mm = parsedDate ? parsedDate.mm : "06";
+                    let yy = parsedDate ? parsedDate.yy : "2026";
                     let computedDayTitle = rawDayVal ? String(rawDayVal).trim().toUpperCase() : "";
-
-                    if (typeof rawDateVal === 'number') {
-                        let utc_days = Math.floor(rawDateVal - 25569);
-                        let date_info = new Date(utc_days * 86400 * 1000);
-                        
-                        let dayNum = date_info.get健全ay() ? date_info.getUTCDate() : date_info.getUTCDate();
-                        let monthNum = date_info.getUTCMonth() + 1;
-                        let yearNum = date_info.getUTCFullYear();
-                        
-                        formatted = `${dayNum < 10 ? '0'+dayNum : dayNum}.${monthNum < 10 ? '0'+monthNum : monthNum}.${yearNum}`;
-                        mm = (monthNum < 10 ? '0'+monthNum : monthNum).toString();
-                        yy = yearNum.toString();
-                    } else if (rawDateVal) {
-                        formatted = String(rawDateVal).split(' ')[0].trim();
-                        let dateParts = formatted.split('.');
-                        if (dateParts.length === 3) {
-                            mm = dateParts[1]; yy = dateParts[2];
-                        }
-                    }
 
                     if (!computedDayTitle && formatted) {
                         let p = formatted.split('.');
@@ -464,14 +468,18 @@
                 }
             });
 
+            // Gelen günleri tarihe göre sıralayarak takvimin Cuma gününden doğru akmasını sağlıyoruz
+            newIncomingDays.sort((a, b) => {
+                let pA = a.dateTitle.split('.'), pB = b.dateTitle.split('.');
+                return new Date(`${pA[2]}-${pA[1]}-${pA[0]}`) - new Date(`${pB[2]}-${pB[1]}-${pB[0]}`);
+            });
+
             timePeriodDaysList = [...newIncomingDays];
             const newDatesSet = newIncomingDays.map(d => d.dateTitle);
             mainShiftsLogPool = mainShiftsLogPool.filter(log => !newDatesSet.includes(log.date));
 
             newIncomingDays.forEach(dayColumn => {
                 let actualColIdx = dayColumn.excelColIdx;
-                
-                // İlk Aşama: Excel satırlarını yukarıdan aşağıya tarayarak programları ve onların alt açıklamalarını gruplayalım
                 let blockStructureList = [];
                 let currentBlock = null;
 
@@ -481,9 +489,8 @@
                     let cellHour = matrix[rIdx][actualColIdx + 2]; 
 
                     let cleanStr = cellVal ? String(cellVal).trim() : "";
-                    if (cleanStr === "null") cleanStr = "";
+                    if (cleanStr === "null" || cleanStr === "") continue;
 
-                    // Hücre bir başlık/program mı?
                     let isProgramHeader = cleanStr.includes("YAYIN") || 
                                            cleanStr.includes("STÜDYOSU") || 
                                            cleanStr.includes("SAHNESİ") || 
@@ -496,11 +503,10 @@
                             hour: cellHour ? String(cellHour).trim() : "Belirtilmedi",
                             rowStart: rIdx,
                             uniqueKey: dayColumn.dateTitle + "_" + actualColIdx + "_b_" + rIdx,
-                            subLines: [] // Bu başlığın altındaki tüm yazıları/açıklamaları toplayacak
+                            subLines: []
                         };
                         blockStructureList.push(currentBlock);
-                    } else if (currentBlock && cleanStr !== "") {
-                        // Eğer mevcut bir program bloğundaysak ve hücre boş değilse alt satır olarak ekle
+                    } else if (currentBlock) {
                         currentBlock.subLines.push({
                             text: cleanStr,
                             rowIdx: rIdx
@@ -508,7 +514,6 @@
                     }
                 }
 
-                // İkinci Aşama: Oluşturulan blok yapıları içerisindeki personelleri ve onların altındaki açıklamaları eşleştirelim
                 blockStructureList.forEach(block => {
                     let items = block.subLines;
                     
@@ -517,20 +522,16 @@
                         let hasDot = currentText.endsWith(".");
                         let sanitizedName = currentText.replace(/\.+$/, "").trim();
 
-                        // Eğer bu satır bir personele aitse
                         if (USER_EXPLICIT_25.includes(sanitizedName)) {
                             let descriptionLines = [];
                             
-                            // Kendisinden sonra gelen satırları kontrol et: Yeni bir personel standsına kadar olan her şey açıklamadır!
                             for (let j = i + 1; j < items.length; j++) {
                                 let nextText = items[j].text;
                                 let nextSanitized = nextText.replace(/\.+$/, "").trim();
                                 
-                                // Eğer bir sonraki satır başka bir personelin ismiyse açıklamayı toplamayı kes
                                 if (USER_EXPLICIT_25.includes(nextSanitized)) {
                                     break;
                                 }
-                                // Değilse bu satır mevcut personelin iş açıklamasıdır (Örn: V32, V33 satırları)
                                 descriptionLines.push(nextText);
                             }
 
@@ -542,8 +543,8 @@
                                 dayName: dayColumn.dayTitle,
                                 month: dayColumn.month,
                                 year: dayColumn.year,
-                                program: block.programName, // Ana iş ismi (V31 başlığı)
-                                subDetail: finalCollectedDescription, // Alt hücrelerdeki birleştirilmiş açıklamalar (V32, V33)
+                                program: block.programName, 
+                                subDetail: finalCollectedDescription, 
                                 hour: block.hour,
                                 uniqueKey: block.uniqueKey,
                                 isProbability: hasDot
@@ -631,10 +632,10 @@
                         let badge = `<span class="bg-sky-600 text-white text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm">KESİN GÖREV</span>`;
                         if (shift.isProbability) badge = `<span class="bg-amber-400 text-amber-950 text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm"><i class="fa-solid fa-circle-question"></i> İHTİMAL</span>`;
 
-                        // Program ismi ve altına eklenen tüm alt açıklamalar (Örn: V32, V33 hücre içerikleri)
+                        // "Açıklama:" metni ve turuncu kutu kaldırıldı. Doğrudan alt alta düz yazı yapısı kuruldu.
                         let programDisplayHtml = `<div class="text-slate-900 font-black text-sm">${shift.program}</div>`;
                         if (shift.subDetail) {
-                            programDisplayHtml += `<div class="text-orange-600 font-bold text-xs mt-1 bg-orange-50 p-2 rounded-lg border border-orange-100/70"><i class="fa-solid fa-circle-info text-orange-400 mr-1"></i>Açıklama: ${shift.subDetail}</div>`;
+                            programDisplayHtml += `<div class="text-slate-700 font-bold text-xs mt-0.5">${shift.subDetail}</div>`;
                         }
 
                         row.innerHTML = `
@@ -682,8 +683,9 @@
             let startDate = startDateVal ? new Date(startDateVal) : null;
             let endDate = endDateVal ? new Date(endDateVal) : null;
 
+            // FİLTRE DEĞİŞİKLİĞİ: Sadece noktasız (isProbability === false) yani kesinleşmiş işleri havuza dahil et
             let filteredShifts = mainShiftsLogPool.filter(log => {
-                if (log.isProbability) return false;
+                if (log.isProbability) return false; 
                 if (selectedStaff !== "ALL" && log.workerName !== selectedStaff) return false;
 
                 let parts = log.date.split('.');
@@ -776,15 +778,16 @@
                 });
 
                 if(filteredShifts.length === 0) {
-                    historyBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Seçilen tarih aralığında bu personele ait hiçbir iş bulunamadı.</td></tr>`;
+                    historyBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Seçilen tarih aralığında bu personele ait hiçbir kesin iş bulunamadı.</td></tr>`;
                 } else {
                     filteredShifts.forEach(shift => {
                         const tr = document.createElement('tr');
                         tr.className = "hover:bg-slate-50";
+                        // Analiz detay tablosunda da sade tasarım uygulandı
                         tr.innerHTML = `
                             <td class="p-3 pl-4"><div class="font-bold text-slate-900">${shift.date}</div><div class="text-[10px] text-slate-400 uppercase">${shift.dayName}</div></td>
                             <td class="p-3 text-slate-900 font-extrabold">${shift.program}</td>
-                            <td class="p-3 text-orange-600 font-bold bg-orange-50/40">${shift.subDetail || '<span class="text-slate-300">-</span>'}</td>
+                            <td class="p-3 text-slate-700 font-bold">${shift.subDetail || '<span class="text-slate-300">-</span>'}</td>
                             <td class="p-3 text-center"><span class="bg-slate-100 px-2 py-1 rounded text-[11px] text-slate-700 font-black">${shift.hour}</span></td>
                         `;
                         historyBody.appendChild(tr);
@@ -831,7 +834,7 @@
             let count1 = 0; let count2 = 0;
 
             mainShiftsLogPool.forEach(log => {
-                if (log.isProbability) return;
+                if (log.isProbability) return; // Kıyaslamada sadece kesin işleri say
                 
                 let parts = log.date.split('.');
                 let logDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
@@ -848,11 +851,11 @@
 
             let winnerText = "";
             if(count1 > count2) {
-                winnerText = `<span class="text-emerald-600">${p1}</span> toplamda <span class="text-indigo-600">${count1 - count2} iş</span> daha fazla yapmış durumda.`;
+                winnerText = `<span class="text-emerald-600">${p1}</span> toplamda <span class="text-indigo-600">${count1 - count2} kesin iş</span> daha fazla yapmış durumda.`;
             } else if(count2 > count1) {
-                winnerText = `<span class="text-emerald-600">${p2}</span> toplamda <span class="text-indigo-600">${count2 - count1} iş</span> daha fazla yapmış durumda.`;
+                winnerText = `<span class="text-emerald-600">${p2}</span> toplamda <span class="text-indigo-600">${count2 - count1} kesin iş</span> daha fazla yapmış durumda.`;
             } else {
-                winnerText = "Her iki personelin de görev yükü bu tarih aralığında **tamamen eşit**.";
+                winnerText = "Her iki personelin de kesin görev yükü bu tarih aralığında **tamamen eşit**.";
             }
 
             resultBox.innerHTML = `
@@ -874,7 +877,7 @@
                 data: {
                     labels: [p1, p2],
                     datasets: [{
-                        label: 'Toplam İş Sayısı',
+                        label: 'Toplam Kesin İş Sayısı',
                         data: [count1, count2],
                         backgroundColor: ['#4f46e5', '#a855f7'],
                         borderRadius: 6,
