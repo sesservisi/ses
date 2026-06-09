@@ -88,7 +88,7 @@
                                     <th class="p-4 w-32 text-right pr-5">İşlemler</th>
                                 </tr>
                             </thead>
-                            <tbody id="weekly-schedule-table-body" class="divide-y divide-slate-100 text-xs font-bold text-slate-700">
+                            <tbody id="weekly-schedule-table-body" class="divide-y-2 divide-slate-300 text-xs font-bold text-slate-700">
                                 </tbody>
                         </table>
                     </div>
@@ -433,7 +433,6 @@
             return null;
         }
 
-        // AMELİYAT BÖLGESİ: Çift Yönlü Blok Tarama Motoru
         function compileExcelAndMerge(matrix) {
             if(!matrix || matrix.length < 3) return;
             
@@ -483,7 +482,6 @@
                 let blockStructureList = [];
                 let currentBlock = null;
 
-                // 1. AŞAMALARA AYIRMA: Sütundaki tüm hücreleri ana program başlıklarına göre blokla
                 for (let rIdx = 2; rIdx < matrix.length; rIdx++) {
                     if (!matrix[rIdx]) continue;
                     let cellVal = matrix[rIdx][actualColIdx];
@@ -517,7 +515,6 @@
                     }
                 }
 
-                // 2. AŞAMA: ÇİFT YÖNLÜ TARAMA MOTORU (A.DEMİRKAYA örneğindeki gibi isimden önceki ve sonraki açıklamaları toplar)
                 blockStructureList.forEach(block => {
                     let items = block.subLines;
                     
@@ -529,18 +526,15 @@
                         if (USER_EXPLICIT_25.includes(sanitizedName)) {
                             let descriptionLines = [];
                             
-                            // A) Yukarı Doğru Tarama (İsimden Önceki Açıklamalar - Örn: 15 Temmuz Anıtı-KEŞİF)
                             for (let j = i - 1; j >= 0; j--) {
                                 let prevText = items[j].text;
                                 let prevSanitized = prevText.replace(/\.+$/, "").trim();
-                                // Eğer üstteki satır başka bir personelin ismiyse dur
                                 if (USER_EXPLICIT_25.includes(prevSanitized)) {
                                     break;
                                 }
-                                descriptionLines.unshift(prevText); // Başına ekle ki sıra bozulmasın
+                                descriptionLines.unshift(prevText);
                             }
 
-                            // B) Aşağı Doğru Tarama (İsimden Sonra Gelebilecek Ek Açıklamalar)
                             for (let j = i + 1; j < items.length; j++) {
                                 let nextText = items[j].text;
                                 let nextSanitized = nextText.replace(/\.+$/, "").trim();
@@ -649,7 +643,8 @@
 
                         let programDisplayHtml = `<div class="text-slate-950 font-black text-sm block tracking-tight">${shift.program}</div>`;
                         if (shift.subDetail && shift.subDetail.trim() !== "") {
-                            programDisplayHtml += `<div class="text-slate-600 font-bold text-xs mt-1 block leading-normal border-l-2 border-orange-400 pl-2 bg-slate-50 p-1.5 rounded-r-lg">${shift.subDetail}</div>`;
+                            // İstediğiniz gibi turuncu sol şerit ve gri arka plan tamamen kaldırıldı, şeffaf hale getirildi
+                            programDisplayHtml += `<div class="text-slate-600 font-bold text-xs mt-1 block leading-normal">${shift.subDetail}</div>`;
                         }
 
                         row.innerHTML = `
