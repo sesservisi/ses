@@ -90,7 +90,7 @@
                         <table class="w-full text-left border-collapse min-w-[650px]">
                             <thead>
                                 <tr class="bg-gradient-to-r from-sky-600 to-blue-600 text-white text-[11px] font-black uppercase tracking-wider">
-                                    <th class="p-4 pl-5 w-40">Tarih / Gün</th>
+                                    <th class="p-4 pl-5 w-44">Tarih / Gün</th>
                                     <th class="p-4 w-32 text-center">Durum</th>
                                     <th class="p-4">Görevlendirilen Program / Stüdyo</th>
                                     <th class="p-4 w-32 text-center">Yayın Saati</th>
@@ -135,7 +135,7 @@
                 </div>
             </div>
 
-            <!-- TARİH VE YIL SEÇİM FİLTRELERİ BAR BAR -->
+            <!-- TARİH VE YIL SEÇİM FİLTRELERİ -->
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-1 sm:grid-cols-4 gap-3 items-center">
                 <div class="flex flex-col">
                     <label class="text-[10px] font-black text-slate-400 uppercase mb-1">Başlangıç Tarihi</label>
@@ -446,6 +446,7 @@
             const rowDays = matrix[0]; const rowDates = matrix[1];
             let newIncomingDays = [];
 
+            // 1. ADIM: Excel'deki tarih kolonlarını ayrıştır ve temizle
             for (let colIdx = 1; colIdx < rowDays.length; colIdx += 4) {
                 if(rowDays[colIdx] || rowDates[colIdx]) {
                     let rawDate = rowDates[colIdx]; 
@@ -455,17 +456,28 @@
 
                     if (rawDate instanceof Date || !isNaN(Date.parse(rawDate))) {
                         let d = new Date(rawDate);
-                        formatted = `${d.getDate() < 10 ? '0'+d.getDate() : d.getDate()}.${(d.getMonth()+1) < 10 ? '0'+(d.getMonth()+1) : (d.getMonth()+1)}.${d.getFullYear()}`;
-                        mm = ((d.getMonth()+1) < 10 ? '0'+(d.getMonth()+1) : (d.getMonth()+1)).toString();
-                        yy = d.getFullYear().toString();
-                        computedDayTitle = TURKISH_DAYS[d.getDay()]; // TARİH HATASI DÜZELTİLDİ: Doğrudan Date nesnesinin günü çekiliyor
+                        let dayNum = d.getUTCDate();
+                        let monthNum = d.getUTCMonth() + 1;
+                        let yearNum = d.getUTCFullYear();
+
+                        if (d.getUTCHours() >= 22) { 
+                            let tomorrow = new Date(d.getTime() + 4 * 60 * 60 * 1000);
+                            dayNum = tomorrow.getUTCDate();
+                            monthNum = tomorrow.getUTCMonth() + 1;
+                            yearNum = tomorrow.getUTCFullYear();
+                        }
+
+                        formatted = `${dayNum < 10 ? '0'+dayNum : dayNum}.${monthNum < 10 ? '0'+monthNum : monthNum}.${yearNum}`;
+                        mm = (monthNum < 10 ? '0'+monthNum : monthNum).toString();
+                        yy = yearNum.toString();
+                        
+                        let calendarCheck = new Date(yearNum, monthNum - 1, dayNum);
+                        computedDayTitle = TURKISH_DAYS[calendarCheck.getDay()];
                     } else if(rawDate) { 
                         formatted = String(rawDate).split(' ')[0];
-                        // Eğer metin formatında geldiyse gün adını Excel satırından temizleyerek al
                         computedDayTitle = String(rowDays[colIdx]).replace(/\.\d+/g, '').trim();
                     }
 
-                    // Eğer gün adı hala boşsa veya tanımsızsa yedek mekanizma olarak Excel'den oku
                     if(!computedDayTitle) {
                         computedDayTitle = String(rowDays[colIdx]).replace(/\.\d+/g, '').trim();
                     }
@@ -473,7 +485,6 @@
                     const dayItem = { dateTitle: formatted, dayTitle: computedDayTitle, month: mm, year: yy };
                     newIncomingDays.push(dayItem);
                     
-                    // Eski kayıt varsa güncelle, yoksa ekle
                     const existingIdx = timePeriodDaysList.findIndex(d => d.dateTitle === dayItem.dateTitle);
                     if(existingIdx !== -1) {
                         timePeriodDaysList[existingIdx] = dayItem;
@@ -483,10 +494,19 @@
                 }
             }
 
-            timePeriodDaysList.sort((a,b) => a.dateTitle.split('.').reverse().join('').localeCompare(b.dateTitle.split('.').reverse().join('')));
+            // Tarih listesini sırala
+            timePeriodDaysList.sort((a,b) => {
+                let partsA = a.dateTitle.split('.');
+                let partsB = b.dateTitle.split('.');
+                return new Date(partsA[2], partsA[1]-1, partsA[0]) - new Date(partsB[2], partsB[1]-1, partsB[0]);
+            });
+
+            // 2. ADIM (DİNAMİK GÜNCELLEME): Havuzdan sadece şefin bu hafta yüklediği tarihleri temizle!
+            // Böylece eski veriler ezilir, üzerine mükerrer kayıt binmez.
             const newDatesSet = newIncomingDays.map(d => d.dateTitle);
             mainShiftsLogPool = mainShiftsLogPool.filter(log => !newDatesSet.includes(log.date));
 
+            // 3. ADIM: Hücreleri satır satır tara ve yeni görevleri havuza ekle
             newIncomingDays.forEach((dayColumn, idx) => {
                 let actualColIdx = 1 + (idx * 4);
                 let curProg = "", curHour = "", curKey = "";
@@ -545,14 +565,28 @@
             const personalShiftsList = mainShiftsLogPool.filter(s => s.workerName === selectedStaffName);
             const todayStr = new Date().toLocaleDateString('tr-TR', {day:'2-digit', month:'2-digit', year:'numeric'}).replace(/\//g,'.');
 
-            let displayedDaysCounter = 0;
-            let dividerInjected = false;
+            // Şefin yazdığı ilk günü baz alarak sonraki haftanın ayracını otomatik hesapla
+            let baseDateObj = null;
+            if(timePeriodDaysList.length > 0) {
+                let p = timePeriodDaysList[0].dateTitle.split('.');
+                baseDateObj = new Date(p[2], p[1]-1, p[0]);
+            }
 
             timePeriodDaysList.forEach((dayItem) => {
-                displayedDaysCounter++;
+                let parts = dayItem.dateTitle.split('.');
+                let currentItemDate = new Date(parts[2], parts[1]-1, parts[0]);
                 
-                if(displayedDaysCounter > 3 && !dividerInjected) {
-                    dividerInjected = true;
+                // Şefin Excel'deki ilk gününden tam 4 gün sonrası (Masa başı takvim kayması sınırı) dinamik kontrolü
+                let isNextWeekDivider = false;
+                if(baseDateObj) {
+                    let diffTime = Math.abs(currentItemDate - baseDateObj);
+                    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    if(diffDays === 4 && !tableBody.innerHTML.includes("SONRAKİ HAFTANIN LİSTESİ")) {
+                        isNextWeekDivider = true;
+                    }
+                }
+                
+                if(isNextWeekDivider) {
                     const dividerRow = document.createElement('tr');
                     dividerRow.className = "bg-gradient-to-r from-orange-500 via-orange-500 via-45% to-sky-600 text-white font-extrabold text-[11px]";
                     dividerRow.innerHTML = `
