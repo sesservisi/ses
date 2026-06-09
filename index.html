@@ -538,6 +538,7 @@
                     }
                 }
 
+                // DÜZELTİLEN YER: Blok içi alt açıklamaları kaçırmadan doğru personelle eşleştiren toplama motoru
                 blockStructureList.forEach(block => {
                     let items = block.subLines;
                     
@@ -656,10 +657,10 @@
                         let badge = `<span class="bg-sky-600 text-white text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm">KESİN GÖREV</span>`;
                         if (shift.isProbability) badge = `<span class="bg-amber-400 text-amber-950 text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm"><i class="fa-solid fa-circle-question"></i> İHTİMAL</span>`;
 
-                        // DÜZELTİLEN YER: Alt açıklama hücresi (subDetail) alt alta düz yazı yapısıyla ekrana basılıyor.
-                        let programDisplayHtml = `<div class="text-slate-900 font-black text-sm">${shift.program}</div>`;
+                        // DÜZELTİLEN YER: Blok başlığı ve altındaki iş açıklamaları tam hiyerarşik düzende alt alta basılıyor
+                        let programDisplayHtml = `<div class="text-slate-950 font-black text-sm block tracking-tight">${shift.program}</div>`;
                         if (shift.subDetail && shift.subDetail.trim() !== "") {
-                            programDisplayHtml += `<div class="text-slate-700 font-bold text-xs mt-0.5">${shift.subDetail}</div>`;
+                            programDisplayHtml += `<div class="text-slate-600 font-bold text-xs mt-1 block leading-normal border-l-2 border-orange-400 pl-2">${shift.subDetail}</div>`;
                         }
 
                         row.innerHTML = `
