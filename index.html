@@ -47,7 +47,7 @@
         <div id="loader-live-data" class="bg-white border border-sky-100 rounded-2xl p-8 text-center max-w-md mx-auto my-6 shadow-md flex flex-col items-center justify-center">
             <i class="fa-solid fa-circle-notch text-orange-500 text-4xl mb-3 animate-spin"></i>
             <h3 class="text-sm font-black text-slate-900">Güncel Plan Yükleniyor</h3>
-            <p class="text-xs text-slate-500 mt-1">Excel belgesinden güncel tarihler ve görevler okunuyor...</p>
+            <p class="text-xs text-slate-500 mt-1">Excel dosyasındaki B2, F2, J2 hücrelerinden tarihler tam doğrulanıyor...</p>
         </div>
 
         <div id="alert-no-data" class="bg-orange-50 border-2 border-dashed border-orange-200 rounded-2xl p-6 text-center max-w-md mx-auto my-6 hidden">
@@ -243,10 +243,6 @@
         let chartInstanceReference = null;
 
         window.addEventListener('DOMContentLoaded', () => {
-            // İlk açılışta filtre kutularını doldur
-            document.getElementById('analysis-start-date').value = "2026-06-01";
-            document.getElementById('analysis-end-date').value = "2026-06-30";
-
             loadDatabaseFromLocalStorage();
             rebuildStaffDropdownOptions();
             fetchExcelFromGithub(false);
@@ -318,7 +314,7 @@
                 if(res.ok) {
                     const buffer = await res.arrayBuffer();
                     const uintArray = new Uint8Array(buffer);
-                    const workbook = XLSX.read(uintArray, {type: 'array', cellDates: true});
+                    const workbook = XLSX.read(uintArray, {type: 'array', cellDates: false}); // Saat kaymasını engellemek için cellDates false yapıldı
                     compileExcelAndMerge(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: null}));
                     
                     document.getElementById('loader-live-data').classList.add('hidden');
@@ -341,7 +337,7 @@
             const uploadedFile = event.target.files[0]; if(!uploadedFile) return;
             const fileReader = new FileReader();
             fileReader.onload = function(e) {
-                const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array', cellDates: true});
+                const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array', cellDates: false});
                 compileExcelAndMerge(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: null}));
                 alert("Manuel yükleme başarılı! Eski haftaların üzerine eklendi."); displayStaffCards();
             };
@@ -350,36 +346,50 @@
 
         function compileExcelAndMerge(matrix) {
             if(!matrix || matrix.length < 3) return;
-            const rowDays = matrix[0]; const rowDates = matrix[1];
+            
+            // Şefin şablonu: 1. Satır gün adları (Index 0), 2. Satır net tarihler (Index 1)
+            const rowDays = matrix[0]; 
+            const rowDates = matrix[1];
             let newIncomingDays = [];
 
-            // 1. ADIM: Excel satırından TARİHLERİ tam kayıpsız ve saat dilimi hatasız olarak oku
+            // B, F, J, N, R, V, Z, AD, AH, AL hücre düzenini tara (4'er kolon atlayarak)
             for (let colIdx = 1; colIdx < rowDays.length; colIdx += 4) {
-                if(rowDays[colIdx] || rowDates[colIdx]) {
-                    let rawDate = rowDates[colIdx]; 
+                let rawDateVal = rowDates[colIdx];
+                let rawDayVal = rowDays[colIdx];
+
+                if(rawDateVal || rawDayVal) {
                     let formatted = "";
                     let mm = "06", yy = "2026";
-                    let computedDayTitle = "";
+                    let computedDayTitle = rawDayVal ? String(rawDayVal).trim() : "";
 
-                    if (rawDate instanceof Date) {
-                        // UTC saat kaymalarını engellemek için yerel gün/ay değerlerini çekiyoruz
-                        let dayNum = rawDate.getDate();
-                        let monthNum = rawDate.getMonth() + 1;
-                        let yearNum = rawDate.getFullYear();
-
+                    // Excel tarih seri numarasını string tarihe çevirme emniyeti
+                    if (typeof rawDateVal === 'number') {
+                        let utc_days  = Math.floor(rawDateVal - 25569);
+                        let utc_value = utc_days * 86400;                                        
+                        let date_info = new Date(utc_value * 1000);
+                        
+                        let dayNum = date_info.getDate();
+                        let monthNum = date_info.getMonth() + 1;
+                        let yearNum = date_info.getFullYear();
+                        
                         formatted = `${dayNum < 10 ? '0'+dayNum : dayNum}.${monthNum < 10 ? '0'+monthNum : monthNum}.${yearNum}`;
                         mm = (monthNum < 10 ? '0'+monthNum : monthNum).toString();
                         yy = yearNum.toString();
-                        
-                        let calendarCheck = new Date(yearNum, monthNum - 1, dayNum);
-                        computedDayTitle = TURKISH_DAYS[calendarCheck.getDay()];
-                    } else if(rawDate) { 
-                        formatted = String(rawDate).split(' ')[0].trim();
-                        computedDayTitle = String(rowDays[colIdx]).replace(/\.\d+/g, '').trim();
+                    } else if(rawDateVal) {
+                        // Eğer hücre direkt string metin olarak geldi ise temizle
+                        formatted = String(rawDateVal).split(' ')[0].trim();
+                        let dateParts = formatted.split('.');
+                        if(dateParts.length === 3) {
+                            mm = dateParts[1];
+                            yy = dateParts[2];
+                        }
                     }
 
-                    if(!computedDayTitle) {
-                        computedDayTitle = String(rowDays[colIdx]).replace(/\.\d+/g, '').trim();
+                    // Eğer gün adı gelmediyse takvimden otomatik bul
+                    if(!computedDayTitle && formatted) {
+                        let p = formatted.split('.');
+                        let calendarCheck = new Date(p[2], p[1] - 1, p[0]);
+                        computedDayTitle = TURKISH_DAYS[calendarCheck.getDay()];
                     }
 
                     if(formatted) {
@@ -393,31 +403,32 @@
                 }
             }
 
-            // Genel takvim listesini kronolojik sırala
+            // Genel takvimi kronolojik olarak diz
             timePeriodDaysList.sort((a,b) => {
                 let pA = a.dateTitle.split('.'); let pB = b.dateTitle.split('.');
                 return new Date(pA[2], pA[1]-1, pA[0]) - new Date(pB[2], pB[1]-1, pB[0]);
             });
 
-            // 2. ADIM (LOG KAYIT VE TARİH KORUMA): 
-            // Mükerrerliği önlemek adına sadece şefin BU HAFTA yüklediği listeye ait günleri havuzdan temizle,
-            // geçmiş haftaların kayıtlarına asla dokunma!
+            // LOG KAYIT GÜVENLİĞİ: Şefin yüklediği bu yeni listedeki tarihleri eski havuzdan temizle (Mükerrer olmasın)
             const newDatesSet = newIncomingDays.map(d => d.dateTitle);
             mainShiftsLogPool = mainShiftsLogPool.filter(log => !newDatesSet.includes(log.date));
 
-            // 3. ADIM: Verileri satır satır tara ve yeni görevleri kümülatif log havuzuna yaz
+            // Hücreleri satır satır tara ve yeni görevleri log havuzuna ekle
             newIncomingDays.forEach((dayColumn, idx) => {
-                let actualColIdx = 1 + (idx * 4);
+                let actualColIdx = 1 + (idx * 4); // B=1, F=5, J=9 şeklinde gider
                 let curProg = "", curHour = "", curKey = "";
                 
-                for(let rIdx = 4; rIdx < matrix.length; rIdx++) {
+                // Görevler 4. satırdan (Index 3 veya 4) itibaren başlıyor
+                for(let rIdx = 3; rIdx < matrix.length; rIdx++) {
+                    if (!matrix[rIdx]) continue;
                     let cellVal = matrix[rIdx][actualColIdx];
-                    let cellHour = matrix[rIdx][actualColIdx + 2];
+                    let cellHour = matrix[rIdx][actualColIdx + 2]; // 2 yan sütun saat bilgisidir
 
                     if(!cellVal) continue;
                     let cleanStr = String(cellVal).trim();
                     if(cleanStr === "" || cleanStr === "null") continue;
 
+                    // Başlık kontrolü (Yayın, Stüdyo vb.)
                     if(cleanStr.includes("YAYIN") || cleanStr.includes("STÜDYOSU") || cleanStr.includes("SAHNESİ") || cleanStr.includes("GÜNDEM") || (cleanStr === cleanStr.toUpperCase() && cleanStr.length > 8 && !cleanStr.includes("."))) {
                         curProg = cleanStr; curHour = cellHour ? String(cellHour).trim() : "Belirtilmedi";
                         curKey = dayColumn.dateTitle + "_" + actualColIdx + "_b_" + rIdx; continue;
@@ -442,10 +453,12 @@
                 }
             });
 
-            // Eğer şef yeni bir excel yüklediyse, analiz panelinin varsayılan başlangıç kutusunu o Excel'in ilk gününe eşitle
+            // Analiz kutularının otomatik tarihlerini eşitle
             if(newIncomingDays.length > 0) {
                 let p = newIncomingDays[0].dateTitle.split('.');
                 document.getElementById('analysis-start-date').value = `${p[2]}-${p[1]}-${p[0]}`;
+                let lastP = newIncomingDays[newIncomingDays.length - 1].dateTitle.split('.');
+                document.getElementById('analysis-end-date').value = `${lastP[2]}-${lastP[1]}-${lastP[0]}`;
             }
 
             saveDatabaseToLocalStorage();
@@ -467,12 +480,12 @@
             const personalShiftsList = mainShiftsLogPool.filter(s => s.workerName === selectedStaffName);
             const todayStr = new Date().toLocaleDateString('tr-TR', {day:'2-digit', month:'2-digit', year:'numeric'}).replace(/\//g,'.');
 
-            // ŞEFİN BÜGÜNKÜ LİSTESİ İÇİN BÖLME KONTROLÜ
-            // Excel'deki günleri tam sırasıyla alıyoruz. İlk 3 günden sonra çizgiyi basacağız.
-            let uniqueDatesInExcel = [...new Set(timePeriodDaysList.map(d => d.dateTitle))];
+            // Sadece bu Excel'e ait olan aktif günleri süz
+            let filteredDays = timePeriodDaysList.filter(d => mainShiftsLogPool.some(log => log.date === d.dateTitle));
+            if(filteredDays.length === 0) filteredDays = timePeriodDaysList;
 
-            timePeriodDaysList.forEach((dayItem, index) => {
-                // KURAL: İlk 3 gün başarıyla listelendikten TAM SONRA (Index == 3 iken) çizgiyi çekiyoruz.
+            filteredDays.forEach((dayItem, index) => {
+                // KURAL: İlk 3 gün listelendikten TAM SONRA (Index == 3 iken) çizgiyi basıyoruz.
                 if(index === 3) {
                     const dividerRow = document.createElement('tr');
                     dividerRow.className = "bg-gradient-to-r from-orange-500 via-orange-600 to-sky-600 text-white font-extrabold text-[11px]";
