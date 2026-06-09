@@ -47,7 +47,7 @@
         <div id="loader-live-data" class="bg-white border border-sky-100 rounded-2xl p-8 text-center max-w-md mx-auto my-6 shadow-md flex flex-col items-center justify-center">
             <i class="fa-solid fa-circle-notch text-orange-500 text-4xl mb-3 animate-spin"></i>
             <h3 class="text-sm font-black text-slate-900">Güncel Plan Yükleniyor</h3>
-            <p class="text-xs text-slate-500 mt-1">Excel dosyasındaki B2, F2, J2 hücrelerinden tarihler tam doğrulanıyor...</p>
+            <p class="text-xs text-slate-500 mt-1">B1-AL1 ve B2-AL2 hücrelerindeki takvim doğrulanıyor...</p>
         </div>
 
         <div id="alert-no-data" class="bg-orange-50 border-2 border-dashed border-orange-200 rounded-2xl p-6 text-center max-w-md mx-auto my-6 hidden">
@@ -237,6 +237,14 @@
 
         const TURKISH_DAYS = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
 
+        // Excel'deki Sütun Harflerinin Matris İndeks Karşılıkları (B=1, F=5, J=9, N=13, R=17, V=21, Z=25, AD=29, AH=33, AL=37)
+        const TARGET_EXCEL_COLUMNS = [
+            { label: "B", idx: 1 }, { label: "F", idx: 5 }, { label: "J", idx: 9 }, 
+            { label: "N", idx: 13 }, { label: "R", idx: 17 }, { label: "V", idx: 21 }, 
+            { label: "Z", idx: 25 }, { label: "AD", idx: 29 }, { label: "AH", idx: 33 }, 
+            { label: "AL", idx: 37 }
+        ];
+
         let mainShiftsLogPool = [];
         let timePeriodDaysList = []; 
         let currentActiveTab = 'personnel';
@@ -314,7 +322,6 @@
                 if(res.ok) {
                     const buffer = await res.arrayBuffer();
                     const uintArray = new Uint8Array(buffer);
-                    // raw: true seçeneği hücrelerin altındaki ham sayı verilerine tam erişim sağlar
                     const workbook = XLSX.read(uintArray, {type: 'array', cellDates: false, raw: true}); 
                     compileExcelAndMerge(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: null}));
                     
@@ -340,7 +347,7 @@
             fileReader.onload = function(e) {
                 const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array', cellDates: false, raw: true});
                 compileExcelAndMerge(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: null}));
-                alert("Manuel yükleme başarılı! Eski haftaların üzerine eklendi."); displayStaffCards();
+                alert("Manuel yükleme başarılı! Takvim hücreleri güncellendi."); displayStaffCards();
             };
             fileReader.readAsArrayBuffer(uploadedFile);
         }
@@ -348,30 +355,30 @@
         function compileExcelAndMerge(matrix) {
             if(!matrix || matrix.length < 3) return;
             
-            // Satır 1 (Index 0): B1, F1, J1... -> Gün İsimleri
-            // Satır 2 (Index 1): B2, F2, J2... -> Net Tarihler
+            // Satır 1 (Index 0): Gün isimleri (B1, F1, J1...)
+            // Satır 2 (Index 1): Tarih numaraları (B2, F2, J2...)
             const rowDays = matrix[0]; 
             const rowDates = matrix[1];
             let newIncomingDays = [];
 
-            // B, F, J, N, R, V, Z, AD, AH, AL hücre düzenini tara (4'er sütun atlayarak)
-            for (let colIdx = 1; colIdx < rowDays.length; colIdx += 4) {
-                let rawDateVal = rowDates[colIdx];
-                let rawDayVal = rowDays[colIdx];
+            // Sabit kilitlenmiş hedef kolon harflerine göre net okuma yap
+            TARGET_EXCEL_COLUMNS.forEach(col => {
+                let actualColIdx = col.idx;
+                if (actualColIdx >= rowDays.length) return;
 
-                if(rawDateVal || rawDayVal) {
+                let rawDayVal = rowDays[actualColIdx];
+                let rawDateVal = rowDates[actualColIdx];
+
+                if (rawDateVal || rawDayVal) {
                     let formatted = "";
                     let mm = "06", yy = "2026";
-                    let computedDayTitle = rawDayVal ? String(rawDayVal).trim() : "";
+                    let computedDayTitle = rawDayVal ? String(rawDayVal).trim().toUpperCase() : "";
 
                     if (typeof rawDateVal === 'number') {
-                        // KADEMELİ SAAT DİLİMİ KORUMASI: 
-                        // Excel seri numarası üzerinden tarih parçalanırken UTC ya da yerel kayma olmaması için
-                        // gün yuvarlamasını doğrudan tam sayı tabanlı yapıyoruz.
+                        // Matematiksel tamsayı tabanlı gün temizleme (Timezone kayması yaşanmaz)
                         let utc_days = Math.floor(rawDateVal - 25569);
                         let date_info = new Date(utc_days * 86400 * 1000);
                         
-                        // getTimezoneOffset farkını temizlemek için veriyi UTC fonksiyonlarından çekiyoruz
                         let dayNum = date_info.getUTCDate();
                         let monthNum = date_info.getUTCMonth() + 1;
                         let yearNum = date_info.getUTCFullYear();
@@ -379,65 +386,75 @@
                         formatted = `${dayNum < 10 ? '0'+dayNum : dayNum}.${monthNum < 10 ? '0'+monthNum : monthNum}.${yearNum}`;
                         mm = (monthNum < 10 ? '0'+monthNum : monthNum).toString();
                         yy = yearNum.toString();
-                    } else if(rawDateVal) {
+                    } else if (rawDateVal) {
                         formatted = String(rawDateVal).split(' ')[0].trim();
                         let dateParts = formatted.split('.');
-                        if(dateParts.length === 3) {
+                        if (dateParts.length === 3) {
                             mm = dateParts[1];
                             yy = dateParts[2];
                         }
                     }
 
-                    if(!computedDayTitle && formatted) {
+                    if (!computedDayTitle && formatted) {
                         let p = formatted.split('.');
                         let calendarCheck = new Date(p[2], p[1] - 1, p[0]);
-                        computedDayTitle = TURKISH_DAYS[calendarCheck.getDay()];
+                        computedDayTitle = TURKISH_DAYS[calendarCheck.getDay()].toUpperCase();
                     }
 
-                    if(formatted) {
-                        const dayItem = { dateTitle: formatted, dayTitle: computedDayTitle, month: mm, year: yy };
+                    if (formatted) {
+                        const dayItem = { 
+                            dateTitle: formatted, 
+                            dayTitle: computedDayTitle, 
+                            month: mm, 
+                            year: yy,
+                            excelColIdx: actualColIdx 
+                        };
                         newIncomingDays.push(dayItem);
                         
                         const existingIdx = timePeriodDaysList.findIndex(d => d.dateTitle === dayItem.dateTitle);
-                        if(existingIdx !== -1) timePeriodDaysList[existingIdx] = dayItem;
+                        if (existingIdx !== -1) timePeriodDaysList[existingIdx] = dayItem;
                         else timePeriodDaysList.push(dayItem);
                     }
                 }
-            }
+            });
 
-            // Takvimi kronolojik sıraya sok
+            // Takvimi kronolojik sıraya al
             timePeriodDaysList.sort((a,b) => {
                 let pA = a.dateTitle.split('.'); let pB = b.dateTitle.split('.');
                 return new Date(pA[2], pA[1]-1, pA[0]) - new Date(pB[2], pB[1]-1, pB[0]);
             });
 
-            // Mükerrer kayıt olmaması için yeni gelen tarihleri eski havuzdan temizle
+            // Tekrarlanan verileri engellemek için mevcut tarih havuzunu temizle
             const newDatesSet = newIncomingDays.map(d => d.dateTitle);
             mainShiftsLogPool = mainShiftsLogPool.filter(log => !newDatesSet.includes(log.date));
 
-            // Görev satırlarını matristen topla
-            newIncomingDays.forEach((dayColumn, idx) => {
-                let actualColIdx = 1 + (idx * 4); // B=1, F=5, J=9...
+            // Personel görev dağılım satırlarını oku
+            newIncomingDays.forEach(dayColumn => {
+                let actualColIdx = dayColumn.excelColIdx;
                 let curProg = "", curHour = "", curKey = "";
                 
-                for(let rIdx = 2; rIdx < matrix.length; rIdx++) {
+                for (let rIdx = 2; rIdx < matrix.length; rIdx++) {
                     if (!matrix[rIdx]) continue;
                     let cellVal = matrix[rIdx][actualColIdx];
-                    let cellHour = matrix[rIdx][actualColIdx + 2]; 
+                    let cellHour = matrix[rIdx][actualColIdx + 2]; // Yayın saati her zaman +2 yan sütundadır (D, H, L...)
 
-                    if(!cellVal) continue;
+                    if (!cellVal) continue;
                     let cleanStr = String(cellVal).trim();
-                    if(cleanStr === "" || cleanStr === "null") continue;
+                    if (cleanStr === "" || cleanStr === "null") continue;
 
-                    if(cleanStr.includes("YAYIN") || cleanStr.includes("STÜDYOSU") || cleanStr.includes("SAHNESİ") || cleanStr.includes("GÜNDEM") || (cleanStr === cleanStr.toUpperCase() && cleanStr.length > 8 && !cleanStr.includes("."))) {
-                        curProg = cleanStr; curHour = cellHour ? String(cellHour).trim() : "Belirtilmedi";
-                        curKey = dayColumn.dateTitle + "_" + actualColIdx + "_b_" + rIdx; continue;
+                    // Eğer satır başlığı program/stüdyo adı ise kaydet
+                    if (cleanStr.includes("YAYIN") || cleanStr.includes("STÜDYOSU") || cleanStr.includes("SAHNESİ") || cleanStr.includes("GÜNDEM") || (cleanStr === cleanStr.toUpperCase() && cleanStr.length > 8 && !cleanStr.includes("."))) {
+                        curProg = cleanStr; 
+                        curHour = cellHour ? String(cellHour).trim() : "Belirtilmedi";
+                        curKey = dayColumn.dateTitle + "_" + actualColIdx + "_b_" + rIdx; 
+                        continue;
                     }
 
                     let hasDot = cleanStr.endsWith(".");
                     let sanitizedName = cleanStr.replace(/\.+$/, "").trim();
 
-                    if(USER_EXPLICIT_25.includes(sanitizedName)) {
+                    // Tanımlı 25 personelden biriyse havuza ekle
+                    if (USER_EXPLICIT_25.includes(sanitizedName)) {
                         mainShiftsLogPool.push({
                             workerName: sanitizedName,
                             date: dayColumn.dateTitle,
@@ -453,7 +470,7 @@
                 }
             });
 
-            if(newIncomingDays.length > 0) {
+            if (newIncomingDays.length > 0) {
                 let p = newIncomingDays[0].dateTitle.split('.');
                 document.getElementById('analysis-start-date').value = `${p[2]}-${p[1]}-${p[0]}`;
                 let lastP = newIncomingDays[newIncomingDays.length - 1].dateTitle.split('.');
@@ -480,11 +497,11 @@
             const todayStr = new Date().toLocaleDateString('tr-TR', {day:'2-digit', month:'2-digit', year:'numeric'}).replace(/\//g,'.');
 
             let filteredDays = timePeriodDaysList.filter(d => mainShiftsLogPool.some(log => log.date === d.dateTitle));
-            if(filteredDays.length === 0) filteredDays = timePeriodDaysList;
+            if (filteredDays.length === 0) filteredDays = timePeriodDaysList;
 
             filteredDays.forEach((dayItem, index) => {
-                // KURAL: İlk 3 günden sonra (Index == 3) gelecek hafta bariyer çizgisini çek
-                if(index === 3) {
+                // KURAL: 4. Gün başında (Index == 3) Pazar ve sonrasını ayıran bariyer çizgisini çek
+                if (index === 3) {
                     const dividerRow = document.createElement('tr');
                     dividerRow.className = "bg-gradient-to-r from-orange-500 via-orange-600 to-sky-600 text-white font-extrabold text-[11px]";
                     dividerRow.innerHTML = `
@@ -500,7 +517,7 @@
                 
                 let dateBadgeHtml = `<div class="font-black text-slate-800 text-sm">${dayItem.dateTitle}</div><div class="text-[11px] text-sky-600 font-extrabold uppercase tracking-wide">${dayItem.dayTitle}</div>`;
                 let rowHighlightClass = "";
-                if(isToday) {
+                if (isToday) {
                     dateBadgeHtml = `<div class="font-black text-orange-600 text-sm">✨ BUGÜN</div><div class="text-[11px] text-orange-500 font-black uppercase">${dayItem.dayTitle} (${dayItem.dateTitle})</div>`;
                     rowHighlightClass = "border-2 border-orange-500 bg-orange-50/70";
                 }
@@ -513,11 +530,11 @@
                 } else {
                     activeShifts.forEach((shift, sIdx) => {
                         const row = document.createElement('tr');
-                        if(isToday) row.className = rowHighlightClass;
+                        if (isToday) row.className = rowHighlightClass;
                         else row.className = shift.isProbability ? "bg-amber-50/60 hover:bg-amber-50" : "bg-white hover:bg-slate-50";
                         
                         let badge = `<span class="bg-sky-600 text-white text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm">KESİN GÖREV</span>`;
-                        if(shift.isProbability) badge = `<span class="bg-amber-400 text-amber-950 text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm"><i class="fa-solid fa-circle-question"></i> İHTİMAL</span>`;
+                        if (shift.isProbability) badge = `<span class="bg-amber-400 text-amber-950 text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm"><i class="fa-solid fa-circle-question"></i> İHTİMAL</span>`;
 
                         row.innerHTML = `
                             <td class="p-4 pl-5 border-b border-slate-100">${sIdx === 0 ? dateBadgeHtml : ''}</td>
@@ -549,7 +566,7 @@
         function syncDateFiltersFromDropdowns() {
             const mm = document.getElementById('filter-month').value;
             const yy = document.getElementById('filter-year').value;
-            if(mm !== 'ALL' && yy !== 'ALL') {
+            if (mm !== 'ALL' && yy !== 'ALL') {
                 document.getElementById('analysis-start-date').value = `${yy}-${mm}-01`;
                 document.getElementById('analysis-end-date').value = `${yy}-${mm}-${mm==='02'?'28':['04','06','09','11'].includes(mm)?'30':'31'}`;
             }
@@ -570,18 +587,18 @@
             let totalKesinUniqueJobsCount = 0;
             
             mainShiftsLogPool.forEach(log => {
-                if(log.isProbability) return;
+                if (log.isProbability) return;
 
                 let parts = log.date.split('.');
                 let logDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
 
                 let dateInRange = true;
-                if(startDate && logDate < startDate) dateInRange = false;
-                if(endDate && logDate > endDate) dateInRange = false;
+                if (startDate && logDate < startDate) dateInRange = false;
+                if (endDate && logDate > endDate) dateInRange = false;
 
-                if(dateInRange) {
+                if (dateInRange) {
                     let jobIdentityKey = `${log.date}_${log.program.trim()}_${log.hour.trim()}`;
-                    if(!evaluatedUniqueJobs.has(jobIdentityKey)) {
+                    if (!evaluatedUniqueJobs.has(jobIdentityKey)) {
                         evaluatedUniqueJobs.add(jobIdentityKey);
                         totalKesinUniqueJobsCount++;
                     }
@@ -608,7 +625,7 @@
                 tBody.appendChild(tr);
             });
 
-            if(chartInstanceReference) chartInstanceReference.destroy();
+            if (chartInstanceReference) chartInstanceReference.destroy();
             chartInstanceReference = new Chart(document.getElementById('canvas-admin-chart').getContext('2d'), {
                 type: 'bar',
                 data: {
