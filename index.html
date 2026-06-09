@@ -83,7 +83,7 @@
                                 <tr class="bg-gradient-to-r from-sky-600 to-blue-600 text-white text-[11px] font-black uppercase tracking-wider">
                                     <th class="p-4 pl-5 w-44">Tarih / Gün</th>
                                     <th class="p-4 w-32 text-center">Durum</th>
-                                    <th class="p-4">Görevlendirilen Program / Stüdyo</th>
+                                    <th class="p-4">Görevlendirilen Program / Stüdyo & Detay</th>
                                     <th class="p-4 w-32 text-center">Yayın Saati</th>
                                     <th class="p-4 w-32 text-right pr-5">İşlemler</th>
                                 </tr>
@@ -237,7 +237,6 @@
 
         const TURKISH_DAYS = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
 
-        // Excel Sütun Harfleri ve Matris İndeksleri (B=Cuma, F=Cumartesi, J=Pazar, N=Pazartesi...)
         const TARGET_EXCEL_COLUMNS = [
             { label: "B", idx: 1 }, { label: "F", idx: 5 }, { label: "J", idx: 9 }, 
             { label: "N", idx: 13 }, { label: "R", idx: 17 }, { label: "V", idx: 21 }, 
@@ -347,7 +346,7 @@
             fileReader.onload = function(e) {
                 const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array', cellDates: false, raw: true});
                 compileExcelAndMerge(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: null}));
-                alert("Manuel yükleme başarılı! Sütun sırası güncellendi."); displayStaffCards();
+                alert("Manuel yükleme başarılı!"); displayStaffCards();
             };
             fileReader.readAsArrayBuffer(uploadedFile);
         }
@@ -359,7 +358,6 @@
             const rowDates = matrix[1];
             let newIncomingDays = [];
 
-            // Excel'deki sırayla (Sıralama fonksiyonu olmadan) doğrudan oku
             TARGET_EXCEL_COLUMNS.forEach(col => {
                 let actualColIdx = col.idx;
                 if (actualColIdx >= rowDays.length) return;
@@ -399,29 +397,24 @@
                     }
 
                     if (formatted) {
-                        const dayItem = { 
+                        newIncomingDays.push({ 
                             dateTitle: formatted, 
                             dayTitle: computedDayTitle, 
                             month: mm, 
                             year: yy,
                             excelColIdx: actualColIdx 
-                        };
-                        newIncomingDays.push(dayItem);
+                        });
                     }
                 }
             });
 
-            // GÜNCELLEME: Genel takvim listesini Excel'den gelen ham sırayla değiştiriyoruz
             timePeriodDaysList = [...newIncomingDays];
-
-            // Çakışmayı önlemek için bu sütunların eski verilerini havuzdan sil
             const newDatesSet = newIncomingDays.map(d => d.dateTitle);
             mainShiftsLogPool = mainShiftsLogPool.filter(log => !newDatesSet.includes(log.date));
 
-            // Görevlileri yerleştir
             newIncomingDays.forEach(dayColumn => {
                 let actualColIdx = dayColumn.excelColIdx;
-                let curProg = "", curHour = "", curKey = "";
+                let curProg = "", curHour = "", curKey = "", curSubDetail = "";
                 
                 for (let rIdx = 2; rIdx < matrix.length; rIdx++) {
                     if (!matrix[rIdx]) continue;
@@ -432,10 +425,22 @@
                     let cleanStr = String(cellVal).trim();
                     if (cleanStr === "" || cleanStr === "null") continue;
 
+                    // Eğer hücre bir program başlığı ise kaydet
                     if (cleanStr.includes("YAYIN") || cleanStr.includes("STÜDYOSU") || cleanStr.includes("SAHNESİ") || cleanStr.includes("GÜNDEM") || (cleanStr === cleanStr.toUpperCase() && cleanStr.length > 8 && !cleanStr.includes("."))) {
                         curProg = cleanStr; 
                         curHour = cellHour ? String(cellHour).trim() : "Belirtilmedi";
                         curKey = dayColumn.dateTitle + "_" + actualColIdx + "_b_" + rIdx; 
+                        
+                        // GÜNCELLEME: Hemen bir alt satırı kontrol et, eğer o da bir ek detaysa (isimlendirme değilse) alt başlık yap
+                        curSubDetail = "";
+                        if (matrix[rIdx + 1] && matrix[rIdx + 1][actualColIdx]) {
+                            let nextCellVal = String(matrix[rIdx + 1][actualColIdx]).trim();
+                            let sanitizedNext = nextCellVal.replace(/\.+$/, "").trim();
+                            // Eğer alt hücredeki metin 25 personelden biri DEĞİLSE, o işin bir detayı veya lokasyonudur!
+                            if (nextCellVal !== "" && !USER_EXPLICIT_25.includes(sanitizedNext)) {
+                                curSubDetail = nextCellVal;
+                            }
+                        }
                         continue;
                     }
 
@@ -450,6 +455,7 @@
                             month: dayColumn.month,
                             year: dayColumn.year,
                             program: curProg || "Genel Görev",
+                            subDetail: curSubDetail, // Detay bilgisini havuza ekle
                             hour: curHour || "Belirtilmedi",
                             uniqueKey: curKey || (dayColumn.dateTitle + "_" + rIdx),
                             isProbability: hasDot
@@ -485,7 +491,6 @@
             const todayStr = new Date().toLocaleDateString('tr-TR', {day:'2-digit', month:'2-digit', year:'numeric'}).replace(/\//g,'.');
 
             timePeriodDaysList.forEach((dayItem, index) => {
-                // KURAL: 4. Sütun başında (Index == 3 yani N sütunu / Pazartesi) çizgiyi tam buraya çek!
                 if (index === 3) {
                     const dividerRow = document.createElement('tr');
                     dividerRow.className = "bg-gradient-to-r from-orange-500 via-orange-600 to-sky-600 text-white font-extrabold text-[11px]";
@@ -521,10 +526,16 @@
                         let badge = `<span class="bg-sky-600 text-white text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm">KESİN GÖREV</span>`;
                         if (shift.isProbability) badge = `<span class="bg-amber-400 text-amber-950 text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm"><i class="fa-solid fa-circle-question"></i> İHTİMAL</span>`;
 
+                        // GÜNCELLEME: Eğer bir alt detay/lokasyon açıklaması varsa program adının altına yazdır
+                        let programDisplayHtml = `<div class="text-slate-900 font-black text-sm">${shift.program}</div>`;
+                        if (shift.subDetail) {
+                            programDisplayHtml += `<div class="text-slate-500 font-medium text-xs mt-0.5"><i class="fa-solid fa-location-dot text-slate-400 mr-1"></i>${shift.subDetail}</div>`;
+                        }
+
                         row.innerHTML = `
                             <td class="p-4 pl-5 border-b border-slate-100">${sIdx === 0 ? dateBadgeHtml : ''}</td>
                             <td class="p-4 border-b border-slate-100 text-center">${badge}</td>
-                            <td class="p-4 border-b border-slate-100"><div class="text-slate-900 font-black text-sm">${shift.program}</div></td>
+                            <td class="p-4 border-b border-slate-100">${programDisplayHtml}</td>
                             <td class="p-4 border-b border-slate-100 text-center"><span class="bg-slate-100 px-2 py-1 rounded-lg font-black text-[11px]"><i class="fa-solid fa-clock text-orange-500"></i> ${shift.hour}</span></td>
                             <td class="p-4 border-b border-slate-100 text-right pr-5">
                                 <button onclick="triggerTeamDiscoveryModal('${shift.uniqueKey}', '${shift.program}', '${shift.date}')" class="bg-white hover:bg-orange-500 text-slate-700 hover:text-white border border-slate-200 font-black text-[11px] px-3 py-1.5 rounded-xl transition-all shadow-sm">Ekip</button>
