@@ -1,1 +1,41 @@
 
+name: Dropbox Otomatik Excel Senkronizasyonu
+
+on:
+  # 1. YÖNTEM: Belirli saatlerde otomatik çalışması için (Zaman Ayarı)
+  schedule:
+    # Bu ayar UTC saatine göredir. Türkiye saati (GMT+3) için:
+    # Her gün Türkiye saatiyle 08:00, 12:00, 16:00 ve 20:00'de otomatik çalışır.
+    - cron: '0 5,9,13,17 * * *'
+
+  # 2. YÖNTEM: Sırf canınız istediğinde GitHub sitesinden "Run workflow" butonuna basarak tetiklemek için
+  workflow_dispatch:
+
+jobs:
+  guncelle-excel:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # GitHub'ın kendi içine dosya yazabilmesi için gerekli izin
+
+    steps:
+      - name: Depoyu Bilgisayara İndir (Checkout)
+        uses: actions/checkout@v4
+
+      - name: Dropbox'tan Güncel Excel Dosyasını İndir
+        run: |
+          curl -L -o "Gorev-Listesi.xlsx" "https://www.dropbox.com/scl/fi/qryt9lhx1l7igmi6qg3ak/Gorev-Listesixlxx?rlkey=w97mop9zlow5xt0d0cwxg8wp2&e=2&st=w7ogxxi0&dl=1"
+
+      - name: Değişiklik Varsa GitHub'a Yükle (Commit & Push)
+        run: |
+          git config --global user.name "Ses Servisi Otomasyonu"
+          git config --global user.email "otomasyon@sesservisi.local"
+          
+          # Eğer dosya gerçekten değiştiyse sisteme işle
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git add Gorev-Listesi.xlsx
+            git commit -m "Otomatik Güncelleme: Dropbox Excel Güncellendi ($(date +'%d.%m.%Y %H:%M'))"
+            git push
+            echo "Değişiklikler başarıyla yüklendi!"
+          else
+            echo "Dosyada bir değişiklik yok, yükleme yapılmadı."
+          fi
