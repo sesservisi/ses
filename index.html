@@ -47,7 +47,7 @@
         <div id="loader-live-data" class="bg-white border border-sky-100 rounded-2xl p-8 text-center max-w-md mx-auto my-6 shadow-md flex flex-col items-center justify-center">
             <i class="fa-solid fa-circle-notch text-orange-500 text-4xl mb-3 animate-spin"></i>
             <h3 class="text-sm font-black text-slate-900">Güncel Plan Yükleniyor</h3>
-            <p class="text-xs text-slate-500 mt-1">Excel Excel sütun sırasına göre takvim yükleniyor...</p>
+            <p class="text-xs text-slate-500 mt-1">Excel sütun sırasına göre takvim yükleniyor...</p>
         </div>
 
         <div id="alert-no-data" class="bg-orange-50 border-2 border-dashed border-orange-200 rounded-2xl p-6 text-center max-w-md mx-auto my-6 hidden">
@@ -414,7 +414,7 @@
 
             newIncomingDays.forEach(dayColumn => {
                 let actualColIdx = dayColumn.excelColIdx;
-                let curProg = "", curHour = "", curKey = "", curSubDetail = "";
+                let curProg = "", curHour = "", curKey = "";
                 
                 for (let rIdx = 2; rIdx < matrix.length; rIdx++) {
                     if (!matrix[rIdx]) continue;
@@ -425,29 +425,45 @@
                     let cleanStr = String(cellVal).trim();
                     if (cleanStr === "" || cleanStr === "null") continue;
 
-                    // Eğer hücre bir program başlığı ise kaydet
+                    // Eğer hücre bir ana program başlığı ise kaydet
                     if (cleanStr.includes("YAYIN") || cleanStr.includes("STÜDYOSU") || cleanStr.includes("SAHNESİ") || cleanStr.includes("GÜNDEM") || (cleanStr === cleanStr.toUpperCase() && cleanStr.length > 8 && !cleanStr.includes("."))) {
                         curProg = cleanStr; 
                         curHour = cellHour ? String(cellHour).trim() : "Belirtilmedi";
                         curKey = dayColumn.dateTitle + "_" + actualColIdx + "_b_" + rIdx; 
-                        
-                        // GÜNCELLEME: Hemen bir alt satırı kontrol et, eğer o da bir ek detaysa (isimlendirme değilse) alt başlık yap
-                        curSubDetail = "";
-                        if (matrix[rIdx + 1] && matrix[rIdx + 1][actualColIdx]) {
-                            let nextCellVal = String(matrix[rIdx + 1][actualColIdx]).trim();
-                            let sanitizedNext = nextCellVal.replace(/\.+$/, "").trim();
-                            // Eğer alt hücredeki metin 25 personelden biri DEĞİLSE, o işin bir detayı veya lokasyonudur!
-                            if (nextCellVal !== "" && !USER_EXPLICIT_25.includes(sanitizedNext)) {
-                                curSubDetail = nextCellVal;
-                            }
-                        }
                         continue;
                     }
 
                     let hasDot = cleanStr.endsWith(".");
                     let sanitizedName = cleanStr.replace(/\.+$/, "").trim();
 
+                    // Eğer hücredeki isim 25 tanımlı personelden biriyse
                     if (USER_EXPLICIT_25.includes(sanitizedName)) {
+                        
+                        // YENİ VE KESİN ÇÖZÜM: İsmin bulunduğu tam satırın (rIdx) bir altı ve iki altını dinamik oku
+                        let detailParts = [];
+                        
+                        // 1. Alt Hücre Kontrolü (İsmin tam bir alt satırı: rIdx + 1)
+                        if (matrix[rIdx + 1] && matrix[rIdx + 1][actualColIdx]) {
+                            let firstDetail = String(matrix[rIdx + 1][actualColIdx]).trim();
+                            let sanitizedFirst = firstDetail.replace(/\.+$/, "").trim();
+                            // Boş değilse, null değilse ve başka bir personel adı değilse açıklamaya ekle
+                            if (firstDetail !== "" && firstDetail !== "null" && !USER_EXPLICIT_25.includes(sanitizedFirst)) {
+                                detailParts.push(firstDetail);
+                            }
+                        }
+                        
+                        // 2. Alt Hücre Kontrolü (İsmin tam iki alt satırı: rIdx + 2)
+                        if (matrix[rIdx + 2] && matrix[rIdx + 2][actualColIdx]) {
+                            let secondDetail = String(matrix[rIdx + 2][actualColIdx]).trim();
+                            let sanitizedSecond = secondDetail.replace(/\.+$/, "").trim();
+                            if (secondDetail !== "" && secondDetail !== "null" && !USER_EXPLICIT_25.includes(sanitizedSecond)) {
+                                detailParts.push(secondDetail);
+                            }
+                        }
+                        
+                        // Elde edilen alt hücre verilerini " - " ile birleştirerek açıklama metni oluştur
+                        let computedSubDetail = detailParts.join(" - ");
+
                         mainShiftsLogPool.push({
                             workerName: sanitizedName,
                             date: dayColumn.dateTitle,
@@ -455,7 +471,7 @@
                             month: dayColumn.month,
                             year: dayColumn.year,
                             program: curProg || "Genel Görev",
-                            subDetail: curSubDetail, // Detay bilgisini havuza ekle
+                            subDetail: computedSubDetail, // Her personelin kendi işine ait alt iki satır bilgisi
                             hour: curHour || "Belirtilmedi",
                             uniqueKey: curKey || (dayColumn.dateTitle + "_" + rIdx),
                             isProbability: hasDot
@@ -526,7 +542,6 @@
                         let badge = `<span class="bg-sky-600 text-white text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm">KESİN GÖREV</span>`;
                         if (shift.isProbability) badge = `<span class="bg-amber-400 text-amber-950 text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm"><i class="fa-solid fa-circle-question"></i> İHTİMAL</span>`;
 
-                        // GÜNCELLEME: Eğer bir alt detay/lokasyon açıklaması varsa program adının altına yazdır
                         let programDisplayHtml = `<div class="text-slate-900 font-black text-sm">${shift.program}</div>`;
                         if (shift.subDetail) {
                             programDisplayHtml += `<div class="text-slate-500 font-medium text-xs mt-0.5"><i class="fa-solid fa-location-dot text-slate-400 mr-1"></i>${shift.subDetail}</div>`;
