@@ -47,7 +47,7 @@
         <div id="loader-live-data" class="bg-white border border-sky-100 rounded-2xl p-8 text-center max-w-md mx-auto my-6 shadow-md flex flex-col items-center justify-center">
             <i class="fa-solid fa-circle-notch text-orange-500 text-4xl mb-3 animate-spin"></i>
             <h3 class="text-sm font-black text-slate-900">Güncel Plan Yükleniyor</h3>
-            <p class="text-xs text-slate-500 mt-1">Excel sütun sırasına göre takvim yükleniyor...</p>
+            <p class="text-xs text-slate-500 mt-1">Excel Excel sütun sırasına göre takvim yükleniyor...</p>
         </div>
 
         <div id="alert-no-data" class="bg-orange-50 border-2 border-dashed border-orange-200 rounded-2xl p-6 text-center max-w-md mx-auto my-6 hidden">
@@ -414,7 +414,7 @@
 
             newIncomingDays.forEach(dayColumn => {
                 let actualColIdx = dayColumn.excelColIdx;
-                let curProg = "", curHour = "", curKey = "";
+                let curProg = "", curHour = "", curKey = "", curSubDetail = "";
                 
                 for (let rIdx = 2; rIdx < matrix.length; rIdx++) {
                     if (!matrix[rIdx]) continue;
@@ -425,34 +425,25 @@
                     let cleanStr = String(cellVal).trim();
                     if (cleanStr === "" || cleanStr === "null") continue;
 
-                    // Eğer hücre bir ana program başlığı ise kaydet
+                    // Eğer hücre bir program başlığı ise kaydet
                     if (cleanStr.includes("YAYIN") || cleanStr.includes("STÜDYOSU") || cleanStr.includes("SAHNESİ") || cleanStr.includes("GÜNDEM") || (cleanStr === cleanStr.toUpperCase() && cleanStr.length > 8 && !cleanStr.includes("."))) {
                         curProg = cleanStr; 
                         curHour = cellHour ? String(cellHour).trim() : "Belirtilmedi";
                         curKey = dayColumn.dateTitle + "_" + actualColIdx + "_b_" + rIdx; 
-                        continue;
-                    }
-
-                    let hasDot = cleanStr.endsWith(".");
-                    let sanitizedName = cleanStr.replace(/\.+$/, "").trim();
-
-                    // Eğer hücredeki isim 25 tanımlı personelden biriyse
-                    if (USER_EXPLICIT_25.includes(sanitizedName)) {
                         
-                        // YENİ VE KESİN ÇÖZÜM: İsmin bulunduğu tam satırın (rIdx) bir altı ve iki altını dinamik oku
+                        // GÜNCELLEME: İş isminin altındaki 2 hücreyi (rIdx+1 ve rIdx+2) kontrol et ve birleştir
                         let detailParts = [];
                         
-                        // 1. Alt Hücre Kontrolü (İsmin tam bir alt satırı: rIdx + 1)
+                        // 1. Alt Hücre Kontrolü (Örn: V32)
                         if (matrix[rIdx + 1] && matrix[rIdx + 1][actualColIdx]) {
                             let firstDetail = String(matrix[rIdx + 1][actualColIdx]).trim();
                             let sanitizedFirst = firstDetail.replace(/\.+$/, "").trim();
-                            // Boş değilse, null değilse ve başka bir personel adı değilse açıklamaya ekle
                             if (firstDetail !== "" && firstDetail !== "null" && !USER_EXPLICIT_25.includes(sanitizedFirst)) {
                                 detailParts.push(firstDetail);
                             }
                         }
                         
-                        // 2. Alt Hücre Kontrolü (İsmin tam iki alt satırı: rIdx + 2)
+                        // 2. Alt Hücre Kontrolü (Örn: V33)
                         if (matrix[rIdx + 2] && matrix[rIdx + 2][actualColIdx]) {
                             let secondDetail = String(matrix[rIdx + 2][actualColIdx]).trim();
                             let sanitizedSecond = secondDetail.replace(/\.+$/, "").trim();
@@ -461,9 +452,15 @@
                             }
                         }
                         
-                        // Elde edilen alt hücre verilerini " - " ile birleştirerek açıklama metni oluştur
-                        let computedSubDetail = detailParts.join(" - ");
+                        // Hücreler doluysa aralarına " - " koyarak birleştir
+                        curSubDetail = detailParts.join(" - ");
+                        continue;
+                    }
 
+                    let hasDot = cleanStr.endsWith(".");
+                    let sanitizedName = cleanStr.replace(/\.+$/, "").trim();
+
+                    if (USER_EXPLICIT_25.includes(sanitizedName)) {
                         mainShiftsLogPool.push({
                             workerName: sanitizedName,
                             date: dayColumn.dateTitle,
@@ -471,7 +468,7 @@
                             month: dayColumn.month,
                             year: dayColumn.year,
                             program: curProg || "Genel Görev",
-                            subDetail: computedSubDetail, // Her personelin kendi işine ait alt iki satır bilgisi
+                            subDetail: curSubDetail, 
                             hour: curHour || "Belirtilmedi",
                             uniqueKey: curKey || (dayColumn.dateTitle + "_" + rIdx),
                             isProbability: hasDot
