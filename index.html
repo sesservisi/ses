@@ -378,7 +378,17 @@
                 document.getElementById('section-personnel').classList.add('hidden');
             }
             try {
-                const res = await fetch(GITHUB_LIVE_EXCEL + "?t=" + new Date().getTime());
+                // Aggressive Cache Önleme Mekanizmaları: Hem benzersiz rastgele değer üretildi hem de HTTP headers eklendi
+                const cacheBuster = new Date().getTime() + "_" + Math.floor(Math.random() * 100000);
+                const res = await fetch(GITHUB_LIVE_EXCEL + "?v=" + cacheBuster, {
+                    method: 'GET',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                });
+                
                 if(res.ok) {
                     const buffer = await res.arrayBuffer();
                     const uintArray = new Uint8Array(buffer);
@@ -643,7 +653,6 @@
 
                         let programDisplayHtml = `<div class="text-slate-950 font-black text-sm block tracking-tight">${shift.program}</div>`;
                         if (shift.subDetail && shift.subDetail.trim() !== "") {
-                            // İstediğiniz gibi turuncu sol şerit ve gri arka plan tamamen kaldırıldı, şeffaf hale getirildi
                             programDisplayHtml += `<div class="text-slate-600 font-bold text-xs mt-1 block leading-normal">${shift.subDetail}</div>`;
                         }
 
