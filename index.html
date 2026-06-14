@@ -123,6 +123,7 @@
                 </div>
             </div>
 
+            <!-- YÖNETİCİ PANELİ: YILLIK İZİN GİRİŞ MODÜLÜ -->
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
                 <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
                     <i class="fa-solid fa-umbrella-beach text-orange-500"></i> PERSONEL YILLIK İZİN GİRİŞİ VE ANALİZ ENTEGRASYONU
@@ -247,6 +248,7 @@
                 </div>
             </div>
 
+            <!-- YILLIK İZİN GEÇMİŞİ VE DAĞILIM TABLOSU -->
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                 <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider mb-3 flex items-center justify-between">
                     <span><i class="fa-solid fa-umbrella-beach text-orange-500 mr-1"></i> KADRO DETAYLI YILLIK İZİN DAĞILIMI</span>
@@ -672,7 +674,6 @@
             }
         }
 
-        // CRITICAL UPDATE: İZİN GÜNLERİNİ ÇALIŞMIŞ GİBİ ANALİZE DAHİL EDEN FONKSİYON
         function saveStaffLeave(e) {
             e.preventDefault();
             const staffName = document.getElementById('leave-staff-select').value;
@@ -686,9 +687,11 @@
                 return;
             }
 
-            // 1. İzinleri Kendi Özel Havuzuna Ekle (Listeleme İçin)
+            const uniqueLeaveId = Date.now();
+
+            // 1. İzinleri Kendi Özel Havuzuna Ekle
             const newLeave = {
-                id: Date.now(),
+                id: uniqueLeaveId,
                 workerName: staffName,
                 start: startVal,
                 end: endVal
@@ -704,11 +707,9 @@
                 let monthNum = currentDate.getMonth() + 1;
                 let yearNum = currentDate.getFullYear();
                 
-                // GG.AA.YYYY Excel formatıyla eşleşmesi için biçimlendiriliyor
                 let formattedDate = `${dayNum < 10 ? '0'+dayNum : dayNum}.${monthNum < 10 ? '0'+monthNum : monthNum}.${yearNum}`;
                 let computedDayTitle = TURKISH_DAYS[currentDate.getDay()].toUpperCase();
 
-                // Sistem personeli çalışıyormuş gibi görsün diye kesin iş nesnesi ekleniyor
                 mainShiftsLogPool.push({
                     workerName: staffName,
                     date: formattedDate,
@@ -718,8 +719,8 @@
                     program: "YILLIK İZİN GÖREVİ", 
                     subDetail: "Yönetici Paneli Tarafından Çalışmış Olarak İzinli İşlendi", 
                     hour: "00:00",
-                    uniqueKey: "leave_" + staffName + "_" + formattedDate + "_" + Date.now(),
-                    isProbability: false // Kesin iş olarak sayılması ve analizde çıkması için false tutuldu
+                    uniqueKey: "leave_" + uniqueLeaveId + "_" + formattedDate, // İzin ID'si key içerisine gömüldü
+                    isProbability: false
                 });
 
                 currentDate.setDate(currentDate.getDate() + 1);
@@ -732,20 +733,21 @@
             applyLogFilters();
         }
 
-        // İzin Silindiğinde Log Havuzundaki İlgili İzin Günlerini de Temizleme
+        // İzin Silme Fonksiyonu: Orijinal Excel görevlerine asla dokunmaz, sadece yapay izin kayıtlarını uçurur.
         function deleteStaffLeave(id) {
-            if(confirm("Bu yıllık izin kaydını ve analiz havuzuna işlenen görevlerini silmek istediğinize emin misiniz?")) {
-                const leaveToDel = staffLeavePool.find(l => l.id === id);
-                if(leaveToDel) {
-                    // Log havuzundaki yapay izin görevlerini temizle
-                    mainShiftsLogPool = mainShiftsLogPool.filter(log => {
-                        return !(log.workerName === leaveToDel.workerName && log.program === "YILLIK İZİN GÖREVİ");
-                    });
-                }
+            if(confirm("Bu yıllık izin kaydını silmek istediğinize emin misiniz? (Eğer o günlere ait gerçek bir görev varsa silinmez, analizde tekrar gösterilmeye başlar.)")) {
+                
+                // Sadece silinen izne ait yapay görev havuzunu temizle (Orijinal Excel loglarını korur)
+                mainShiftsLogPool = mainShiftsLogPool.filter(log => {
+                    return !log.uniqueKey.startsWith("leave_" + id + "_");
+                });
+
                 staffLeavePool = staffLeavePool.filter(l => l.id !== id);
+                
                 saveDatabaseToLocalStorage();
                 displayLeaveHistoryTable();
                 applyLogFilters();
+                alert("İzin kaydı başarıyla silindi. Eğer varsa o günlerdeki gerçek işler analizde tekrardan aktif hâle getirildi.");
             }
         }
 
@@ -774,7 +776,7 @@
                     <td class="p-3 text-slate-600 font-bold">${(leave.start || "").split('-').reverse().join('.')} / ${(leave.end || "").split('-').reverse().join('.')}</td>
                     <td class="p-3 text-center text-orange-600 font-black">${totalDays} Gün</td>
                     <td class="p-3 text-right pr-4">
-                        <button onclick="deleteStaffLeave(${leave.id})" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold text-[11px] px-2.5 py-1.5 rounded-lg border border-red-200 transition-colors">Sil</button>
+                        <button onclick="deleteStaffLeave(${leave.id})" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold text-[11px] px-2.5 py-1.5 rounded-lg border border-red-200 transition-colors">Kaldır / İptal Et</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -821,7 +823,6 @@
                         let badge = `<span class="bg-sky-600 text-white text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm">KESİN GÖREV</span>`;
                         if (shift.isProbability) badge = `<span class="bg-amber-400 text-amber-950 text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm"><i class="fa-solid fa-circle-question"></i> İHTİMAL</span>`;
                         
-                        // Yıllık İzin Görevi Arayüz Renklendirmesi
                         if (shift.program === "YILLIK İZİN GÖREVİ") {
                             badge = `<span class="bg-orange-500 text-white text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm"><i class="fa-solid fa-umbrella-beach"></i> İZİNLİ ÇALIŞMA</span>`;
                         }
@@ -890,7 +891,6 @@
                 return true;
             });
 
-            // Filtreli Aktif İzin Gününü Hesaplama
             let totalLeaveDays = 0;
             staffLeavePool.forEach(leave => {
                 if (selectedStaff !== "ALL" && leave.workerName !== selectedStaff) return;
@@ -1000,7 +1000,6 @@
                 } else {
                     filteredShifts.forEach(shift => {
                         const tr = document.createElement('tr');
-                        tr.className = "hover:bg-slate-50";
                         
                         let displayProgram = shift.program;
                         let rowStyle = "hover:bg-slate-50";
