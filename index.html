@@ -123,7 +123,6 @@
                 </div>
             </div>
 
-            <!-- YÖNETİCİ PANELİ: YILLIK İZİN GİRİŞ MODÜLÜ -->
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
                 <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
                     <i class="fa-solid fa-umbrella-beach text-orange-500"></i> PERSONEL YILLIK İZİN GİRİŞİ VE ANALİZ ENTEGRASYONU
@@ -131,7 +130,7 @@
                 <form id="leave-entry-form" onsubmit="saveStaffLeave(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
                     <div>
                         <label class="text-[10px] font-black text-slate-400 uppercase block mb-1">İzin Kullanacak Personel</label>
-                        <select id="leave-staff-select" class="w-full bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold p-2 focus:outline-none text-slate-900" required></select>
+                        <select id="leave-staff-select" class="w-full bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold p-2 focus:outline-none text-slate-900" required></required>
                     </div>
                     <div>
                         <label class="text-[10px] font-black text-slate-400 uppercase block mb-1">İzin Başlangıç Tarihi</label>
@@ -248,10 +247,9 @@
                 </div>
             </div>
 
-            <!-- YILLIK İZİN GEÇMİŞİ VE DAĞILIM TABLOSU -->
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                 <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider mb-3 flex items-center justify-between">
-                    <span><i class="fa-solid fa-umbrella-beach text-orange-500 mr-1"></i> KADRO DETAYLI YILLIK İZİN DAĞILIMI</span>
+                    <span><i class="fa-solid fa-umbrella-beach text-orange-500 mr-1"></i> KADRO DETAYLI YILLIK İZİN DAĞILIMI VE İPTAL MODÜLÜ</span>
                 </h4>
                 <div class="overflow-x-auto border border-slate-100 rounded-xl custom-scroll">
                     <table class="w-full text-left border-collapse min-w-[600px]">
@@ -540,8 +538,7 @@
             timePeriodDaysList = [...newIncomingDays];
             const newDatesSet = newIncomingDays.map(d => d.dateTitle);
             
-            // ESKİ LOG KAYITLARININ SİLİNMEYECEK ŞEKİLDE TUTULMASI İÇİN: 
-            // Sadece gelen yeni tarihlerdeki Excel verilerini temizler, manuel izinleri havuzda bırakır.
+            // Excel güncellense bile "leave_" ile başlayan yapay izin görevlerini koru, çakışmayı önle:
             mainShiftsLogPool = mainShiftsLogPool.filter(log => !newDatesSet.includes(log.date) || log.uniqueKey.startsWith("leave_"));
 
             newIncomingDays.forEach(dayColumn => {
@@ -689,7 +686,6 @@
 
             const uniqueLeaveId = Date.now();
 
-            // 1. İzinleri Kendi Özel Havuzuna Ekle
             const newLeave = {
                 id: uniqueLeaveId,
                 workerName: staffName,
@@ -698,7 +694,6 @@
             };
             staffLeavePool.push(newLeave);
 
-            // 2. İzinli Günleri Döngüyle Kesin Bir Görevmiş Gibi Log Havuzuna Enjekte Et
             let currentDate = new Date(startVal);
             const stopDate = new Date(endVal);
 
@@ -719,7 +714,7 @@
                     program: "YILLIK İZİN GÖREVİ", 
                     subDetail: "Yönetici Paneli Tarafından Çalışmış Olarak İzinli İşlendi", 
                     hour: "00:00",
-                    uniqueKey: "leave_" + uniqueLeaveId + "_" + formattedDate, // İzin ID'si key içerisine gömüldü
+                    uniqueKey: "leave_" + uniqueLeaveId + "_" + formattedDate,
                     isProbability: false
                 });
 
@@ -728,36 +723,38 @@
 
             saveDatabaseToLocalStorage();
             document.getElementById('leave-entry-form').reset();
-            alert(`${staffName} için yıllık izin girildi. İzin günleri personelin hanesine kesin çalışma görevi olarak başarıyla işlendi ve analize eklendi!`);
+            alert(`${staffName} için yıllık izin başarıyla girildi ve analize işlendi!`);
             displayLeaveHistoryTable();
             applyLogFilters();
         }
 
-        // İzin Silme Fonksiyonu: Orijinal Excel görevlerine asla dokunmaz, sadece yapay izin kayıtlarını uçurur.
+        // İzin Silme / İptal Etme Modülü: Excel'den gelen orijinal görevlere asla dokunmaz
         function deleteStaffLeave(id) {
-            if(confirm("Bu yıllık izin kaydını silmek istediğinize emin misiniz? (Eğer o günlere ait gerçek bir görev varsa silinmez, analizde tekrar gösterilmeye başlar.)")) {
+            if(confirm("Bu yıllık izin kaydını silmek istediğinize emin misiniz? (Eğer izinli günde orijinal bir Excel görevi varsa o iş ASLA silinmez, analizde yeniden görünmeye başlar.)")) {
                 
-                // Sadece silinen izne ait yapay görev havuzunu temizle (Orijinal Excel loglarını korur)
+                // Havuzdan ilgili iznin yapay loglarını temizle
                 mainShiftsLogPool = mainShiftsLogPool.filter(log => {
                     return !log.uniqueKey.startsWith("leave_" + id + "_");
                 });
 
+                // İzin ana listesinden kaydı uçur
                 staffLeavePool = staffLeavePool.filter(l => l.id !== id);
                 
                 saveDatabaseToLocalStorage();
                 displayLeaveHistoryTable();
                 applyLogFilters();
-                alert("İzin kaydı başarıyla silindi. Eğer varsa o günlerdeki gerçek işler analizde tekrardan aktif hâle getirildi.");
+                alert("İzin kaydı iptal edildi. Varsa o güne ait gerçek Excel görevleri analizde korundu ve yeniden görünür yapıldı.");
             }
         }
 
+        // Arayüzde İzin Geçmişini Listeleme Fonksiyonu
         function displayLeaveHistoryTable() {
             const tbody = document.getElementById('table-body-leave-history');
             if(!tbody) return;
             tbody.innerHTML = '';
 
             if(staffLeavePool.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Sistemde kayıtlı yıllık izin bulunmamaktadır.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Sistemde kayıtlı aktif yıllık izin bulunmamaktadır.</td></tr>`;
                 return;
             }
 
@@ -776,7 +773,7 @@
                     <td class="p-3 text-slate-600 font-bold">${(leave.start || "").split('-').reverse().join('.')} / ${(leave.end || "").split('-').reverse().join('.')}</td>
                     <td class="p-3 text-center text-orange-600 font-black">${totalDays} Gün</td>
                     <td class="p-3 text-right pr-4">
-                        <button onclick="deleteStaffLeave(${leave.id})" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold text-[11px] px-2.5 py-1.5 rounded-lg border border-red-200 transition-colors">Kaldır / İptal Et</button>
+                        <button onclick="deleteStaffLeave(${leave.id})" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold text-[11px] px-2.5 py-1.5 rounded-lg border border-red-200 transition-colors cursor-pointer">Kaldır / İptal Et</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
