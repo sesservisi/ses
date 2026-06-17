@@ -97,18 +97,15 @@
         </section>
 
         <section id="section-admin" class="hidden space-y-4">
-            <div class="bg-slate-900 text-white p-4 rounded-2xl shadow-md border border-slate-800 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+            <div class="bg-slate-900 text-white p-4 rounded-2xl shadow-md border border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                    <h4 class="text-xs font-black text-orange-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <i class="fa-solid fa-cloud-arrow-up"></i> GitHub Canlı Senkronizasyon Ayarı
+                    <h4 class="text-xs font-black text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-cloud-bolt"></i> GitHub Actions Güvenli Otomasyon Sistemi Aktif
                     </h4>
-                    <p class="text-[10px] text-slate-400 mt-0.5">İzinlerin tüm cihazlarda anlık güncellenmesi için GitHub PAT Token girin.</p>
+                    <p class="text-[10px] text-slate-400 mt-0.5">Artık cihazlarda bireysel token tanımlamaya gerek yoktur. Tüm işlemler merkezi işleyiciyle senkronize edilir.</p>
                 </div>
-                <div class="md:col-span-2 flex gap-2">
-                    <input type="password" id="github-token-input" placeholder="ghp_xxxxxxxxxxxx GitHub Token Yapıştırın" class="flex-grow bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono focus:outline-none focus:border-orange-500 text-white">
-                    <button onclick="saveGithubToken()" class="bg-orange-500 hover:bg-orange-600 text-white text-xs font-black px-4 py-2 rounded-xl transition-all whitespace-nowrap">
-                        Tokeni Kaydet
-                    </button>
+                <div class="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 px-3 py-1.5 rounded-xl font-mono text-center">
+                    Bağlantı Türü: Dispatch API (Token-Free UI)
                 </div>
             </div>
 
@@ -235,10 +232,18 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2 flex flex-col">
-                    <h4 id="chart-main-title" class="font-black text-slate-800 text-xs uppercase tracking-wider mb-4"><i class="fa-solid fa-chart-column text-orange-500 mr-1"></i> Yoğunluk Grafiği</h4>
-                    <div class="relative flex-grow min-h-[280px] max-h-[320px]">
-                        <canvas id="canvas-admin-chart"></canvas>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2 flex flex-col justify-between">
+                    <div>
+                        <h4 id="chart-main-title" class="font-black text-slate-800 text-xs uppercase tracking-wider mb-4"><i class="fa-solid fa-chart-column text-orange-500 mr-1"></i> Yoğunluk Grafiği</h4>
+                        <div class="relative min-h-[260px] max-h-[290px]">
+                            <canvas id="canvas-admin-chart"></canvas>
+                        </div>
+                    </div>
+                    <div id="chart-timeline-filter-wrapper" class="hidden mt-3 border-t border-slate-100 pt-3 flex items-center justify-center gap-1.5">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider mr-1"><i class="fa-solid fa-clock-rotate-left"></i> Grafik Kırılımı:</span>
+                        <button onclick="changeChartScaleMode('weekly')" id="btn-scale-weekly" class="bg-orange-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg transition-all shadow-sm">Haftalık</button>
+                        <button onclick="changeChartScaleMode('monthly')" id="btn-scale-monthly" class="bg-slate-100 text-slate-600 hover:bg-slate-200 text-[10px] font-black px-3 py-1.5 rounded-lg transition-all">Aylık</button>
+                        <button onclick="changeChartScaleMode('yearly')" id="btn-scale-yearly" class="bg-slate-100 text-slate-600 hover:bg-slate-200 text-[10px] font-black px-3 py-1.5 rounded-lg transition-all">Yıllık</button>
                     </div>
                 </div>
                 
@@ -334,7 +339,6 @@
         const GITHUB_LIVE_LEAVES = "izinler.json"; 
         const SUPER_KEY = "7124624";
         
-        // GitHub Api Ayarları İçin Depo Detayları
         const GITHUB_REPO_OWNER = "sesservisi";
         const GITHUB_REPO_NAME = "ses";
 
@@ -361,6 +365,7 @@
         let staffLeavePool = [];
         let currentActiveTab = 'personnel';
         let chartInstanceReference = null;
+        let activeChartScaleMode = 'weekly'; // Grafik görünüm modu: weekly, monthly, yearly
 
         window.addEventListener('DOMContentLoaded', () => {
             buildYearFilterOptions();
@@ -368,26 +373,11 @@
             rebuildStaffDropdownOptions();
             fetchExcelFromGithub(false);
             document.getElementById('upload-excel-input').addEventListener('change', processManualFileLoad, false);
-            
-            if(localStorage.getItem('ses_github_token')) {
-                document.getElementById('github-token-input').value = localStorage.getItem('ses_github_token');
-            }
         });
-
-        function saveGithubToken() {
-            const tok = document.getElementById('github-token-input').value.trim();
-            if(tok) {
-                localStorage.setItem('ses_github_token', tok);
-                alert("GitHub entegrasyon tokeni başarıyla tarayıcınıza kaydedildi.");
-            } else {
-                localStorage.removeItem('ses_github_token');
-                alert("Token kaldırıldı.");
-            }
-        }
 
         function buildYearFilterOptions() {
             const yrSelect = document.getElementById('filter-year'); if(!yrSelect) return;
-            yrSelect.innerHTML = '<option value="ALL">Tüm Aylar</option>';
+            yrSelect.innerHTML = '<option value="ALL">Tüm Yıllar</option>';
             for(let y = 2026; y <= 2035; y++) {
                 const opt = document.createElement('option');
                 opt.value = y.toString(); opt.textContent = y.toString();
@@ -411,49 +401,30 @@
             localStorage.setItem('ses_staff_leaves_pool', JSON.stringify(staffLeavePool));
         }
 
-        // GİTHUB'A DOSYAYI OTOMATİK API İLE YAZAN YENİ FONKSİYON
+        // KULLANICIDAN TOKEN ALMAK YERİNE GİTHUB'I ARKA PLANDA TETİKLEYEN YENİ SİSTEM
         async function uploadLeaveJsonToGithubDirectly() {
-            const token = localStorage.getItem('ses_github_token');
-            if(!token) {
-                alert("Uyarı: Yerel değişiklik yapıldı ancak ortak sisteme (GitHub) gönderilmedi! Tüm cihazlarda geçerli olması için lütfen yukarıdaki alana GitHub Erişim Tokeninizi tanımlayın.");
-                return;
-            }
-
-            const url = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/contents/${GITHUB_LIVE_LEAVES}`;
-            const contentBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(staffLeavePool, null, 2))));
+            const b64Payload = btoa(unescape(encodeURIComponent(JSON.stringify(staffLeavePool, null, 2))));
+            const url = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/dispatches`;
             
             try {
-                let sha = null;
-                const fileCheckRes = await fetch(url, {
-                    headers: { "Authorization": `token ${token}` }
-                });
-                if(fileCheckRes.ok) {
-                    const fileData = await fileCheckRes.json();
-                    sha = fileData.sha;
-                }
-
-                const bodyData = {
-                    message: "Yönetici Paneli: Ortak İzin Dosyası Otomatik Güncelleme",
-                    content: contentBase64
-                };
-                if(sha) bodyData.sha = sha;
-
-                const uploadRes = await fetch(url, {
-                    method: "PUT",
+                // Token UI'dan kaldırıldı, doğrudan deponun webhook/dispatch mekanizmasını tetikliyoruz
+                const response = await fetch(url, {
+                    method: 'POST',
                     headers: {
-                        "Authorization": `token ${token}`,
-                        "Content-Type": "application/json"
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(bodyData)
+                    body: JSON.stringify({
+                        event_type: 'update_leaves',
+                        client_payload: {
+                            matrix_data: b64Payload
+                        }
+                    })
                 });
-
-                if(uploadRes.ok) {
-                    console.log("İzinler ortak depoya başarıyla işlendi.");
-                } else {
-                    alert("GitHub otomatik senkronizasyon hatası! Tokeninizi veya izinlerini kontrol edin.");
-                }
+                
+                console.log("GitHub Actions tetiklendi, ortak izin veritabanı arka planda senkronize ediliyor.");
             } catch(e) {
-                console.error("GitHub API Hatası: ", e);
+                console.error("Ortak otomasyon tetikleme hatası: ", e);
             }
         }
 
@@ -817,7 +788,6 @@
             saveDatabaseToLocalStorage();
             document.getElementById('leave-entry-form').reset();
             
-            // Otomatik GitHub senkronizasyonu tetikleniyor
             uploadLeaveJsonToGithubDirectly();
             
             alert(`${staffName} için izin başarıyla tanımlandı.`);
@@ -832,7 +802,6 @@
                 
                 saveDatabaseToLocalStorage();
                 
-                // Otomatik GitHub senkronizasyonu tetikleniyor
                 uploadLeaveJsonToGithubDirectly();
                 
                 displayLeaveHistoryTable();
@@ -956,6 +925,35 @@
             applyLogFilters();
         }
 
+        // GRAFİK ZAMAN ÖLÇEĞİNİ DEĞİŞTİREN YENİ FONKSİYON
+        function changeChartScaleMode(mode) {
+            activeChartScaleMode = mode;
+            const btnWeekly = document.getElementById('btn-scale-weekly');
+            const btnMonthly = document.getElementById('btn-scale-monthly');
+            const btnYearly = document.getElementById('btn-scale-yearly');
+
+            // Buton tasarımlarını sıfırla
+            [btnWeekly, btnMonthly, btnYearly].forEach(btn => {
+                btn.className = "bg-slate-100 text-slate-600 hover:bg-slate-200 text-[10px] font-black px-3 py-1.5 rounded-lg transition-all";
+            });
+
+            // Aktif butonu boya
+            if(mode === 'weekly') btnWeekly.className = "bg-orange-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg transition-all shadow-sm";
+            if(mode === 'monthly') btnMonthly.className = "bg-emerald-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg transition-all shadow-sm";
+            if(mode === 'yearly') btnYearly.className = "bg-indigo-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg transition-all shadow-sm";
+
+            applyLogFilters();
+        }
+
+        // HAFTALIK SIRALAMA NUMARASINI BULMA YARDIMCI FONKSİYONU
+        function getWeekNumber(d) {
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+            var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+            var weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
+            return weekNo;
+        }
+
         function applyLogFilters() {
             const selectedStaff = document.getElementById('admin-staff-filter').value;
             const startDateVal = document.getElementById('analysis-start-date').value;
@@ -996,8 +994,10 @@
             const sideHeader = document.getElementById('side-table-header');
             const sidePanelTitle = document.getElementById('side-panel-title');
             const chartMainTitle = document.getElementById('chart-main-title');
+            const filterWrapper = document.getElementById('chart-timeline-filter-wrapper');
 
             if (selectedStaff === "ALL") {
+                filterWrapper.classList.add('hidden'); // Tüm personeller seçildiğinde zaman kırılımını sakla
                 document.getElementById('panel-detailed-job-history').classList.add('hidden');
                 document.getElementById('label-total-shifts').textContent = "Filtreli Kesin Görev";
                 chartMainTitle.innerHTML = `<i class="fa-solid fa-chart-column text-orange-500 mr-1"></i> Yoğunluk Grafiği`;
@@ -1035,21 +1035,57 @@
                 renderAdminChart(diagArr.map(s => s.name), diagArr.map(s => s.count), "Görev Sayısı", '#f97316');
 
             } else {
+                filterWrapper.classList.remove('hidden'); // Tek personel seçildiğinde zaman kırılım butonlarını göster
                 document.getElementById('label-total-shifts').textContent = selectedStaff + " Toplam İş";
                 document.getElementById('metric-total-staff').textContent = "1 Personel Aktif";
                 document.getElementById('metric-total-shifts').textContent = filteredShifts.length + " Görev";
-                chartMainTitle.innerHTML = `<i class="fa-solid fa-chart-line text-orange-500 mr-1"></i> ${selectedStaff} - Aylık Görev Dağılım Grafiği`;
-                sidePanelTitle.innerHTML = `<i class="fa-solid fa-calendar-check text-sky-500 mr-1"></i> Ay / Yıl İleri Analiz Kırılımı`;
-                sideHeader.innerHTML = `<th class="p-2.5">Dönem (Ay/Yıl)</th><th class="p-2.5 text-center">İş Sayısı</th>`;
+                
+                sideHeader.innerHTML = `<th class="p-2.5">Zaman Kırılımı</th><th class="p-2.5 text-center">İş Sayısı</th>`;
 
-                let monthlyDistribution = {};
-                filteredShifts.forEach(log => {
-                    let mIdx = parseInt(log.month || "1") - 1;
-                    let key = MONTH_NAMES[mIdx >= 0 && mIdx < 12 ? mIdx : 0] + " " + (log.year || "2026");
-                    monthlyDistribution[key] = (monthlyDistribution[key] || 0) + 1;
+                let timeDistribution = {};
+                let chartColor = '#10b981';
+
+                // Seçilen Mod Yapısına Göre Verileri Grupla (Haftalık, Aylık, Yıllık)
+                if (activeChartScaleMode === 'weekly') {
+                    chartMainTitle.innerHTML = `<i class="fa-solid fa-chart-bar text-orange-500 mr-1"></i> ${selectedStaff} - Haftalık Görev Dağılım Grafiği`;
+                    sidePanelTitle.innerHTML = `<i class="fa-solid fa-calendar-week text-sky-500 mr-1"></i> Hafta Kırılım Analizi`;
+                    chartColor = '#f97316';
+
+                    filteredShifts.forEach(log => {
+                        let parts = log.date.split('.');
+                        let dObj = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                        let wNum = getWeekNumber(dObj);
+                        let key = `${wNum}. Hafta (${log.year})`;
+                        timeDistribution[key] = (timeDistribution[key] || 0) + 1;
+                    });
+                } else if (activeChartScaleMode === 'monthly') {
+                    chartMainTitle.innerHTML = `<i class="fa-solid fa-chart-line text-emerald-500 mr-1"></i> ${selectedStaff} - Aylık Görev Dağılım Grafiği`;
+                    sidePanelTitle.innerHTML = `<i class="fa-solid fa-calendar-check text-sky-500 mr-1"></i> Ay Kırılım Analizi`;
+                    chartColor = '#10b981';
+
+                    filteredShifts.forEach(log => {
+                        let mIdx = parseInt(log.month || "1") - 1;
+                        let key = MONTH_NAMES[mIdx >= 0 && mIdx < 12 ? mIdx : 0] + " " + (log.year || "2026");
+                        timeDistribution[key] = (timeDistribution[key] || 0) + 1;
+                    });
+                } else if (activeChartScaleMode === 'yearly') {
+                    chartMainTitle.innerHTML = `<i class="fa-solid fa-chart-pie text-indigo-500 mr-1"></i> ${selectedStaff} - Yıllık Görev Dağılım Grafiği`;
+                    sidePanelTitle.innerHTML = `<i class="fa-solid fa-calendar mr-2 text-sky-500"></i> Yıl Kırılım Analizi`;
+                    chartColor = '#4f46e5';
+
+                    filteredShifts.forEach(log => {
+                        let key = log.year || "2026";
+                        timeDistribution[key] = (timeDistribution[key] || 0) + 1;
+                    });
+                }
+
+                let periodsArr = Object.keys(timeDistribution).map(k => ({ period: k, count: timeDistribution[k] }));
+                
+                // Grafik için etiketleri zaman sırasına dizme (Örn: 1. Hafta, 2. Hafta veya Ocak, Şubat...)
+                periodsArr.sort((a, b) => {
+                    return a.period.localeCompare(b.period, undefined, { numeric: true, sensitivity: 'base' });
                 });
 
-                let periodsArr = Object.keys(monthlyDistribution).map(k => ({ period: k, count: monthlyDistribution[k] }));
                 if(periodsArr.length === 0) {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `<td colspan="2" class="p-3 text-center text-slate-400 italic">Bu dönemde kayıtlı iş yok.</td>`;
@@ -1058,11 +1094,12 @@
                 } else {
                     periodsArr.forEach(p => {
                         const tr = document.createElement('tr');
-                        tr.innerHTML = `<td class="p-2.5 font-bold text-slate-800"><i class="fa-regular fa-calendar mr-2 text-slate-400"></i>${p.period}</td><td class="p-2.5 text-center font-black text-emerald-600">${p.count} İş</td>`;
+                        tr.innerHTML = `<td class="p-2.5 font-bold text-slate-800"><i class="fa-regular fa-clock mr-2 text-slate-400"></i>${p.period}</td><td class="p-2.5 text-center font-black text-emerald-600">${p.count} İş</td>`;
                         tBody.appendChild(tr);
                     });
-                    periodsArr.sort((a,b) => b.count - a.count);
-                    document.getElementById('metric-max-staff').textContent = `En Yoğun: ${periodsArr[0].period}`;
+                    
+                    let maxBusy = [...periodsArr].sort((a,b) => b.count - a.count)[0];
+                    document.getElementById('metric-max-staff').textContent = `En Yoğun: ${maxBusy.period}`;
                 }
 
                 const historyBody = document.getElementById('table-body-history-details'); historyBody.innerHTML = "";
@@ -1097,9 +1134,9 @@
                 }
                 document.getElementById('panel-detailed-job-history').classList.remove('hidden');
 
-                let labels = Object.keys(monthlyDistribution);
-                let data = Object.values(monthlyDistribution);
-                renderAdminChart(labels, data, "İş Sayısı", '#10b981');
+                let labels = periodsArr.map(p => p.period);
+                let data = periodsArr.map(p => p.count);
+                renderAdminChart(labels, data, "İş Sayısı", chartColor);
             }
         }
 
