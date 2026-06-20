@@ -129,6 +129,29 @@
                 </div>
             </div>
 
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-umbrella-beach text-orange-500"></i> YÖNETİCİ HAFIZASI KALICI YILLIK İZİN TANIMLAMA
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase block mb-1">Personel</label>
+                        <select id="leave-staff-select" class="w-full bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold p-2 focus:outline-none text-slate-900"></select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase block mb-1">İzin Tarihi</label>
+                        <input type="date" id="leave-date-input" class="w-full bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold p-2 focus:outline-none text-slate-900">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase block mb-1">Açıklama Detayı</label>
+                        <input type="text" id="leave-note-input" placeholder="Yıllık İzin Dönemi" class="w-full bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold p-2 focus:outline-none text-slate-900">
+                    </div>
+                    <button onclick="addNewLeaveRecord()" class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-black py-2.5 rounded-lg shadow-md hover:from-orange-600 transition-all cursor-pointer">
+                        <i class="fa-solid fa-plus mr-1"></i> İzin Kaydet ve Senkronize Et
+                    </button>
+                </div>
+            </div>
+
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-center">
                 <div class="flex flex-col">
                     <label class="text-[10px] font-black text-slate-400 uppercase mb-1">Personel Seçimi</label>
@@ -239,7 +262,7 @@
 
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                 <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider mb-3 flex items-center justify-between">
-                    <span><i class="fa-solid fa-umbrella-beach text-orange-500 mr-1"></i> KOD MİMARİSİNE SABİTLENMİŞ GÜVENLİ YILLIK İZİN LİSTESİ</span>
+                    <span><i class="fa-solid fa-umbrella-beach text-orange-500 mr-1"></i> SİSTEMDE KAYITLI AKTİF YILLIK İZİN LİSTESI</span>
                 </h4>
                 <div class="overflow-x-auto border border-slate-100 rounded-xl custom-scroll">
                     <table class="w-full text-left border-collapse min-w-[600px]">
@@ -248,7 +271,7 @@
                                 <th class="p-3 pl-4">Personel Adı</th>
                                 <th class="p-3">İzinli Olduğu Tarih</th>
                                 <th class="p-3">Açıklama Detayı</th>
-                                <th class="p-3 text-center">Durum</th>
+                                <th class="p-3 text-center">İşlem</th>
                             </tr>
                         </thead>
                         <tbody id="table-body-leave-history" class="divide-y divide-slate-100 text-xs text-slate-700 font-bold">
@@ -306,10 +329,11 @@
     </div>
 
     <script>
-        // GitHub Konfigürasyonu ve Sabit Şifre
+        // GitHub Konfigürasyonu, Kalıcı Küresel Bulut Havuzu Bağlantısı ve Şifre
         const GITHUB_LIVE_EXCEL = "Gorev-Listesi.xlsx"; 
         const SUPER_KEY = "7124624";
-        
+        const INTERNET_DATABASE_ENDPOINT = "https://api.myjson.online/v1/records/483be992-bf1c-4b52-bda5-131fcc05cf65";
+
         // Tanımlı 25 Sabit Personel Listesi
         const USER_EXPLICIT_25 = [
             "H.BAKIRCI", "A.KOÇ", "C.SALTIK", "D.A.SALTIK", "A.AŞİROĞLU", 
@@ -319,22 +343,12 @@
             "K.GÜNGÖR", "Ç.TAŞ", "E.DÖNMEZ", "Ö.KARAKUŞ", "E.SAVAŞ"
         ].sort();
 
-        // 🌴 KOD MİMARİSİNE SABİTLENMİŞ YILLIK İZİN HAVUZU 🌴
-        // Buraya manuel girdiğiniz tüm satırlar her tarayıcıda, gizli modda ve bilgisayarda kaybolmadan çalışır.
-        // Yeni bir izin eklemek için aşağıya yeni bir satır eklemeniz veya hata durumunda satırı silmeniz yeterlidir.
-        // Tarihi mutlaka DD.MM.YYYY formatında yazmalısınız.
-        const GLOBAL_LEAVE_REGISTRY = [
-            { workerName: "Ç.TAŞ", date: "15.06.2026", note: "Yıllık İzin Dönemi" },
-            { workerName: "Ç.TAŞ", date: "16.06.2026", note: "Yıllık İzin Dönemi" },
-            { workerName: "Ç.TAŞ", date: "17.06.2026", note: "Yıllık İzin Dönemi" },
-            { workerName: "Ç.TAŞ", date: "18.06.2026", note: "Yıllık İzin Dönemi" },
-            { workerName: "Ç.TAŞ", date: "19.06.2026", note: "Yıllık İzin Dönemi" }
-        ];
+        // Çalışma hafızasında tutulacak izin listesi
+        let GLOBAL_LEAVE_REGISTRY = [];
 
         const MONTH_NAMES = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
         const TURKISH_DAYS = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
 
-        // Excel Sütun Haritalama Yapısı
         const TARGET_EXCEL_COLUMNS = [
             { label: "B", idx: 1 }, { label: "F", idx: 5 }, { label: "J", idx: 9 }, 
             { label: "N", idx: 13 }, { label: "R", idx: 17 }, { label: "V", idx: 21 }, 
@@ -348,13 +362,15 @@
         let currentActiveTab = 'personnel';
         let chartInstanceReference = null;
         let activeChartScaleMode = 'weekly';
+        let rawExcelMatrixCache = null;
 
         // Uygulama Başlangıcı
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', async () => {
             buildYearFilterOptions();
             loadDatabaseFromLocalStorage();
             rebuildStaffDropdownOptions();
-            fetchExcelFromGithub(false);
+            await pullLeavesFromCloudDatabase(); // Önce internet veri havuzundan izinleri çek
+            await fetchExcelFromGithub(false); // Sonra Excel'i birleştir
             document.getElementById('upload-excel-input').addEventListener('change', processManualFileLoad, false);
         });
 
@@ -379,6 +395,87 @@
         function saveDatabaseToLocalStorage() {
             localStorage.setItem('ses_cumulative_shifts_pool', JSON.stringify(mainShiftsLogPool));
             localStorage.setItem('ses_cumulative_days_list', JSON.stringify(timePeriodDaysList));
+        }
+
+        // 🌴 BULUT TABANLI KALICI İZİN ÇEKME FONKSİYONU
+        async function pullLeavesFromCloudDatabase() {
+            try {
+                const response = await fetch(INTERNET_DATABASE_ENDPOINT);
+                if (response.ok) {
+                    const jsonRes = await response.json();
+                    if (jsonRes && jsonRes.data && jsonRes.data.leaves) {
+                        GLOBAL_LEAVE_REGISTRY = jsonRes.data.leaves;
+                    }
+                }
+            } catch (err) {
+                console.log("İnternet veri havuzuna ulaşılamadı, lokal hafıza devrede.");
+                const localBackup = localStorage.getItem('ses_leaves_backup');
+                if (localBackup) GLOBAL_LEAVE_REGISTRY = JSON.parse(localBackup);
+            }
+        }
+
+        // 🌴 BULUT TABANLI KALICI İZİN KAYDETME FONKSİYONU
+        async function pushLeavesToCloudDatabase() {
+            localStorage.setItem('ses_leaves_backup', JSON.stringify(GLOBAL_LEAVE_REGISTRY));
+            try {
+                await fetch(INTERNET_DATABASE_ENDPOINT, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: { leaves: GLOBAL_LEAVE_REGISTRY } })
+                });
+            } catch (err) {
+                console.log("Veri kaydedilirken bulut bağlantı hatası oluştu.");
+            }
+        }
+
+        // 🌴 YÖNETİCİ PANELİNDEN YENİ İZİN EKLEME METODU
+        async function addNewLeaveRecord() {
+            const staffName = document.getElementById('leave-staff-select').value;
+            const rawDate = document.getElementById('leave-date-input').value;
+            let note = document.getElementById('leave-note-input').value.trim();
+
+            if (!staffName || !rawDate) {
+                alert("Lütfen personel ismini ve izin tarihini eksiksiz seçiniz!");
+                return;
+            }
+            if (!note) note = "Yıllık İzin Dönemi";
+
+            let p = rawDate.split('-');
+            if(p.length !== 3) return;
+            let formattedDate = `${p[2]}.${p[1]}.${p[0]}`; // DD.MM.YYYY formatına dönüştür
+
+            // Mükerrer kayıt kontrolü
+            let isExist = GLOBAL_LEAVE_REGISTRY.some(l => l.workerName === staffName && l.date === formattedDate);
+            if (isExist) {
+                alert("Bu personelin seçilen tarihte zaten kayıtlı bir izni bulunuyor!");
+                return;
+            }
+
+            GLOBAL_LEAVE_REGISTRY.push({ workerName: staffName, date: formattedDate, note: note });
+            
+            await pushLeavesToCloudDatabase();
+            if (rawExcelMatrixCache) compileExcelAndMerge(rawExcelMatrixCache);
+            
+            document.getElementById('leave-date-input').value = "";
+            document.getElementById('leave-note-input').value = "";
+            
+            displayLeaveHistoryTable();
+            applyLogFilters();
+            alert(`İzin başarıyla her yerde görünür olacak şekilde kaydedildi!`);
+        }
+
+        // 🌴 YÖNETİCİ PANELİNDEN İZİN SİLME METODU
+        async function deleteLeaveRecord(index) {
+            if (!confirm("Bu izin kaydını tamamen silmek istediğinize emin misiniz?")) return;
+            
+            GLOBAL_LEAVE_REGISTRY.splice(index, 1);
+            await pushLeavesToCloudDatabase();
+            
+            if (rawExcelMatrixCache) compileExcelAndMerge(rawExcelMatrixCache);
+            
+            displayLeaveHistoryTable();
+            applyLogFilters();
+            displayStaffCards();
         }
 
         function switchSection(tabName) {
@@ -435,7 +532,8 @@
                     const buffer = await res.arrayBuffer();
                     const uintArray = new Uint8Array(buffer);
                     const workbook = XLSX.read(uintArray, {type: 'array', cellDates: false, raw: true}); 
-                    compileExcelAndMerge(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: null}));
+                    rawExcelMatrixCache = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: null});
+                    compileExcelAndMerge(rawExcelMatrixCache);
                     
                     document.getElementById('loader-live-data').classList.add('hidden');
                     document.getElementById('section-personnel').classList.remove('hidden');
@@ -458,7 +556,8 @@
             const fileReader = new FileReader();
             fileReader.onload = function(e) {
                 const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array', cellDates: false, raw: true});
-                compileExcelAndMerge(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: null}));
+                rawExcelMatrixCache = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: null});
+                compileExcelAndMerge(rawExcelMatrixCache);
                 alert("Manuel yükleme başarılı!"); displayStaffCards();
             };
             fileReader.readAsArrayBuffer(uploadedFile);
@@ -526,8 +625,8 @@
             timePeriodDaysList = [...newIncomingDays];
             const newDatesSet = newIncomingDays.map(d => d.dateTitle);
             
-            // Sadece Excel'den gelen eski kayıtları temizle, leave_ ile başlayan izin kayıtlarını havuzda koru
-            mainShiftsLogPool = mainShiftsLogPool.filter(log => !newDatesSet.includes(log.date) || log.uniqueKey.startsWith("leave_"));
+            // Havuzu sıfırlayıp sadece güncel verileri dolduruyoruz
+            mainShiftsLogPool = [];
 
             newIncomingDays.forEach(dayColumn => {
                 let actualColIdx = dayColumn.excelColIdx;
@@ -583,7 +682,7 @@
                 });
             });
 
-            // 🌴 SABİT İZİN KAYITLARINI İŞ BİLGİSİ GİBİ SİSTEME ENJEKTE ETME
+            // 🌴 BULUTTAKİ İZİN KAYITLARINI İŞ BİLGİSİ GİBİ SİSTEME ENJEKTE ETME
             GLOBAL_LEAVE_REGISTRY.forEach((leave, lIdx) => {
                 let parts = leave.date.split('.');
                 if(parts.length !== 3) return;
@@ -592,13 +691,22 @@
                 let computedDayTitle = TURKISH_DAYS[calendarCheck.getDay()].toUpperCase();
                 let checkKey = "leave_fixed_" + lIdx + "_" + leave.date;
 
-                // Eski tekrarlanan izinleri havuzdan temizleyip yenileri tazece ekleyelim
-                mainShiftsLogPool = mainShiftsLogPool.filter(l => l.uniqueKey !== checkKey);
-                
                 mainShiftsLogPool.push({
                     workerName: leave.workerName, date: leave.date, dayName: computedDayTitle, month: parts[1], year: parts[2],
                     program: "🌴 YILLIK İZİN", subDetail: leave.note, hour: "TAM GÜN", uniqueKey: checkKey, isProbability: false
                 });
+
+                // Eğer izin tarihi Excel'den gelen takvim listesinde henüz yoksa listeye de ekle
+                let hasDayInTakvim = timePeriodDaysList.some(d => d.dateTitle === leave.date);
+                if (!hasDayInTakvim) {
+                    timePeriodDaysList.push({ dateTitle: leave.date, dayTitle: computedDayTitle, month: parts[1], year: parts[2], excelColIdx: -1 });
+                }
+            });
+
+            // Genel Takvimi Tekrar Sırala
+            timePeriodDaysList.sort((a, b) => {
+                let pA = a.dateTitle.split('.'), pB = b.dateTitle.split('.');
+                return new Date(`${pA[2]}-${pA[1]}-${pA[0]}`) - new Date(`${pB[2]}-${pB[1]}-${pB[0]}`);
             });
 
             if (newIncomingDays.length > 0) {
@@ -617,6 +725,7 @@
             const adminSel = document.getElementById('admin-staff-filter');
             const comp1 = document.getElementById('compare-staff-1');
             const comp2 = document.getElementById('compare-staff-2');
+            const leaveSelect = document.getElementById('leave-staff-select');
 
             if(sel) {
                 const cache = sel.value; sel.innerHTML = "";
@@ -626,6 +735,10 @@
             if(adminSel) {
                 adminSel.innerHTML = '<option value="ALL">-- TÜM PERSONELLER --</option>';
                 USER_EXPLICIT_25.forEach(n => { const o = document.createElement('option'); o.value=n; o.textContent=n; adminSel.appendChild(o); });
+            }
+            if(leaveSelect) {
+                leaveSelect.innerHTML = "";
+                USER_EXPLICIT_25.forEach(n => { const o = document.createElement('option'); o.value=n; o.textContent=n; leaveSelect.appendChild(o); });
             }
             if(comp1 && comp2) {
                 comp1.innerHTML = ""; comp2.innerHTML = "";
@@ -642,17 +755,21 @@
             tbody.innerHTML = '';
 
             if(GLOBAL_LEAVE_REGISTRY.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Kod içerisinde tanımlanmış aktif yıllık izin bulunmamaktadır.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Sistemde kayıtlı aktif yıllık izin bulunmamaktadır.</td></tr>`;
                 return;
             }
 
-            GLOBAL_LEAVE_REGISTRY.forEach(leave => {
+            GLOBAL_LEAVE_REGISTRY.forEach((leave, idx) => {
                 const tr = document.createElement('tr'); tr.className = "hover:bg-slate-50";
                 tr.innerHTML = `
                     <td class="p-3 pl-4 font-black text-slate-900">${leave.workerName}</td>
                     <td class="p-3 text-slate-600 font-bold">${leave.date}</td>
                     <td class="p-3 text-slate-500 text-xs font-medium">${leave.note}</td>
-                    <td class="p-3 text-center"><span class="bg-orange-100 text-orange-700 text-[10px] font-black px-2 py-0.5 rounded-md">AKTİF İZİNLİ</span></td>
+                    <td class="p-3 text-center">
+                        <button onclick="deleteLeaveRecord(${idx})" class="bg-red-50 hover:bg-red-500 text-red-600 hover:text-white border border-red-200 text-[10px] font-black px-2.5 py-1 rounded-lg transition-all cursor-pointer">
+                            <i class="fa-solid fa-trash-can mr-1"></i> İzni Sil
+                        </button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -788,7 +905,6 @@
                 return true;
             });
 
-            // Filtreli İzinlerin Sayısını Hesapla ve Metriğe Yaz
             let currentLeavesCount = filteredShifts.filter(s => s.program.includes("İZİN")).length;
             document.getElementById('metric-active-leaves-count').textContent = currentLeavesCount + " Gün";
 
