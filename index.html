@@ -131,7 +131,7 @@
 
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
                 <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fa-solid fa-umbrella-beach text-orange-500"></i> YÖNETİCİ HAFIZASI KALICI YILLIK İZİN TANIMLAMA
+                    <i class="fa-solid fa-umbrella-beach text-orange-500"></i> YÖNETİCİ PANELİ - YILLIK İZİN TANIMLAMA (TEK SATIR YAPISI)
                 </h4>
                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
                     <div>
@@ -139,15 +139,15 @@
                         <select id="leave-staff-select" class="w-full bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold p-2 focus:outline-none text-slate-900"></select>
                     </div>
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase block mb-1">İzin Tarihi</label>
-                        <input type="date" id="leave-date-input" class="w-full bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold p-2 focus:outline-none text-slate-900">
+                        <label class="text-[10px] font-black text-slate-400 uppercase block mb-1">İzin Başlangıç Tarihi</label>
+                        <input type="date" id="leave-start-date-input" class="w-full bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold p-2 focus:outline-none text-slate-900">
                     </div>
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase block mb-1">Açıklama Detayı</label>
-                        <input type="text" id="leave-note-input" placeholder="Yıllık İzin Dönemi" class="w-full bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold p-2 focus:outline-none text-slate-900">
+                        <label class="text-[10px] font-black text-slate-400 uppercase block mb-1">İzin Bitiş Tarihi</label>
+                        <input type="date" id="leave-end-date-input" class="w-full bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold p-2 focus:outline-none text-slate-900">
                     </div>
-                    <button onclick="addNewLeaveRecord()" class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-black py-2.5 rounded-lg shadow-md hover:from-orange-600 transition-all cursor-pointer">
-                        <i class="fa-solid fa-plus mr-1"></i> İzin Kaydet ve Senkronize Et
+                    <button onclick="addNewLeaveRangeRecord()" class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-black py-2.5 rounded-lg shadow-md hover:from-orange-600 transition-all cursor-pointer">
+                        <i class="fa-solid fa-plus mr-1"></i> İzin Ekle (Buluta Logla)
                     </button>
                 </div>
             </div>
@@ -199,8 +199,8 @@
                     <h4 id="metric-max-staff" class="text-xs font-black text-slate-800 mt-2 truncate">-</h4>
                 </div>
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Filtreli Toplam İzin Dağılımı</span>
-                    <h4 id="metric-active-leaves-count" class="text-2xl font-black text-orange-600 mt-1">0 Gün</h4>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Kayıtlı İzinli Sayısı</span>
+                    <h4 id="metric-active-leaves-count" class="text-2xl font-black text-orange-600 mt-1">0 Kişi</h4>
                 </div>
             </div>
 
@@ -262,16 +262,16 @@
 
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                 <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider mb-3 flex items-center justify-between">
-                    <span><i class="fa-solid fa-umbrella-beach text-orange-500 mr-1"></i> SİSTEMDE KAYITLI AKTİF YILLIK İZİN LİSTESI</span>
+                    <span><i class="fa-solid fa-umbrella-beach text-orange-500 mr-1"></i> SİSTEMDE KAYITLI AKTİF YILLIK İZİN LİSTESİ (TEK SATIR)</span>
                 </h4>
                 <div class="overflow-x-auto border border-slate-100 rounded-xl custom-scroll">
                     <table class="w-full text-left border-collapse min-w-[600px]">
                         <thead>
                             <tr class="bg-slate-50 border-b border-slate-200 text-slate-400 text-[10px] font-black uppercase">
                                 <th class="p-3 pl-4">Personel Adı</th>
-                                <th class="p-3">İzinli Olduğu Tarih</th>
-                                <th class="p-3">Açıklama Detayı</th>
-                                <th class="p-3 text-center">İşlem</th>
+                                <th class="p-3">İzin Başlangıç Tarihi</th>
+                                <th class="p-3">İzin Bitiş Tarihi</th>
+                                <th class="p-3 text-center">Düzenleme / İşlem</th>
                             </tr>
                         </thead>
                         <tbody id="table-body-leave-history" class="divide-y divide-slate-100 text-xs text-slate-700 font-bold">
@@ -282,7 +282,7 @@
 
             <div id="panel-detailed-job-history" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hidden">
                 <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider mb-3 flex items-center justify-between">
-                    <span><i class="fa-solid fa-business-time text-emerald-500 mr-1"></i> SEÇİLEN PERSONELİN BU TARİH ARALIĞINDAKİ TÜM İŞLERİ (İZİNLER DAHİL)</span>
+                    <span><i class="fa-solid fa-business-time text-emerald-500 mr-1"></i> SEÇİLEN PERSONELİN BU TARİH ARALIĞINDAKİ TÜM İŞLERİ</span>
                     <span id="badge-history-count" class="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-1 rounded-md">0 Görev Bulundu</span>
                 </h4>
                 <div class="overflow-x-auto border border-slate-100 rounded-xl custom-scroll">
@@ -329,9 +329,10 @@
     </div>
 
     <script>
-        // GitHub Konfigürasyonu, Kalıcı Küresel Bulut Havuzu Bağlantısı ve Şifre
+        // GitHub Konfigürasyonu, Küresel Bulut Havuzu Bağlantısı ve Güvenlik Şifresi
         const GITHUB_LIVE_EXCEL = "Gorev-Listesi.xlsx"; 
         const SUPER_KEY = "7124624";
+        // Küresel JSON API adresi (Tüm cihaz ve tarayıcılarda tek satır senkronizasyonu sağlar)
         const INTERNET_DATABASE_ENDPOINT = "https://api.myjson.online/v1/records/483be992-bf1c-4b52-bda5-131fcc05cf65";
 
         // Tanımlı 25 Sabit Personel Listesi
@@ -343,7 +344,7 @@
             "K.GÜNGÖR", "Ç.TAŞ", "E.DÖNMEZ", "Ö.KARAKUŞ", "E.SAVAŞ"
         ].sort();
 
-        // Çalışma hafızasında tutulacak izin listesi
+        // Küresel İzin Hafızası (Orijinal tek satır yapısında: [{workerName: 'X', startDate: 'DD.MM.YYYY', endDate: 'DD.MM.YYYY'}])
         let GLOBAL_LEAVE_REGISTRY = [];
 
         const MONTH_NAMES = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
@@ -356,7 +357,7 @@
             { label: "AL", idx: 37 }
         ];
 
-        // Global Hafıza Havuzları
+        // Global Veri Havuzları
         let mainShiftsLogPool = [];
         let timePeriodDaysList = []; 
         let currentActiveTab = 'personnel';
@@ -369,8 +370,8 @@
             buildYearFilterOptions();
             loadDatabaseFromLocalStorage();
             rebuildStaffDropdownOptions();
-            await pullLeavesFromCloudDatabase(); // Önce internet veri havuzundan izinleri çek
-            await fetchExcelFromGithub(false); // Sonra Excel'i birleştir
+            await pullLeavesFromCloudDatabase(); // Buluttan tek satır izin verilerini senkronize et
+            await fetchExcelFromGithub(false); // Excel'i çek ve derle
             document.getElementById('upload-excel-input').addEventListener('change', processManualFileLoad, false);
         });
 
@@ -397,7 +398,7 @@
             localStorage.setItem('ses_cumulative_days_list', JSON.stringify(timePeriodDaysList));
         }
 
-        // 🌴 BULUT TABANLI KALICI İZİN ÇEKME FONKSİYONU
+        // 🌴 BULUTTAN TEK SATIR İZİNLERİ OKUMA FONKSİYONU
         async function pullLeavesFromCloudDatabase() {
             try {
                 const response = await fetch(INTERNET_DATABASE_ENDPOINT);
@@ -408,13 +409,13 @@
                     }
                 }
             } catch (err) {
-                console.log("İnternet veri havuzuna ulaşılamadı, lokal hafıza devrede.");
+                console.log("Bulut veritabanı bağlantı hatası, lokal yedek yükleniyor.");
                 const localBackup = localStorage.getItem('ses_leaves_backup');
                 if (localBackup) GLOBAL_LEAVE_REGISTRY = JSON.parse(localBackup);
             }
         }
 
-        // 🌴 BULUT TABANLI KALICI İZİN KAYDETME FONKSİYONU
+        // 🌴 BULUTA TEK SATIR İZİNLERİ KALICI YAZMA FONKSİYONU
         async function pushLeavesToCloudDatabase() {
             localStorage.setItem('ses_leaves_backup', JSON.stringify(GLOBAL_LEAVE_REGISTRY));
             try {
@@ -424,52 +425,80 @@
                     body: JSON.stringify({ data: { leaves: GLOBAL_LEAVE_REGISTRY } })
                 });
             } catch (err) {
-                console.log("Veri kaydedilirken bulut bağlantı hatası oluştu.");
+                console.log("Veriler buluta kaydedilirken ağ hatası oluştu.");
             }
         }
 
-        // 🌴 YÖNETİCİ PANELİNDEN YENİ İZİN EKLEME METODU
-        async function addNewLeaveRecord() {
-            const staffName = document.getElementById('leave-staff-select').value;
-            const rawDate = document.getElementById('leave-date-input').value;
-            let note = document.getElementById('leave-note-input').value.trim();
+        // Tarih dönüştürücü yardımcı fonksiyon (YYYY-MM-DD -> DD.MM.YYYY)
+        function convertToTurkishDateFormat(dateStr) {
+            if(!dateStr) return "";
+            let p = dateStr.split('-');
+            if(p.length !== 3) return dateStr;
+            return `${p[2]}.${p[1]}.${p[0]}`;
+        }
 
-            if (!staffName || !rawDate) {
-                alert("Lütfen personel ismini ve izin tarihini eksiksiz seçiniz!");
+        // iki tarih arasındaki günleri listeleme (Döngü için)
+        function getDatesInRange(startDateStr, endDateStr) {
+            let startParts = startDateStr.split('.');
+            let endParts = endDateStr.split('.');
+            let dates = [];
+            
+            let start = new Date(startParts[2], startParts[1] - 1, startParts[0]);
+            let end = new Date(endParts[2], endParts[1] - 1, endParts[0]);
+            
+            let current = new Date(start);
+            while(current <= end) {
+                let d = current.getDate();
+                let m = current.getMonth() + 1;
+                let y = current.getFullYear();
+                dates.push(`${d < 10 ? '0'+d : d}.${m < 10 ? '0'+m : m}.${y}`);
+                current.setDate(current.getDate() + 1);
+            }
+            return dates;
+        }
+
+        // 🌴 YÖNETİCİ PANELİNDEN YENİ TEK SATIR İZİN ARALIĞI EKLEME METODU
+        async function addNewLeaveRangeRecord() {
+            const staffName = document.getElementById('leave-staff-select').value;
+            const startRaw = document.getElementById('leave-start-date-input').value;
+            const endRaw = document.getElementById('leave-end-date-input').value;
+
+            if (!staffName || !startRaw || !endRaw) {
+                alert("Lütfen personel ismini, başlangıç ve bitiş tarihlerini eksiksiz seçiniz!");
                 return;
             }
-            if (!note) note = "Yıllık İzin Dönemi";
 
-            let p = rawDate.split('-');
-            if(p.length !== 3) return;
-            let formattedDate = `${p[2]}.${p[1]}.${p[0]}`; // DD.MM.YYYY formatına dönüştür
+            let trStart = convertToTurkishDateFormat(startRaw);
+            let trEnd = convertToTurkishDateFormat(endRaw);
 
             // Mükerrer kayıt kontrolü
-            let isExist = GLOBAL_LEAVE_REGISTRY.some(l => l.workerName === staffName && l.date === formattedDate);
+            let isExist = GLOBAL_LEAVE_REGISTRY.some(l => l.workerName === staffName && l.startDate === trStart && l.endDate === trEnd);
             if (isExist) {
-                alert("Bu personelin seçilen tarihte zaten kayıtlı bir izni bulunuyor!");
+                alert("Bu personele ait aynı tarih aralığında bir izin zaten mevcut!");
                 return;
             }
 
-            GLOBAL_LEAVE_REGISTRY.push({ workerName: staffName, date: formattedDate, note: note });
+            // Hafızaya tek satır şeklinde ekle
+            GLOBAL_LEAVE_REGISTRY.push({ workerName: staffName, startDate: trStart, endDate: trEnd });
             
-            await pushLeavesToCloudDatabase();
-            if (rawExcelMatrixCache) compileExcelAndMerge(rawExcelMatrixCache);
+            await pushLeavesToCloudDatabase(); // Bulut havuzuna gönder (Her tarayıcıda görünecek)
+            if (rawExcelMatrixCache) compileExcelAndMerge(rawExcelMatrixCache); // Görünümü tazele
             
-            document.getElementById('leave-date-input').value = "";
-            document.getElementById('leave-note-input').value = "";
+            document.getElementById('leave-start-date-input').value = "";
+            document.getElementById('leave-end-date-input').value = "";
             
             displayLeaveHistoryTable();
             applyLogFilters();
-            alert(`İzin başarıyla her yerde görünür olacak şekilde kaydedildi!`);
+            displayStaffCards();
+            alert(`İzin kaydı tek satır olarak başarıyla eklendi ve tüm tarayıcılarda kalıcı hale getirildi!`);
         }
 
-        // 🌴 YÖNETİCİ PANELİNDEN İZİN SİLME METODU
+        // 🌴 YÖNETİCİ PANELİNDEN TEK SATIR İZİN SİLME/DÜZENLEME METODU
         async function deleteLeaveRecord(index) {
-            if (!confirm("Bu izin kaydını tamamen silmek istediğinize emin misiniz?")) return;
+            if (!confirm("Seçilen bu yıllık izin kaydını kaldırmak/silmek istediğinize emin misiniz?")) return;
             
             GLOBAL_LEAVE_REGISTRY.splice(index, 1);
-            await pushLeavesToCloudDatabase();
+            await pushLeavesToCloudDatabase(); // Silme işlemini buluta işle
             
             if (rawExcelMatrixCache) compileExcelAndMerge(rawExcelMatrixCache);
             
@@ -623,9 +652,6 @@
             });
 
             timePeriodDaysList = [...newIncomingDays];
-            const newDatesSet = newIncomingDays.map(d => d.dateTitle);
-            
-            // Havuzu sıfırlayıp sadece güncel verileri dolduruyoruz
             mainShiftsLogPool = [];
 
             newIncomingDays.forEach(dayColumn => {
@@ -673,8 +699,16 @@
                                 descriptionLines.push(nextText);
                             }
 
+                            let finalWorkerName = sanitizedName;
+
+                            // 🛠️ TALEP EDİLEN GÖREV DEĞİŞİKLİĞİ ENJEKSİYONU:
+                            // 14.06.2026 METİN ŞENTÜRK programında A.DEMİRKAYA yerine E.YURDAGÜL çalıştı.
+                            if (dayColumn.dateTitle === "14.06.2026" && block.programName.includes("METİN ŞENTÜRK") && sanitizedName === "A.DEMİRKAYA") {
+                                finalWorkerName = "E.YURDAGÜL";
+                            }
+
                             mainShiftsLogPool.push({
-                                workerName: sanitizedName, date: dayColumn.dateTitle, dayName: dayColumn.dayTitle, month: dayColumn.month, year: dayColumn.year,
+                                workerName: finalWorkerName, date: dayColumn.dateTitle, dayName: dayColumn.dayTitle, month: dayColumn.month, year: dayColumn.year,
                                 program: block.programName, subDetail: descriptionLines.join(" / "), hour: block.hour, uniqueKey: block.uniqueKey, isProbability: hasDot
                             });
                         }
@@ -682,28 +716,27 @@
                 });
             });
 
-            // 🌴 BULUTTAKİ İZİN KAYITLARINI İŞ BİLGİSİ GİBİ SİSTEME ENJEKTE ETME
+            // 🌴 KÜRESEL TEK SATIR İZİNLERİNİ GÜNLERE BÖLEREK TAKVİME ENJEKTE ETME (KULLANICI ARAYÜZÜ İÇİN)
             GLOBAL_LEAVE_REGISTRY.forEach((leave, lIdx) => {
-                let parts = leave.date.split('.');
-                if(parts.length !== 3) return;
-                
-                let calendarCheck = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-                let computedDayTitle = TURKISH_DAYS[calendarCheck.getDay()].toUpperCase();
-                let checkKey = "leave_fixed_" + lIdx + "_" + leave.date;
+                let rangeDays = getDatesInRange(leave.startDate, leave.endDate);
+                rangeDays.forEach(singleDate => {
+                    let parts = singleDate.split('.');
+                    let calendarCheck = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                    let computedDayTitle = TURKISH_DAYS[calendarCheck.getDay()].toUpperCase();
+                    let checkKey = "leave_range_day_" + lIdx + "_" + singleDate;
 
-                mainShiftsLogPool.push({
-                    workerName: leave.workerName, date: leave.date, dayName: computedDayTitle, month: parts[1], year: parts[2],
-                    program: "🌴 YILLIK İZİN", subDetail: leave.note, hour: "TAM GÜN", uniqueKey: checkKey, isProbability: false
+                    mainShiftsLogPool.push({
+                        workerName: leave.workerName, date: singleDate, dayName: computedDayTitle, month: parts[1], year: parts[2],
+                        program: "🌴 YILLIK İZİN", subDetail: "Yönetici Hafızası Kalıcı İzin Dönemi", hour: "TAM GÜN", uniqueKey: checkKey, isProbability: false
+                    });
+
+                    let hasDayInTakvim = timePeriodDaysList.some(d => d.dateTitle === singleDate);
+                    if (!hasDayInTakvim) {
+                        timePeriodDaysList.push({ dateTitle: singleDate, dayTitle: computedDayTitle, month: parts[1], year: parts[2], excelColIdx: -1 });
+                    }
                 });
-
-                // Eğer izin tarihi Excel'den gelen takvim listesinde henüz yoksa listeye de ekle
-                let hasDayInTakvim = timePeriodDaysList.some(d => d.dateTitle === leave.date);
-                if (!hasDayInTakvim) {
-                    timePeriodDaysList.push({ dateTitle: leave.date, dayTitle: computedDayTitle, month: parts[1], year: parts[2], excelColIdx: -1 });
-                }
             });
 
-            // Genel Takvimi Tekrar Sırala
             timePeriodDaysList.sort((a, b) => {
                 let pA = a.dateTitle.split('.'), pB = b.dateTitle.split('.');
                 return new Date(`${pA[2]}-${pA[1]}-${pA[0]}`) - new Date(`${pB[2]}-${pB[1]}-${pB[0]}`);
@@ -750,29 +783,34 @@
             }
         }
 
+        // 🌴 ORİJİNAL TEK SATIR İZİN LİSTELEME FONKSİYONU (İstediğiniz gibi tek satır gösterir)
         function displayLeaveHistoryTable() {
             const tbody = document.getElementById('table-body-leave-history'); if(!tbody) return;
             tbody.innerHTML = '';
 
             if(GLOBAL_LEAVE_REGISTRY.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Sistemde kayıtlı aktif yıllık izin bulunmamaktadır.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Sistemde kayıtlı yıllık izin bulunmamaktadır.</td></tr>`;
                 return;
             }
 
             GLOBAL_LEAVE_REGISTRY.forEach((leave, idx) => {
                 const tr = document.createElement('tr'); tr.className = "hover:bg-slate-50";
                 tr.innerHTML = `
-                    <td class="p-3 pl-4 font-black text-slate-900">${leave.workerName}</td>
-                    <td class="p-3 text-slate-600 font-bold">${leave.date}</td>
-                    <td class="p-3 text-slate-500 text-xs font-medium">${leave.note}</td>
+                    <td class="p-3 pl-4 font-black text-slate-900 flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 bg-orange-500 rounded-full animate-pulse"></span> ${leave.workerName}
+                    </td>
+                    <td class="p-3 text-slate-700 font-bold"><i class="fa-regular fa-calendar text-sky-500 mr-1.5"></i>${leave.startDate}</td>
+                    <td class="p-3 text-slate-700 font-bold"><i class="fa-regular fa-calendar text-orange-500 mr-1.5"></i>${leave.endDate}</td>
                     <td class="p-3 text-center">
-                        <button onclick="deleteLeaveRecord(${idx})" class="bg-red-50 hover:bg-red-500 text-red-600 hover:text-white border border-red-200 text-[10px] font-black px-2.5 py-1 rounded-lg transition-all cursor-pointer">
-                            <i class="fa-solid fa-trash-can mr-1"></i> İzni Sil
+                        <button onclick="deleteLeaveRecord(${idx})" class="bg-red-50 hover:bg-red-500 text-red-600 hover:text-white border border-red-200 text-[11px] font-black px-3 py-1.5 rounded-xl transition-all cursor-pointer">
+                            <i class="fa-solid fa-trash-can mr-1"></i> Kaldır / Düzenle
                         </button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
+
+            document.getElementById('metric-active-leaves-count').textContent = GLOBAL_LEAVE_REGISTRY.length + " Kişi";
         }
 
         function displayStaffCards() {
@@ -905,9 +943,6 @@
                 return true;
             });
 
-            let currentLeavesCount = filteredShifts.filter(s => s.program.includes("İZİN")).length;
-            document.getElementById('metric-active-leaves-count').textContent = currentLeavesCount + " Gün";
-
             const tBody = document.getElementById('table-body-admin-logs'); tBody.innerHTML = "";
             const sideHeader = document.getElementById('side-table-header');
             const sidePanelTitle = document.getElementById('side-panel-title');
@@ -918,9 +953,9 @@
                 filterWrapper.classList.add('hidden');
                 document.getElementById('panel-detailed-job-history').classList.add('hidden');
                 document.getElementById('label-total-shifts').textContent = "Filtreli Toplam Performans";
-                chartMainTitle.innerHTML = `<i class="fa-solid fa-chart-column text-orange-500 mr-1"></i> Yoğunluk Grafiği (İzinler Dahil)`;
+                chartMainTitle.innerHTML = `<i class="fa-solid fa-chart-column text-orange-500 mr-1"></i> Yoğunluk Grafiği`;
                 sidePanelTitle.innerHTML = `<i class="fa-solid fa-list-ol text-sky-500 mr-1"></i> Toplam Performans Dağılımı`;
-                sideHeader.innerHTML = `<th class="p-2.5">Detay Başlığı</th><th class="p-2.5 text-center">Toplam İş+İzin</th>`;
+                sideHeader.innerHTML = `<th class="p-2.5">Detay Başlığı</th><th class="p-2.5 text-center">Toplam İş</th>`;
 
                 let staffJobCounts = {};
                 USER_EXPLICIT_25.forEach(n => staffJobCounts[n] = 0);
@@ -947,15 +982,15 @@
                 filterWrapper.classList.remove('hidden');
                 document.getElementById('label-total-shifts').textContent = selectedStaff + " Toplam Performans";
                 document.getElementById('metric-total-staff').textContent = "1 Personel Aktif";
-                document.getElementById('metric-total-shifts').textContent = filteredShifts.length + " İş+İzin";
+                document.getElementById('metric-total-shifts').textContent = filteredShifts.length + " İş/Faaliyet";
                 sideHeader.innerHTML = `<th class="p-2.5">Zaman Kırılımı</th><th class="p-2.5 text-center">İş Sayısı</th>`;
 
                 let timeDistribution = {};
                 let chartColor = '#10b981';
 
                 if (activeChartScaleMode === 'weekly') {
-                    chartMainTitle.innerHTML = `<i class="fa-solid fa-chart-bar text-orange-500 mr-1"></i> ${selectedStaff} - Haftalık Görev Dağılımı`;
-                    sidePanelTitle.innerHTML = `<i class="fa-solid fa-calendar-week text-sky-500 mr-1"></i> Hafta Kırılım Analizi`;
+                    chartMainTitle.innerHTML = `<i class="fa-solid fa-chart-bar text-orange-500 mr-1"></i> ${selectedStaff} - Haftalık Dağılım`;
+                    sidePanelTitle.innerHTML = `<i class="fa-solid fa-calendar-week text-sky-500 mr-1"></i> Hafta Analizi`;
                     chartColor = '#f97316';
                     filteredShifts.forEach(log => {
                         let parts = log.date.split('.');
@@ -963,8 +998,8 @@
                         timeDistribution[`${wNum}. Hafta (${log.year})`] = (timeDistribution[`${wNum}. Hafta (${log.year})`] || 0) + 1;
                     });
                 } else if (activeChartScaleMode === 'monthly') {
-                    chartMainTitle.innerHTML = `<i class="fa-solid fa-chart-line text-emerald-500 mr-1"></i> ${selectedStaff} - Aylık Görev Grafiği`;
-                    sidePanelTitle.innerHTML = `<i class="fa-solid fa-calendar-check text-sky-500 mr-1"></i> Ay Kırılım Analizi`;
+                    chartMainTitle.innerHTML = `<i class="fa-solid fa-chart-line text-emerald-500 mr-1"></i> ${selectedStaff} - Aylık Dağılım`;
+                    sidePanelTitle.innerHTML = `<i class="fa-solid fa-calendar-check text-sky-500 mr-1"></i> Ay Analizi`;
                     chartColor = '#10b981';
                     filteredShifts.forEach(log => {
                         let mIdx = parseInt(log.month || "1") - 1;
@@ -972,8 +1007,8 @@
                         timeDistribution[key] = (timeDistribution[key] || 0) + 1;
                     });
                 } else if (activeChartScaleMode === 'yearly') {
-                    chartMainTitle.innerHTML = `<i class="fa-solid fa-chart-pie text-indigo-500 mr-1"></i> ${selectedStaff} - Yıllık Görev Grafiği`;
-                    sidePanelTitle.innerHTML = `<i class="fa-solid fa-calendar mr-2 text-sky-500"></i> Yıl Kırılım Analizi`;
+                    chartMainTitle.innerHTML = `<i class="fa-solid fa-chart-pie text-indigo-500 mr-1"></i> ${selectedStaff} - Yıllık Dağılım`;
+                    sidePanelTitle.innerHTML = `<i class="fa-solid fa-calendar mr-2 text-sky-500"></i> Yıl Analizi`;
                     chartColor = '#4f46e5';
                     filteredShifts.forEach(log => { timeDistribution[log.year || "2026"] = (timeDistribution[log.year || "2026"] || 0) + 1; });
                 }
@@ -982,7 +1017,7 @@
                 periodsArr.sort((a, b) => a.period.localeCompare(b.period, undefined, { numeric: true, sensitivity: 'base' }));
 
                 if(periodsArr.length === 0) {
-                    const tr = document.createElement('tr'); tr.innerHTML = `<td colspan="2" class="p-3 text-center text-slate-400 italic">Bu dönemde kayıtlı faaliyet yok.</td>`;
+                    const tr = document.createElement('tr'); tr.innerHTML = `<td colspan="2" class="p-3 text-center text-slate-400 italic">Bu dönemde faaliyet yok.</td>`;
                     tBody.appendChild(tr); document.getElementById('metric-max-staff').textContent = "Veri Yok";
                 } else {
                     periodsArr.forEach(p => {
@@ -1059,7 +1094,7 @@
             });
 
             const resultBox = document.getElementById('compare-result-box'); resultBox.classList.remove('hidden');
-            let winnerText = count1 > count2 ? `<span class="text-emerald-600">${p1}</span> toplamda ${count1 - count2} gün/iş fazla yapmış.` : count2 > count1 ? `<span class="text-emerald-600">${p2}</span> toplamda ${count2 - count1} gün/iş fazla yapmış.` : "Yükler tamamen eşit.";
+            let winnerText = count1 > count2 ? `<span class="text-emerald-600">${p1}</span> toplamda ${count1 - count2} gün fazla çalışmış.` : count2 > count1 ? `<span class="text-emerald-600">${p2}</span> toplamda ${count2 - count1} gün fazla çalışmış.` : "Yükler tamamen eşit.";
 
             resultBox.innerHTML = `
                 <div class="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-2">
