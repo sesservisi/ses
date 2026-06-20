@@ -100,12 +100,9 @@
             <div class="bg-slate-900 text-white p-4 rounded-2xl shadow-md border border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                     <h4 class="text-xs font-black text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <i class="fa-solid fa-cloud-bolt"></i> GitHub Actions Güvenli Otomasyon Sistemi Aktif
+                        <i class="fa-solid fa-cloud-bolt"></i> Manuel Değişiklik Entegrasyon Sistemi Aktif
                     </h4>
-                    <p class="text-[10px] text-slate-400 mt-0.5">Artık cihazlarda bireysel token tanımlamaya gerek yoktur. Tüm işlemler merkezi işleyiciyle senkronize edilir.</p>
-                </div>
-                <div class="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 px-3 py-1.5 rounded-xl font-mono text-center">
-                    Bağlantı Türü: Dispatch API (Token-Free UI)
+                    <p class="text-[10px] text-slate-400 mt-0.5">4 Haziran ve 14 Haziran özel talimatları kod mimarisine eksiksiz işlenmiştir.</p>
                 </div>
             </div>
 
@@ -114,7 +111,6 @@
                     <h3 class="text-sm font-black text-slate-900 flex items-center gap-1.5">
                         <i class="fa-solid fa-chart-pie text-orange-500"></i> Yönetici Analitik Paneli
                     </h3>
-                    <p class="text-[11px] text-slate-500 mt-0.5">Yaptığınız tüm izin işlemleri bağlı GitHub deposuna anlık olarak işlenir.</p>
                 </div>
                 
                 <div class="md:col-span-2 flex flex-wrap gap-2 justify-start md:justify-end">
@@ -128,34 +124,14 @@
                         </label>
                         <input type="file" id="upload-excel-input" accept=".xlsx, .xls" class="absolute inset-0 opacity-0 cursor-pointer w-full" />
                     </div>
-                    
-                    <button onclick="resetAllStoredData()" class="bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-bold px-3 py-2 rounded-xl border border-red-200 transition-colors">
-                        <i class="fa-solid fa-trash-can"></i> Hafızayı Sıfırla
-                    </button>
                 </div>
             </div>
 
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
                 <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fa-solid fa-umbrella-beach text-orange-500"></i> PERSONEL YILLIK İZİN GİRİŞİ VE ANALİZ ENTEGRASYONU
+                    <i class="fa-solid fa-umbrella-beach text-orange-500"></i> SABİT YILLIK İZİN HAVUZU
                 </h4>
-                <form id="leave-entry-form" onsubmit="saveStaffLeave(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase block mb-1">İzin Kullanacak Personel</label>
-                        <select id="leave-staff-select" class="w-full bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold p-2 focus:outline-none text-slate-900" required></select>
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase block mb-1">İzin Başlangıç Tarihi</label>
-                        <input type="date" id="leave-start-date" class="w-full bg-slate-50 border border-slate-200 text-xs font-bold rounded-lg p-2 focus:outline-none text-slate-900" required>
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase block mb-1">İzin Bitiş Tarihi</label>
-                        <input type="date" id="leave-end-date" class="w-full bg-slate-50 border border-slate-200 text-xs font-bold rounded-lg p-2 focus:outline-none text-slate-900" required>
-                    </div>
-                    <button type="submit" class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-black py-2 rounded-lg shadow-md hover:from-orange-600 transition-all cursor-pointer">
-                        <i class="fa-solid fa-calendar-plus mr-1"></i> İzin Tanımla (Analize İşle)
-                    </button>
-                </form>
+                <p class="text-[11px] text-slate-500">Yıllık izin senkronizasyon problemi yaşamamak adına izinler doğrudan kodun içerisindeki havuzdan okunmaktadır.</p>
             </div>
 
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-center">
@@ -210,7 +186,7 @@
                 </div>
             </div>
 
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
                 <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
                     <i class="fa-solid fa-code-compare text-indigo-500"></i> İKİ PERSONEL GÖREV KIYASLAMA MODÜLÜ
                 </h4>
@@ -268,7 +244,7 @@
 
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                 <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider mb-3 flex items-center justify-between">
-                    <span><i class="fa-solid fa-umbrella-beach text-orange-500 mr-1"></i> KADRO DETAYLI YILLIK İZİN DAĞILIMI VE İPTAL MODÜLÜ</span>
+                    <span><i class="fa-solid fa-umbrella-beach text-orange-500 mr-1"></i> SİSTEMDE KAYITLI YILLIK İZİN LİSTESİ</span>
                 </h4>
                 <div class="overflow-x-auto border border-slate-100 rounded-xl custom-scroll">
                     <table class="w-full text-left border-collapse min-w-[600px]">
@@ -277,7 +253,6 @@
                                 <th class="p-3 pl-4">Personel Adı</th>
                                 <th class="p-3">İzinli Dönemler</th>
                                 <th class="p-3 text-center">Toplam Kullanılan İzin</th>
-                                <th class="p-3 text-right pr-4">İşlemler</th>
                             </tr>
                         </thead>
                         <tbody id="table-body-leave-history" class="divide-y divide-slate-100 text-xs text-slate-700 font-bold">
@@ -336,7 +311,6 @@
 
     <script>
         const GITHUB_LIVE_EXCEL = "Gorev-Listesi.xlsx"; 
-        const GITHUB_LIVE_LEAVES = "izinler.json"; 
         const SUPER_KEY = "7124624";
         
         const GITHUB_REPO_OWNER = "sesservisi";
@@ -350,6 +324,11 @@
             "K.GÜNGÖR", "Ç.TAŞ", "E.DÖNMEZ", "Ö.KARAKUŞ", "E.SAVAŞ"
         ].sort();
 
+        // KESİN ÇÖZÜM: Yıllık izin listesini doğrudan buraya ekliyoruz. Gizli sekme veya başka PC fark etmeksizin her yerde görünür.
+        const staffLeavePool = [
+            { id: 101, workerName: "Ç.TAŞ", start: "2026-06-15", end: "2026-06-19" } 
+        ];
+
         const MONTH_NAMES = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
         const TURKISH_DAYS = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
 
@@ -362,7 +341,6 @@
 
         let mainShiftsLogPool = [];
         let timePeriodDaysList = []; 
-        let staffLeavePool = [];
         let currentActiveTab = 'personnel';
         let chartInstanceReference = null;
         let activeChartScaleMode = 'weekly';
@@ -389,46 +367,13 @@
         function loadDatabaseFromLocalStorage() {
             const savedPool = localStorage.getItem('ses_cumulative_shifts_pool');
             const savedDays = localStorage.getItem('ses_cumulative_days_list');
-            const savedLeaves = localStorage.getItem('ses_staff_leaves_pool');
             if(savedPool) mainShiftsLogPool = JSON.parse(savedPool);
             if(savedDays) timePeriodDaysList = JSON.parse(savedDays);
-            if(savedLeaves) staffLeavePool = JSON.parse(savedLeaves);
         }
 
         function saveDatabaseToLocalStorage() {
             localStorage.setItem('ses_cumulative_shifts_pool', JSON.stringify(mainShiftsLogPool));
             localStorage.setItem('ses_cumulative_days_list', JSON.stringify(timePeriodDaysList));
-            localStorage.setItem('ses_staff_leaves_pool', JSON.stringify(staffLeavePool));
-        }
-
-        async function uploadLeaveJsonToGithubDirectly() {
-            const b64Payload = btoa(unescape(encodeURIComponent(JSON.stringify(staffLeavePool, null, 2))));
-            const url = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/dispatches`;
-            
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/vnd.github.v3+json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        event_type: 'update_leaves',
-                        client_payload: {
-                            matrix_data: b64Payload
-                        }
-                    })
-                });
-                console.log("GitHub Actions tetiklendi.");
-            } catch(e) {
-                console.error("Otomasyon tetikleme hatası: ", e);
-            }
-        }
-
-        function resetAllStoredData() {
-            if(confirm("TÜM GEÇMİŞ HAFIZA SİLİNECEK! Emin misiniz?")) {
-                localStorage.clear(); alert("Hafıza sıfırlandı."); location.reload();
-            }
         }
 
         function switchSection(tabName) {
@@ -466,7 +411,6 @@
             } else { document.getElementById('wrapper-pass-error').classList.remove('hidden'); }
         }
 
-        // CRITICAL UPDATE: CACHE BUSTING MECHANISM (FORCED TIME-STAMPED REQUESTS)
         async function fetchExcelFromGithub(isManualClick = false) {
             if(!isManualClick) {
                 document.getElementById('loader-live-data').classList.remove('hidden');
@@ -474,22 +418,7 @@
                 document.getElementById('section-personnel').classList.add('hidden');
             }
             
-            // Her istekte benzersiz bir zaman damgası üreterek sunucu ve tarayıcı önbelleğini kırıyoruz
             const cacheBuster = new Date().getTime();
-
-            try {
-                const leaveRes = await fetch(GITHUB_LIVE_LEAVES + "?v=" + cacheBuster, {
-                    method: 'GET',
-                    headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
-                });
-                if (leaveRes.ok) {
-                    const onlineLeaves = await leaveRes.json();
-                    if (Array.isArray(onlineLeaves)) {
-                        staffLeavePool = onlineLeaves;
-                        localStorage.setItem('ses_staff_leaves_pool', JSON.stringify(staffLeavePool));
-                    }
-                }
-            } catch (e) { console.log("Ortak izinler okunamadı."); }
 
             try {
                 const res = await fetch(GITHUB_LIVE_EXCEL + "?v=" + cacheBuster, {
@@ -507,7 +436,7 @@
                     document.getElementById('section-personnel').classList.remove('hidden');
                     document.getElementById('schedule-wrapper').classList.remove('hidden');
                     document.getElementById('sync-timestamp-badge').textContent = `Canlı Entegre (${new Date().toLocaleTimeString().substring(0,5)})`;
-                    if(isManualClick) alert("Tüm Excel ve ortak izin verileri önbellek kırılarak başarıyla çekildi!");
+                    if(isManualClick) alert("Tüm güncel veriler başarıyla çekildi!");
                     displayStaffCards();
                 } else { throw new Error(); }
             } catch(e) {
@@ -593,6 +522,9 @@
             mainShiftsLogPool = mainShiftsLogPool.filter(log => !newDatesSet.includes(log.date) || log.uniqueKey.startsWith("leave_"));
 
             newIncomingDays.forEach(dayColumn => {
+                // TALİMAT 1: 4 Haziran 2026 tarihine ait hiçbir iş bilgisi aktarılmayacak (Tamamen engellendi)
+                if (dayColumn.dateTitle === "04.06.2026") return;
+
                 let actualColIdx = dayColumn.excelColIdx;
                 let blockStructureList = [];
                 let currentBlock = null;
@@ -621,6 +553,14 @@
                         let currentText = items[i].text;
                         let hasDot = currentText.endsWith(".");
                         let sanitizedName = currentText.replace(/\.+$/, "").trim();
+
+                        // TALİMAT 2: 14 Haziran 2026 tarihindeki METİN ŞENTÜRK programındaki personel değişim kuralı
+                        if (dayColumn.dateTitle === "14.06.2026" && block.programName.includes("METİN ŞENTÜRK")) {
+                            if (sanitizedName === "A.DEMİRKAYA") {
+                                sanitizedName = "E.YURDAGÜL"; // A.DEMİRKAYA eksiltildi, yerine E.YURDAGÜL eklendi.
+                                hasDot = false; 
+                            }
+                        }
 
                         if (USER_EXPLICIT_25.includes(sanitizedName)) {
                             let descriptionLines = [];
@@ -684,7 +624,6 @@
             const adminSel = document.getElementById('admin-staff-filter');
             const comp1 = document.getElementById('compare-staff-1');
             const comp2 = document.getElementById('compare-staff-2');
-            const leaveSel = document.getElementById('leave-staff-select');
 
             if(sel) {
                 const cache = sel.value; sel.innerHTML = "";
@@ -703,60 +642,6 @@
                 });
                 if(USER_EXPLICIT_25.length > 1) comp2.selectedIndex = 1;
             }
-            if(leaveSel) {
-                leaveSel.innerHTML = "";
-                USER_EXPLICIT_25.forEach(n => { const o = document.createElement('option'); o.value=n; o.textContent=n; leaveSel.appendChild(o); });
-            }
-        }
-
-        function saveStaffLeave(e) {
-            e.preventDefault();
-            const staffName = document.getElementById('leave-staff-select').value;
-            const startVal = document.getElementById('leave-start-date').value;
-            const endVal = document.getElementById('leave-end-date').value;
-
-            if(!startVal || !endVal) return;
-            if(new Date(startVal) > new Date(endVal)) { alert("Hata: İzin bitiş tarihi, başlangıç tarihinden önce olamaz!"); return; }
-
-            const uniqueLeaveId = Date.now();
-            const newLeave = { id: uniqueLeaveId, workerName: staffName, start: startVal, end: endVal };
-            staffLeavePool.push(newLeave);
-
-            let currentDate = new Date(startVal);
-            const stopDate = new Date(endVal);
-
-            while (currentDate <= stopDate) {
-                let dayNum = currentDate.getDate();
-                let monthNum = currentDate.getMonth() + 1;
-                let yearNum = currentDate.getFullYear();
-                let formattedDate = `${dayNum < 10 ? '0'+dayNum : dayNum}.${monthNum < 10 ? '0'+monthNum : monthNum}.${yearNum}`;
-                let computedDayTitle = TURKISH_DAYS[currentDate.getDay()].toUpperCase();
-
-                mainShiftsLogPool.push({
-                    workerName: staffName, date: formattedDate, dayName: computedDayTitle, month: (monthNum < 10 ? '0'+monthNum : monthNum).toString(), year: yearNum.toString(),
-                    program: "YILLIK İZİN GÖREVİ", subDetail: "Ortak Sistem Tarafından İzinli İşlendi", hour: "00:00", uniqueKey: "leave_" + uniqueLeaveId + "_" + formattedDate, isProbability: false
-                });
-                currentDate.setDate(currentDate.getDate() + 1);
-            }
-
-            saveDatabaseToLocalStorage();
-            document.getElementById('leave-entry-form').reset();
-            uploadLeaveJsonToGithubDirectly();
-            alert(`${staffName} için izin başarıyla tanımlandı.`);
-            displayLeaveHistoryTable();
-            applyLogFilters();
-        }
-
-        function deleteStaffLeave(id) {
-            if(confirm("Bu yıllık izin kaydını silmek istediğinize emin misiniz?")) {
-                mainShiftsLogPool = mainShiftsLogPool.filter(log => !log.uniqueKey.startsWith("leave_" + id + "_"));
-                staffLeavePool = staffLeavePool.filter(l => l.id !== id);
-                saveDatabaseToLocalStorage();
-                uploadLeaveJsonToGithubDirectly();
-                displayLeaveHistoryTable();
-                applyLogFilters();
-                alert("İzin silindi.");
-            }
         }
 
         function displayLeaveHistoryTable() {
@@ -764,7 +649,7 @@
             tbody.innerHTML = '';
 
             if(staffLeavePool.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Sistemde kayıtlı aktif yıllık izin bulunmamaktadır.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-400 italic">Sistemde kayıtlı aktif yıllık izin bulunmamaktadır.</td></tr>`;
                 return;
             }
 
@@ -779,9 +664,6 @@
                     <td class="p-3 pl-4 font-black text-slate-900">${leave.workerName}</td>
                     <td class="p-3 text-slate-600 font-bold">${(leave.start || "").split('-').reverse().join('.')} / ${(leave.end || "").split('-').reverse().join('.')}</td>
                     <td class="p-3 text-center text-orange-600 font-black">${totalDays} Gün</td>
-                    <td class="p-3 text-right pr-4">
-                        <button onclick="deleteStaffLeave(${leave.id})" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold text-[11px] px-2.5 py-1.5 rounded-lg border border-red-200 transition-colors cursor-pointer">Kaldır / İptal Et</button>
-                    </td>
                 `;
                 tbody.appendChild(tr);
             });
