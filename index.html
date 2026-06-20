@@ -9,10 +9,20 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #f97316; border-radius: 4px; }
-        body { -webkit-tap-highlight-color: transparent; }
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #f97316;
+            border-radius: 4px;
+        }
+        body {
+            -webkit-tap-highlight-color: transparent;
+        }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
@@ -47,7 +57,7 @@
         <div id="loader-live-data" class="bg-white border border-sky-100 rounded-2xl p-8 text-center max-w-md mx-auto my-6 shadow-md flex flex-col items-center justify-center">
             <i class="fa-solid fa-circle-notch text-orange-500 text-4xl mb-3 animate-spin"></i>
             <h3 class="text-sm font-black text-slate-900">Güncel Plan Yükleniyor</h3>
-            <p class="text-[11px] text-slate-500 mt-1">Excel ve izin havuzu senkronize ediliyor...</p>
+            <p class="text-[11px] text-slate-500 mt-1">Excel verileri ve çalışma takvimi senkronize ediliyor...</p>
         </div>
 
         <div id="alert-no-data" class="bg-orange-50 border-2 border-dashed border-orange-200 rounded-2xl p-6 text-center max-w-md mx-auto my-6 hidden">
@@ -89,7 +99,7 @@
                                 </tr>
                             </thead>
                             <tbody id="weekly-schedule-table-body" class="divide-y-2 divide-slate-300 text-xs font-bold text-slate-700">
-                            </tbody>
+                                </tbody>
                         </table>
                     </div>
                 </div>
@@ -97,20 +107,12 @@
         </section>
 
         <section id="section-admin" class="hidden space-y-4">
-            <div class="bg-slate-900 text-white p-4 rounded-2xl shadow-md border border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div>
-                    <h4 class="text-xs font-black text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <i class="fa-solid fa-shield-halved"></i> Güvenli Manuel Entegrasyon Sistemi Aktif
-                    </h4>
-                    <p class="text-[10px] text-slate-400 mt-0.5">04.06.2026 tarihi tamamen temizlenmiş, 14.06.2026 Metin Şentürk işi E.YURDAGÜL'e devredilmiştir.</p>
-                </div>
-            </div>
-
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
                 <div>
                     <h3 class="text-sm font-black text-slate-900 flex items-center gap-1.5">
                         <i class="fa-solid fa-chart-pie text-orange-500"></i> Yönetici Analitik Paneli
                     </h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Tüm personellerin iş yükü dağılımı ve performans puanlama sistemi.</p>
                 </div>
                 
                 <div class="md:col-span-2 flex flex-wrap gap-2 justify-start md:justify-end">
@@ -174,8 +176,8 @@
                     <h4 id="metric-max-staff" class="text-xs font-black text-slate-800 mt-2 truncate">-</h4>
                 </div>
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Filtreli Yıllık İzin Dağılımı</span>
-                    <h4 id="metric-active-leaves-count" class="text-2xl font-black text-orange-600 mt-1">0 İş/Gün</h4>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Filtreli Toplam İzin Dağılımı</span>
+                    <h4 id="metric-active-leaves-count" class="text-2xl font-black text-orange-600 mt-1">0 Gün</h4>
                 </div>
             </div>
 
@@ -197,7 +199,7 @@
                     </button>
                 </div>
                 <div id="compare-result-box" class="hidden bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 text-xs font-bold text-slate-800">
-                </div>
+                    </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -228,7 +230,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="table-body-admin-logs" class="divide-y divide-slate-100 text-xs font-bold text-slate-700">
-                                </tbody>
+                                    </tbody>
                             </table>
                         </div>
                     </div>
@@ -250,7 +252,7 @@
                             </tr>
                         </thead>
                         <tbody id="table-body-leave-history" class="divide-y divide-slate-100 text-xs text-slate-700 font-bold">
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
             </div>
@@ -271,7 +273,7 @@
                             </tr>
                         </thead>
                         <tbody id="table-body-history-details" class="divide-y divide-slate-100 text-xs text-slate-700 font-bold">
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
             </div>
@@ -304,12 +306,11 @@
     </div>
 
     <script>
+        // GitHub Konfigürasyonu ve Sabit Şifre
         const GITHUB_LIVE_EXCEL = "Gorev-Listesi.xlsx"; 
         const SUPER_KEY = "7124624";
         
-        const GITHUB_REPO_OWNER = "sesservisi";
-        const GITHUB_REPO_NAME = "ses";
-
+        // Tanımlı 25 Sabit Personel Listesi
         const USER_EXPLICIT_25 = [
             "H.BAKIRCI", "A.KOÇ", "C.SALTIK", "D.A.SALTIK", "A.AŞİROĞLU", 
             "E.YURDAGÜL", "A.DEMİRKAYA", "F.BOZKURT", "H.HEKİMHAN", "Ş.ÖNALAN", 
@@ -318,9 +319,10 @@
             "K.GÜNGÖR", "Ç.TAŞ", "E.DÖNMEZ", "Ö.KARAKUŞ", "E.SAVAŞ"
         ].sort();
 
-        // 🌴 EN GÜVENLİ VE KALICI İZİN HAVUZU:
-        // Buraya girdiğin tarihler gizli sekme veya başka bilgisayarda kaybolmaz, analizde iş olarak sayılır.
-        // Hata olduğunda satırı silmen veya yeni satır eklemen yeterlidir. Tarihi DD.MM.YYYY formatında yazmalısın.
+        // 🌴 KOD MİMARİSİNE SABİTLENMİŞ YILLIK İZİN HAVUZU 🌴
+        // Buraya manuel girdiğiniz tüm satırlar her tarayıcıda, gizli modda ve bilgisayarda kaybolmadan çalışır.
+        // Yeni bir izin eklemek için aşağıya yeni bir satır eklemeniz veya hata durumunda satırı silmeniz yeterlidir.
+        // Tarihi mutlaka DD.MM.YYYY formatında yazmalısınız.
         const GLOBAL_LEAVE_REGISTRY = [
             { workerName: "Ç.TAŞ", date: "15.06.2026", note: "Yıllık İzin Dönemi" },
             { workerName: "Ç.TAŞ", date: "16.06.2026", note: "Yıllık İzin Dönemi" },
@@ -332,6 +334,7 @@
         const MONTH_NAMES = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
         const TURKISH_DAYS = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
 
+        // Excel Sütun Haritalama Yapısı
         const TARGET_EXCEL_COLUMNS = [
             { label: "B", idx: 1 }, { label: "F", idx: 5 }, { label: "J", idx: 9 }, 
             { label: "N", idx: 13 }, { label: "R", idx: 17 }, { label: "V", idx: 21 }, 
@@ -339,12 +342,14 @@
             { label: "AL", idx: 37 }
         ];
 
+        // Global Hafıza Havuzları
         let mainShiftsLogPool = [];
         let timePeriodDaysList = []; 
         let currentActiveTab = 'personnel';
         let chartInstanceReference = null;
         let activeChartScaleMode = 'weekly';
 
+        // Uygulama Başlangıcı
         window.addEventListener('DOMContentLoaded', () => {
             buildYearFilterOptions();
             loadDatabaseFromLocalStorage();
@@ -521,12 +526,10 @@
             timePeriodDaysList = [...newIncomingDays];
             const newDatesSet = newIncomingDays.map(d => d.dateTitle);
             
+            // Sadece Excel'den gelen eski kayıtları temizle, leave_ ile başlayan izin kayıtlarını havuzda koru
             mainShiftsLogPool = mainShiftsLogPool.filter(log => !newDatesSet.includes(log.date) || log.uniqueKey.startsWith("leave_"));
 
             newIncomingDays.forEach(dayColumn => {
-                // 🛑 CRITICAL FILTRE: 04.06.2026 tarihine ait tüm excel verilerini tamamen reddet ve boş geç.
-                if (dayColumn.dateTitle === "04.06.2026") return;
-
                 let actualColIdx = dayColumn.excelColIdx;
                 let blockStructureList = [];
                 let currentBlock = null;
@@ -555,14 +558,6 @@
                         let currentText = items[i].text;
                         let hasDot = currentText.endsWith(".");
                         let sanitizedName = currentText.replace(/\.+$/, "").trim();
-
-                        // 🔄 CRITICAL DEĞİŞİKLİK: 14.06.2026 METİN ŞENTÜRK işini A.DEMİRKAYA yerine E.YURDAGÜL'e yansıt.
-                        if (dayColumn.dateTitle === "14.06.2026" && block.programName.includes("METİN ŞENTÜRK")) {
-                            if (sanitizedName === "A.DEMİRKAYA") {
-                                sanitizedName = "E.YURDAGÜL";
-                                hasDot = false;
-                            }
-                        }
 
                         if (USER_EXPLICIT_25.includes(sanitizedName)) {
                             let descriptionLines = [];
@@ -597,7 +592,7 @@
                 let computedDayTitle = TURKISH_DAYS[calendarCheck.getDay()].toUpperCase();
                 let checkKey = "leave_fixed_" + lIdx + "_" + leave.date;
 
-                // Eski kayıtlar temizlenerek havuzdakiler taze taze eklenir
+                // Eski tekrarlanan izinleri havuzdan temizleyip yenileri tazece ekleyelim
                 mainShiftsLogPool = mainShiftsLogPool.filter(l => l.uniqueKey !== checkKey);
                 
                 mainShiftsLogPool.push({
@@ -793,9 +788,9 @@
                 return true;
             });
 
-            // İzinlerin Dağılımını Analiz Edin (Tıpkı normal bir iş yükü gibi)
+            // Filtreli İzinlerin Sayısını Hesapla ve Metriğe Yaz
             let currentLeavesCount = filteredShifts.filter(s => s.program.includes("İZİN")).length;
-            document.getElementById('metric-active-leaves-count').textContent = currentLeavesCount + " İzin Günü";
+            document.getElementById('metric-active-leaves-count').textContent = currentLeavesCount + " Gün";
 
             const tBody = document.getElementById('table-body-admin-logs'); tBody.innerHTML = "";
             const sideHeader = document.getElementById('side-table-header');
