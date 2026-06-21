@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ses Servisi Çalışma Planı & Analiz Paneli</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS (XLSX) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .custom-scroll::-webkit-scrollbar {
@@ -27,8 +31,10 @@
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
 
+    <!-- Üst Menü / Navigasyon -->
     <header class="bg-gradient-to-r from-sky-600 via-blue-600 to-orange-500 text-white shadow-lg sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 py-3.5 flex justify-between items-center">
+            <!-- Logo / Başlık -->
             <div class="flex items-center space-x-2.5 cursor-pointer" onclick="switchSection('personnel')">
                 <div class="bg-white text-orange-500 p-2 rounded-xl shadow-md flex items-center justify-center">
                     <i class="fa-solid fa-microphone-lines text-lg block"></i>
@@ -39,6 +45,7 @@
                 </div>
             </div>
             
+            <!-- Sekme Butonları -->
             <div class="flex items-center space-x-2">
                 <button onclick="switchSection('personnel')" id="btn-nav-personnel" class="px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center space-x-1.5 bg-white text-sky-700 shadow">
                     <i class="fa-solid fa-calendar-week"></i>
@@ -52,14 +59,17 @@
         </div>
     </header>
 
+    <!-- Ana İçerik Alanı -->
     <main class="flex-grow max-w-7xl w-full mx-auto px-3 py-4 sm:py-6 space-y-4">
 
+        <!-- Canlı Yüklenme Loader -->
         <div id="loader-live-data" class="bg-white border border-sky-100 rounded-2xl p-8 text-center max-w-md mx-auto my-6 shadow-md flex flex-col items-center justify-center">
             <i class="fa-solid fa-circle-notch text-orange-500 text-4xl mb-3 animate-spin"></i>
             <h3 class="text-sm font-black text-slate-900">Güncel Plan Yükleniyor</h3>
             <p class="text-[11px] text-slate-500 mt-1">Excel verileri ve çalışma takvimi senkronize ediliyor...</p>
         </div>
 
+        <!-- Hata / Veri Bulunamadı Uyarısı -->
         <div id="alert-no-data" class="bg-orange-50 border-2 border-dashed border-orange-200 rounded-2xl p-6 text-center max-w-md mx-auto my-6 hidden">
             <i class="fa-solid fa-cloud-bounce text-orange-500 text-4xl mb-2 block animate-bounce"></i>
             <h3 class="text-sm font-bold text-slate-900">Otomatik Veri Bağlantısı Kurulamadı</h3>
@@ -69,7 +79,9 @@
             </button>
         </div>
 
+        <!-- SEKTÖR 1: PERSONEL HAFTALIK PLAN EKRANI -->
         <section id="section-personnel" class="space-y-4 hidden">
+            <!-- Personel Seçim Kartı -->
             <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 max-w-md mx-auto">
                 <label class="block text-sky-600 text-xs font-black uppercase tracking-widest text-center mb-2.5"><i class="fa-solid fa-circle-user text-orange-500 mr-1"></i> LÜTFEN İSMİNİZİ SEÇİNİZ</label>
                 <select id="staff-dropdown" onchange="displayStaffCards()" class="w-full bg-slate-50 border-2 border-slate-200 text-slate-800 text-sm font-black rounded-xl px-4 py-3.5 focus:outline-none focus:border-orange-500 transition-all cursor-pointer shadow-inner">
@@ -77,6 +89,7 @@
                 </select>
             </div>
 
+            <!-- Haftalık Tablo Kartı -->
             <div id="schedule-wrapper" class="hidden space-y-3">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white p-4 rounded-xl border border-slate-200 gap-2 shadow-sm">
                     <div>
@@ -99,14 +112,17 @@
                                 </tr>
                             </thead>
                             <tbody id="weekly-schedule-table-body" class="divide-y-2 divide-slate-300 text-xs font-bold text-slate-700">
-                                </tbody>
+                                <!-- JavaScript Satırları Buraya Basacak -->
+                            </tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </section>
 
+        <!-- SEKTÖR 2: YÖNETİCİ ANALİZ PANELİ -->
         <section id="section-admin" class="hidden space-y-4">
+            <!-- Üst Kontrol Barı -->
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
                 <div>
                     <h3 class="text-sm font-black text-slate-900 flex items-center gap-1.5">
@@ -129,9 +145,10 @@
                 </div>
             </div>
 
+            <!-- YILLIK İZİN TANIMLAMA PANELİ -->
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
                 <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fa-solid fa-umbrella-beach text-orange-500"></i> YÖNETİCİ PANELİ - YILLIK İZİN TANIMLAMA
+                    <i class="fa-solid fa-umbrella-beach text-orange-500"></i> YÖNETİCİ PANELİ - YILLIK İZİN TANIMLAMA (TEK SATIR YAPISI)
                 </h4>
                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
                     <div>
@@ -152,6 +169,7 @@
                 </div>
             </div>
 
+            <!-- Filtreleme Paneli -->
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-center">
                 <div class="flex flex-col">
                     <label class="text-[10px] font-black text-slate-400 uppercase mb-1">Personel Seçimi</label>
@@ -185,6 +203,7 @@
                 </div>
             </div>
 
+            <!-- Metrik Sayaç Kartları -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <div class="bg-gradient-to-br from-sky-500 to-blue-600 p-4 rounded-2xl shadow-sm text-white flex flex-col justify-between">
                     <span class="text-[10px] font-black text-sky-100 uppercase tracking-wider">Aktif / Toplam Personel</span>
@@ -204,6 +223,7 @@
                 </div>
             </div>
 
+            <!-- İki Personel Görev Kıyaslama Modülü -->
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
                 <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
                     <i class="fa-solid fa-code-compare text-indigo-500"></i> İKİ PERSONEL GÖREV KIYASLAMA MODÜLÜ
@@ -222,10 +242,13 @@
                     </button>
                 </div>
                 <div id="compare-result-box" class="hidden bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 text-xs font-bold text-slate-800">
-                    </div>
+                    <!-- Kıyaslama sonucu buraya yazılır -->
+                </div>
             </div>
 
+            <!-- Grafik ve Liste Bölümü -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <!-- Grafik -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2 flex flex-col justify-between">
                     <div>
                         <h4 id="chart-main-title" class="font-black text-slate-800 text-xs uppercase tracking-wider mb-4"><i class="fa-solid fa-chart-column text-orange-500 mr-1"></i> Yoğunluk Grafiği</h4>
@@ -233,6 +256,7 @@
                             <canvas id="canvas-admin-chart"></canvas>
                         </div>
                     </div>
+                    <!-- Zaman Ölçeği Butonları -->
                     <div id="chart-timeline-filter-wrapper" class="hidden mt-3 border-t border-slate-100 pt-3 flex items-center justify-center gap-1.5">
                         <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider mr-1"><i class="fa-solid fa-clock-rotate-left"></i> Grafik Kırılımı:</span>
                         <button onclick="changeChartScaleMode('weekly')" id="btn-scale-weekly" class="bg-orange-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg transition-all shadow-sm">Haftalık</button>
@@ -241,6 +265,7 @@
                     </div>
                 </div>
                 
+                <!-- Dağılım Sıralaması Yan Liste -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
                     <div>
                         <h4 id="side-panel-title" class="font-black text-slate-800 text-xs uppercase tracking-wider mb-3"><i class="fa-solid fa-list-ol text-sky-500 mr-1"></i> Görev Dağılım Sıralaması</h4>
@@ -253,16 +278,18 @@
                                     </tr>
                                 </thead>
                                 <tbody id="table-body-admin-logs" class="divide-y divide-slate-100 text-xs font-bold text-slate-700">
-                                    </tbody>
+                                    <!-- Dinamik listeleme -->
+                                </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- SİSTEMDE KAYITLI AKTİF YILLIK İZİN LİSTESİ -->
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                 <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider mb-3 flex items-center justify-between">
-                    <span><i class="fa-solid fa-umbrella-beach text-orange-500 mr-1"></i> SİSTEMDE KAYITLI AKTİF YILLIK İZİN LİSTESİ</span>
+                    <span><i class="fa-solid fa-umbrella-beach text-orange-500 mr-1"></i> SİSTEMDE KAYITLI AKTİF YILLIK İZİN LİSTESİ (TEK SATIR)</span>
                 </h4>
                 <div class="overflow-x-auto border border-slate-100 rounded-xl custom-scroll">
                     <table class="w-full text-left border-collapse min-w-[600px]">
@@ -275,11 +302,13 @@
                             </tr>
                         </thead>
                         <tbody id="table-body-leave-history" class="divide-y divide-slate-100 text-xs text-slate-700 font-bold">
-                            </tbody>
+                            <!-- Veritabanındaki tek satır izinler buraya basılır -->
+                        </tbody>
                     </table>
                 </div>
             </div>
 
+            <!-- Tek Personel İçin Detaylı Geçmiş Tablosu -->
             <div id="panel-detailed-job-history" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hidden">
                 <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider mb-3 flex items-center justify-between">
                     <span><i class="fa-solid fa-business-time text-emerald-500 mr-1"></i> SEÇİLEN PERSONELİN BU TARİH ARALIĞINDAKİ TÜM İŞLERİ & İZİNLERİ</span>
@@ -296,13 +325,15 @@
                             </tr>
                         </thead>
                         <tbody id="table-body-history-details" class="divide-y divide-slate-100 text-xs text-slate-700 font-bold">
-                            </tbody>
+                            <!-- Geçmiş işler -->
+                        </tbody>
                     </table>
                 </div>
             </div>
         </section>
     </main>
 
+    <!-- MODAL 1: AYNI GÖREVDEKİ DİĞER EKİP ARKADAŞLARI MODAL -->
     <div id="modal-team-view" class="fixed inset-0 bg-slate-950/50 z-50 hidden flex justify-center items-center p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-5 border border-slate-100">
             <div class="flex justify-between items-center mb-3">
@@ -314,6 +345,7 @@
         </div>
     </div>
 
+    <!-- MODAL 2: GÜVENLİK GİRİŞ KAPISI (ADMIN GATE) -->
     <div id="modal-auth-gate" class="fixed inset-0 bg-slate-950/50 z-50 hidden flex justify-center items-center p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-xs rounded-2xl shadow-2xl p-6 border border-slate-100 text-center">
             <div class="w-12 h-12 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-3 text-xl shadow-inner"><i class="fa-solid fa-lock"></i></div>
@@ -328,12 +360,15 @@
         </div>
     </div>
 
+    <!-- SCRIPT MERKEZİ -->
     <script>
-        // BOZOKYAPI5 TABANLI KORUNMUŞ ORİJİNAL YAPILANDIRMA
+        // GitHub Konfigürasyonu, Küresel Bulut Havuzu Bağlantısı ve Güvenlik Şifresi
         const GITHUB_LIVE_EXCEL = "Gorev-Listesi.xlsx"; 
         const SUPER_KEY = "7124624";
+        // Küresel JSON API adresi
         const INTERNET_DATABASE_ENDPOINT = "https://api.myjson.online/v1/records/483be992-bf1c-4b52-bda5-131fcc05cf65";
 
+        // Tanımlı 25 Sabit Personel Listesi
         const USER_EXPLICIT_25 = [
             "H.BAKIRCI", "A.KOÇ", "C.SALTIK", "D.A.SALTIK", "A.AŞİROĞLU", 
             "E.YURDAGÜL", "A.DEMİRKAYA", "F.BOZKURT", "H.HEKİMHAN", "Ş.ÖNALAN", 
@@ -342,6 +377,7 @@
             "K.GÜNGÖR", "Ç.TAŞ", "E.DÖNMEZ", "Ö.KARAKUŞ", "E.SAVAŞ"
         ].sort();
 
+        // Küresel İzin Hafızası
         let GLOBAL_LEAVE_REGISTRY = [];
 
         const MONTH_NAMES = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
@@ -354,6 +390,7 @@
             { label: "AL", idx: 37 }
         ];
 
+        // Global Veri Havuzları
         let mainShiftsLogPool = [];
         let timePeriodDaysList = []; 
         let currentActiveTab = 'personnel';
@@ -361,11 +398,13 @@
         let activeChartScaleMode = 'weekly';
         let rawExcelMatrixCache = null;
 
+        // Uygulama Başlangıcı
         window.addEventListener('DOMContentLoaded', async () => {
             buildYearFilterOptions();
             loadDatabaseFromLocalStorage();
             rebuildStaffDropdownOptions();
-            await fetchExcelFromGithub(false);
+            await pullLeavesFromCloudDatabase(); // 1. ÖNCE BULUT VERİSİNİ ÇEKİYORUZ (Asla kaybolmaması için)
+            await fetchExcelFromGithub(false);   // 2. SONRA EXCEL VERİSİNİ ÇEKİP BİRLEŞTİRİYORUZ
             document.getElementById('upload-excel-input').addEventListener('change', processManualFileLoad, false);
         });
 
@@ -392,6 +431,7 @@
             localStorage.setItem('ses_cumulative_days_list', JSON.stringify(timePeriodDaysList));
         }
 
+        // BULUTTAN TEK SATIR İZİNLERİ OKUMA FONKSİYONU
         async function pullLeavesFromCloudDatabase() {
             try {
                 const response = await fetch(INTERNET_DATABASE_ENDPOINT);
@@ -399,6 +439,7 @@
                     const jsonRes = await response.json();
                     if (jsonRes && jsonRes.data && jsonRes.data.leaves) {
                         GLOBAL_LEAVE_REGISTRY = jsonRes.data.leaves;
+                        localStorage.setItem('ses_leaves_backup', JSON.stringify(GLOBAL_LEAVE_REGISTRY));
                     }
                 }
             } catch (err) {
@@ -407,6 +448,7 @@
             }
         }
 
+        // BULUTA TEK SATIR İZİNLERİ KALICI YAZMA FONKSİYONU
         async function pushLeavesToCloudDatabase() {
             localStorage.setItem('ses_leaves_backup', JSON.stringify(GLOBAL_LEAVE_REGISTRY));
             try {
@@ -416,7 +458,7 @@
                     body: JSON.stringify({ data: { leaves: GLOBAL_LEAVE_REGISTRY } })
                 });
             } catch (err) {
-                console.log("Buluta veri yazma hatası.");
+                console.log("Veriler buluta kaydedilirken ağ hatası oluştu.");
             }
         }
 
@@ -446,27 +488,30 @@
             return dates;
         }
 
+        // YÖNETİCİ PANELİNDEN YENİ TEK SATIR İZİN ARALIĞI EKLEME METODU
         async function addNewLeaveRangeRecord() {
             const staffName = document.getElementById('leave-staff-select').value;
             const startRaw = document.getElementById('leave-start-date-input').value;
             const endRaw = document.getElementById('leave-end-date-input').value;
 
             if (!staffName || !startRaw || !endRaw) {
-                alert("Lütfen tüm alanları doldurun!");
+                alert("Lütfen personel ismini, başlangıç ve bitiş tarihlerini eksiksiz seçiniz!");
                 return;
             }
 
             let trStart = convertToTurkishDateFormat(startRaw);
             let trEnd = convertToTurkishDateFormat(endRaw);
 
-            GLOBAL_LEAVE_REGISTRY.push({ workerName: staffName, startDate: trStart, endDate: trEnd });
-            await pushLeavesToCloudDatabase(); 
-            
-            if (rawExcelMatrixCache) {
-                compileExcelAndMerge(rawExcelMatrixCache);
-            } else {
-                await fetchExcelFromGithub(false);
+            let isExist = GLOBAL_LEAVE_REGISTRY.some(l => l.workerName === staffName && l.startDate === trStart && l.endDate === trEnd);
+            if (isExist) {
+                alert("Bu personele ait aynı tarih aralığında bir izin zaten mevcut!");
+                return;
             }
+
+            GLOBAL_LEAVE_REGISTRY.push({ workerName: staffName, startDate: trStart, endDate: trEnd });
+            
+            await pushLeavesToCloudDatabase(); 
+            if (rawExcelMatrixCache) compileExcelAndMerge(rawExcelMatrixCache); 
             
             document.getElementById('leave-start-date-input').value = "";
             document.getElementById('leave-end-date-input').value = "";
@@ -477,16 +522,14 @@
             alert(`İzin kaydı başarıyla eklendi ve bulut üzerinde kilitlendi!`);
         }
 
+        // YÖNETİCİ PANELİNDEN TEK SATIR İZİN SİLME METODU
         async function deleteLeaveRecord(index) {
-            if (!confirm("Bu izni silmek istediğinize emin misiniz?")) return;
+            if (!confirm("Seçilen bu yıllık izin kaydını kaldırmak istediğinize emin misiniz?")) return;
+            
             GLOBAL_LEAVE_REGISTRY.splice(index, 1);
             await pushLeavesToCloudDatabase(); 
             
-            if (rawExcelMatrixCache) {
-                compileExcelAndMerge(rawExcelMatrixCache);
-            } else {
-                await fetchExcelFromGithub(false);
-            }
+            if (rawExcelMatrixCache) compileExcelAndMerge(rawExcelMatrixCache);
             
             displayLeaveHistoryTable();
             applyLogFilters();
@@ -534,19 +577,21 @@
                 document.getElementById('alert-no-data').classList.add('hidden');
                 document.getElementById('section-personnel').classList.add('hidden');
             }
+            
             const cacheBuster = new Date().getTime();
+
             try {
                 const res = await fetch(GITHUB_LIVE_EXCEL + "?v=" + cacheBuster, {
                     method: 'GET',
                     headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
                 });
+                
                 if(res.ok) {
                     const buffer = await res.arrayBuffer();
                     const uintArray = new Uint8Array(buffer);
                     const workbook = XLSX.read(uintArray, {type: 'array', cellDates: false, raw: true}); 
                     rawExcelMatrixCache = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: null});
                     
-                    await pullLeavesFromCloudDatabase(); // Sayfa yenilense de buluttaki izinleri tam burada eşliyoruz
                     compileExcelAndMerge(rawExcelMatrixCache);
                     
                     document.getElementById('loader-live-data').classList.add('hidden');
@@ -558,7 +603,6 @@
                 } else { throw new Error(); }
             } catch(e) {
                 document.getElementById('loader-live-data').classList.add('hidden');
-                await pullLeavesFromCloudDatabase();
                 if(mainShiftsLogPool.length > 0) {
                     document.getElementById('section-personnel').classList.remove('hidden');
                     document.getElementById('schedule-wrapper').classList.remove('hidden');
@@ -572,7 +616,6 @@
             fileReader.onload = async function(e) {
                 const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array', cellDates: false, raw: true});
                 rawExcelMatrixCache = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: null});
-                await pullLeavesFromCloudDatabase();
                 compileExcelAndMerge(rawExcelMatrixCache);
                 alert("Manuel yükleme başarılı!"); displayStaffCards();
             };
@@ -583,7 +626,7 @@
             if (typeof rawDateVal === 'number') {
                 let utc_days = Math.floor(rawDateVal - 25569);
                 let date_info = new Date(utc_days * 86400 * 1000);
-                let dayNum = date_info.getGridDate ? date_info.getUTCDate() : date_info.getDate();
+                let dayNum = date_info.getUTCDate();
                 let monthNum = date_info.getUTCMonth() + 1;
                 let yearNum = date_info.getUTCFullYear();
                 return { formatted: `${dayNum < 10 ? '0'+dayNum : dayNum}.${monthNum < 10 ? '0'+monthNum : monthNum}.${yearNum}`, mm: (monthNum < 10 ? '0'+monthNum : monthNum).toString(), yy: yearNum.toString() };
@@ -597,7 +640,6 @@
             return null;
         }
 
-        // BOZOKYAPI5 SİTESİNDEKİ ORİJİNAL KÜMÜLATİF DÖNGÜ VE VERİ BİRİKTİRME METODU
         function compileExcelAndMerge(matrix) {
             if(!matrix || matrix.length < 3) return;
             
@@ -642,7 +684,7 @@
             timePeriodDaysList = [...newIncomingDays];
             mainShiftsLogPool = [];
 
-            // Excel Verilerini Havuza Ekleme Kısmı (Baz Sitedeki Orijinal Mantık)
+            // 1. Excel Verilerini Havuza İşleme
             newIncomingDays.forEach(dayColumn => {
                 let actualColIdx = dayColumn.excelColIdx;
                 let blockStructureList = [];
@@ -690,7 +732,7 @@
 
                             let finalWorkerName = sanitizedName;
 
-                            // Zorunlu Hazırlık Program Değişikliği (14.06.2026 METİN ŞENTÜRK)
+                            // Görev Değişikliği Enjeksiyonu
                             if (dayColumn.dateTitle === "14.06.2026" && block.programName.includes("METİN ŞENTÜRK") && sanitizedName === "A.DEMİRKAYA") {
                                 finalWorkerName = "E.YURDAGÜL";
                             }
@@ -704,7 +746,7 @@
                 });
             });
 
-            // YILLIK İZİNLERİN PERFORMANSA ETKİ EDEN BİRER İŞ OLARAK ENJEKTE EDİLMESİ
+            // 2. KÜRESEL BULUT İZİNLERİNİ DOĞRUDAN LOG HAVUZUNA "İŞ" OLARAK ENJEKTE ETME
             GLOBAL_LEAVE_REGISTRY.forEach((leave, lIdx) => {
                 let rangeDays = getDatesInRange(leave.startDate, leave.endDate);
                 rangeDays.forEach(singleDate => {
@@ -713,23 +755,35 @@
                     let computedDayTitle = TURKISH_DAYS[calendarCheck.getDay()].toUpperCase();
                     let checkKey = "leave_range_day_" + lIdx + "_" + singleDate;
 
-                    // Mükerrerliği önlemek için havuzu kontrol et ve iş olarak kaydet
+                    // Havuzda mükerrer kayıt kontrolü
                     let isAlreadyAdded = mainShiftsLogPool.some(s => s.workerName === leave.workerName && s.date === singleDate && s.program.includes("İZİN"));
                     if (!isAlreadyAdded) {
                         mainShiftsLogPool.push({
                             workerName: leave.workerName, date: singleDate, dayName: computedDayTitle, month: parts[1], year: parts[2],
-                            program: "🌴 YILLIK İZİN", subDetail: "Resmi İzinli Gün (Performansa Dahil)", hour: "TAM GÜN", uniqueKey: checkKey, 
-                            isProbability: false // KESİNLEŞMİŞ İŞ SAYILDI (Analizde puan kazandırır)
+                            program: "🌴 YILLIK İZİN", subDetail: "Yönetici Hafızası Kalıcı İzin Dönemi", hour: "TAM GÜN", uniqueKey: checkKey, isProbability: false
                         });
+                    }
+
+                    // Eski tarihlerin takvim görünümünde de kilitlenip listelenmesini sağlıyoruz
+                    let hasDayInTakvim = timePeriodDaysList.some(d => d.dateTitle === singleDate);
+                    if (!hasDayInTakvim) {
+                        timePeriodDaysList.push({ dateTitle: singleDate, dayTitle: computedDayTitle, month: parts[1], year: parts[2], excelColIdx: -1 });
                     }
                 });
             });
 
-            if (newIncomingDays.length > 0) {
-                let p = (newIncomingDays[0].dateTitle || "").split('.');
-                if(p.length === 3) document.getElementById('analysis-start-date').value = `${p[2]}-${p[1]}-${p[0]}`;
-                let lastP = (newIncomingDays[newIncomingDays.length - 1].dateTitle || "").split('.');
-                if(lastP.length === 3) document.getElementById('analysis-end-date').value = `${lastP[2]}-${lastP[1]}-${lastP[0]}`;
+            // Tüm takvim listesini kronolojik olarak baştan sona sırala (Tarih sınırlaması tamamen kalktı)
+            timePeriodDaysList.sort((a, b) => {
+                let pA = a.dateTitle.split('.'), pB = b.dateTitle.split('.');
+                return new Date(`${pA[2]}-${pA[1]}-${pA[0]}`) - new Date(`${pB[2]}-${pB[1]}-${pB[0]}`);
+            });
+
+            // Başlangıç ve bitiş filtrelerini otomatik ayarla
+            if (timePeriodDaysList.length > 0) {
+                let p = timePeriodDaysList[0].dateTitle.split('.');
+                document.getElementById('analysis-start-date').value = `${p[2]}-${p[1]}-${p[0]}`;
+                let lastP = timePeriodDaysList[timePeriodDaysList.length - 1].dateTitle.split('.');
+                document.getElementById('analysis-end-date').value = `${lastP[2]}-${lastP[1]}-${lastP[0]}`;
             }
 
             saveDatabaseToLocalStorage();
@@ -779,13 +833,13 @@
                 const tr = document.createElement('tr'); tr.className = "hover:bg-slate-50";
                 tr.innerHTML = `
                     <td class="p-3 pl-4 font-black text-slate-900 flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 bg-orange-500 rounded-full"></span> ${leave.workerName}
+                        <span class="w-2.5 h-2.5 bg-orange-500 rounded-full animate-pulse"></span> ${leave.workerName}
                     </td>
                     <td class="p-3 text-slate-700 font-bold"><i class="fa-regular fa-calendar text-sky-500 mr-1.5"></i>${leave.startDate}</td>
                     <td class="p-3 text-slate-700 font-bold"><i class="fa-regular fa-calendar text-orange-500 mr-1.5"></i>${leave.endDate}</td>
                     <td class="p-3 text-center">
                         <button onclick="deleteLeaveRecord(${idx})" class="bg-red-50 hover:bg-red-500 text-red-600 hover:text-white border border-red-200 text-[11px] font-black px-3 py-1.5 rounded-xl transition-all cursor-pointer">
-                            <i class="fa-solid fa-trash-can mr-1"></i> Sil
+                            <i class="fa-solid fa-trash-can mr-1"></i> Kaldır / Sil
                         </button>
                     </td>
                 `;
@@ -800,7 +854,6 @@
             document.getElementById('worker-title-name').innerHTML = `<i class="fa-solid fa-user-check text-orange-500 mr-2"></i> ${selectedStaffName}`;
             const tableBody = document.getElementById('weekly-schedule-table-body'); tableBody.innerHTML = "";
 
-            // Personelin hem normal işlerini hem de işe çevrilmiş izinlerini süzüyoruz
             const personalShiftsList = mainShiftsLogPool.filter(s => s.workerName === selectedStaffName);
             const todayStr = new Date().toLocaleDateString('tr-TR', {day:'2-digit', month:'2-digit', year:'numeric'}).replace(/\//g,'.');
 
