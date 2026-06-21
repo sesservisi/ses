@@ -131,7 +131,7 @@
 
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
                 <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fa-solid fa-umbrella-beach text-orange-500"></i> YÖNETİCİ PANELİ - YILLIK İZİN TANIMLAMA (TEK SATIR YAPISI)
+                    <i class="fa-solid fa-umbrella-beach text-orange-500"></i> YÖNETİCİ PANELİ - YILLIK İZİN TANIMLAMA
                 </h4>
                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
                     <div>
@@ -262,7 +262,7 @@
 
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                 <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider mb-3 flex items-center justify-between">
-                    <span><i class="fa-solid fa-umbrella-beach text-orange-500 mr-1"></i> SİSTEMDE KAYITLI AKTİF YILLIK İZİN LİSTESİ (TEK SATIR)</span>
+                    <span><i class="fa-solid fa-umbrella-beach text-orange-500 mr-1"></i> SİSTEMDE KAYITLI AKTİF YILLIK İZİN LİSTESİ</span>
                 </h4>
                 <div class="overflow-x-auto border border-slate-100 rounded-xl custom-scroll">
                     <table class="w-full text-left border-collapse min-w-[600px]">
@@ -329,13 +329,11 @@
     </div>
 
     <script>
-        // GitHub Konfigürasyonu, Küresel Bulut Havuzu Bağlantısı ve Güvenlik Şifresi
+        // BOZOKYAPI5 TABANLI KORUNMUŞ ORİJİNAL YAPILANDIRMA
         const GITHUB_LIVE_EXCEL = "Gorev-Listesi.xlsx"; 
         const SUPER_KEY = "7124624";
-        // Küresel JSON API adresi (Tüm cihaz ve tarayıcılarda tek satır senkronizasyonu sağlar)
         const INTERNET_DATABASE_ENDPOINT = "https://api.myjson.online/v1/records/483be992-bf1c-4b52-bda5-131fcc05cf65";
 
-        // Tanımlı 25 Sabit Personel Listesi
         const USER_EXPLICIT_25 = [
             "H.BAKIRCI", "A.KOÇ", "C.SALTIK", "D.A.SALTIK", "A.AŞİROĞLU", 
             "E.YURDAGÜL", "A.DEMİRKAYA", "F.BOZKURT", "H.HEKİMHAN", "Ş.ÖNALAN", 
@@ -344,7 +342,6 @@
             "K.GÜNGÖR", "Ç.TAŞ", "E.DÖNMEZ", "Ö.KARAKUŞ", "E.SAVAŞ"
         ].sort();
 
-        // Küresel İzin Hafızası
         let GLOBAL_LEAVE_REGISTRY = [];
 
         const MONTH_NAMES = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
@@ -357,7 +354,6 @@
             { label: "AL", idx: 37 }
         ];
 
-        // Global Veri Havuzları
         let mainShiftsLogPool = [];
         let timePeriodDaysList = []; 
         let currentActiveTab = 'personnel';
@@ -365,12 +361,11 @@
         let activeChartScaleMode = 'weekly';
         let rawExcelMatrixCache = null;
 
-        // Uygulama Başlangıcı
         window.addEventListener('DOMContentLoaded', async () => {
             buildYearFilterOptions();
             loadDatabaseFromLocalStorage();
             rebuildStaffDropdownOptions();
-            await fetchExcelFromGithub(false); // Önce Excel'i çekip temel havuzu oluşturuyoruz
+            await fetchExcelFromGithub(false);
             document.getElementById('upload-excel-input').addEventListener('change', processManualFileLoad, false);
         });
 
@@ -397,7 +392,6 @@
             localStorage.setItem('ses_cumulative_days_list', JSON.stringify(timePeriodDaysList));
         }
 
-        // BULUTTAN TEK SATIR İZİNLERİ OKUMA FONKSİYONU
         async function pullLeavesFromCloudDatabase() {
             try {
                 const response = await fetch(INTERNET_DATABASE_ENDPOINT);
@@ -408,13 +402,11 @@
                     }
                 }
             } catch (err) {
-                console.log("Bulut veritabanı bağlantı hatası, lokal yedek yükleniyor.");
                 const localBackup = localStorage.getItem('ses_leaves_backup');
                 if (localBackup) GLOBAL_LEAVE_REGISTRY = JSON.parse(localBackup);
             }
         }
 
-        // BULUTA TEK SATIR İZİNLERİ KALICI YAZMA FONKSİYONU
         async function pushLeavesToCloudDatabase() {
             localStorage.setItem('ses_leaves_backup', JSON.stringify(GLOBAL_LEAVE_REGISTRY));
             try {
@@ -424,7 +416,7 @@
                     body: JSON.stringify({ data: { leaves: GLOBAL_LEAVE_REGISTRY } })
                 });
             } catch (err) {
-                console.log("Veriler buluta kaydedilirken ağ hatası oluştu.");
+                console.log("Buluta veri yazma hatası.");
             }
         }
 
@@ -454,30 +446,27 @@
             return dates;
         }
 
-        // YÖNETİCİ PANELİNDEN YENİ TEK SATIR İZİN ARALIĞI EKLEME METODU
         async function addNewLeaveRangeRecord() {
             const staffName = document.getElementById('leave-staff-select').value;
             const startRaw = document.getElementById('leave-start-date-input').value;
             const endRaw = document.getElementById('leave-end-date-input').value;
 
             if (!staffName || !startRaw || !endRaw) {
-                alert("Lütfen personel ismini, başlangıç ve bitiş tarihlerini eksiksiz seçiniz!");
+                alert("Lütfen tüm alanları doldurun!");
                 return;
             }
 
             let trStart = convertToTurkishDateFormat(startRaw);
             let trEnd = convertToTurkishDateFormat(endRaw);
 
-            let isExist = GLOBAL_LEAVE_REGISTRY.some(l => l.workerName === staffName && l.startDate === trStart && l.endDate === trEnd);
-            if (isExist) {
-                alert("Bu personele ait aynı tarih aralığında bir izin zaten mevcut!");
-                return;
-            }
-
             GLOBAL_LEAVE_REGISTRY.push({ workerName: staffName, startDate: trStart, endDate: trEnd });
-            
             await pushLeavesToCloudDatabase(); 
-            if (rawExcelMatrixCache) compileExcelAndMerge(rawExcelMatrixCache); 
+            
+            if (rawExcelMatrixCache) {
+                compileExcelAndMerge(rawExcelMatrixCache);
+            } else {
+                await fetchExcelFromGithub(false);
+            }
             
             document.getElementById('leave-start-date-input').value = "";
             document.getElementById('leave-end-date-input').value = "";
@@ -488,14 +477,16 @@
             alert(`İzin kaydı başarıyla eklendi ve bulut üzerinde kilitlendi!`);
         }
 
-        // YÖNETİCİ PANELİNDEN TEK SATIR İZİN SİLME METODU
         async function deleteLeaveRecord(index) {
-            if (!confirm("Seçilen bu yıllık izin kaydını kaldırmak istediğinize emin misiniz?")) return;
-            
+            if (!confirm("Bu izni silmek istediğinize emin misiniz?")) return;
             GLOBAL_LEAVE_REGISTRY.splice(index, 1);
             await pushLeavesToCloudDatabase(); 
             
-            if (rawExcelMatrixCache) compileExcelAndMerge(rawExcelMatrixCache);
+            if (rawExcelMatrixCache) {
+                compileExcelAndMerge(rawExcelMatrixCache);
+            } else {
+                await fetchExcelFromGithub(false);
+            }
             
             displayLeaveHistoryTable();
             applyLogFilters();
@@ -543,22 +534,19 @@
                 document.getElementById('alert-no-data').classList.add('hidden');
                 document.getElementById('section-personnel').classList.add('hidden');
             }
-            
             const cacheBuster = new Date().getTime();
-
             try {
                 const res = await fetch(GITHUB_LIVE_EXCEL + "?v=" + cacheBuster, {
                     method: 'GET',
                     headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
                 });
-                
                 if(res.ok) {
                     const buffer = await res.arrayBuffer();
                     const uintArray = new Uint8Array(buffer);
                     const workbook = XLSX.read(uintArray, {type: 'array', cellDates: false, raw: true}); 
                     rawExcelMatrixCache = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: null});
                     
-                    await pullLeavesFromCloudDatabase(); // Buluttaki izin verilerini ezilmemesi için tam burada çekiyoruz
+                    await pullLeavesFromCloudDatabase(); // Sayfa yenilense de buluttaki izinleri tam burada eşliyoruz
                     compileExcelAndMerge(rawExcelMatrixCache);
                     
                     document.getElementById('loader-live-data').classList.add('hidden');
@@ -595,7 +583,7 @@
             if (typeof rawDateVal === 'number') {
                 let utc_days = Math.floor(rawDateVal - 25569);
                 let date_info = new Date(utc_days * 86400 * 1000);
-                let dayNum = date_info.getUTCDate();
+                let dayNum = date_info.getGridDate ? date_info.getUTCDate() : date_info.getDate();
                 let monthNum = date_info.getUTCMonth() + 1;
                 let yearNum = date_info.getUTCFullYear();
                 return { formatted: `${dayNum < 10 ? '0'+dayNum : dayNum}.${monthNum < 10 ? '0'+monthNum : monthNum}.${yearNum}`, mm: (monthNum < 10 ? '0'+monthNum : monthNum).toString(), yy: yearNum.toString() };
@@ -609,6 +597,7 @@
             return null;
         }
 
+        // BOZOKYAPI5 SİTESİNDEKİ ORİJİNAL KÜMÜLATİF DÖNGÜ VE VERİ BİRİKTİRME METODU
         function compileExcelAndMerge(matrix) {
             if(!matrix || matrix.length < 3) return;
             
@@ -653,7 +642,7 @@
             timePeriodDaysList = [...newIncomingDays];
             mainShiftsLogPool = [];
 
-            // 1. Excel Verilerini Havuza İşleme
+            // Excel Verilerini Havuza Ekleme Kısmı (Baz Sitedeki Orijinal Mantık)
             newIncomingDays.forEach(dayColumn => {
                 let actualColIdx = dayColumn.excelColIdx;
                 let blockStructureList = [];
@@ -701,7 +690,7 @@
 
                             let finalWorkerName = sanitizedName;
 
-                            // Görev Değişikliği Enjeksiyonu: 14.06.2026 METİN ŞENTÜRK programı
+                            // Zorunlu Hazırlık Program Değişikliği (14.06.2026 METİN ŞENTÜRK)
                             if (dayColumn.dateTitle === "14.06.2026" && block.programName.includes("METİN ŞENTÜRK") && sanitizedName === "A.DEMİRKAYA") {
                                 finalWorkerName = "E.YURDAGÜL";
                             }
@@ -715,7 +704,7 @@
                 });
             });
 
-            // 2. KÜRESEL BULUT İZİNLERİNİ HAVUZA AKTARMA (ESKİ TARİHLERİ DE KAPSIYOR)
+            // YILLIK İZİNLERİN PERFORMANSA ETKİ EDEN BİRER İŞ OLARAK ENJEKTE EDİLMESİ
             GLOBAL_LEAVE_REGISTRY.forEach((leave, lIdx) => {
                 let rangeDays = getDatesInRange(leave.startDate, leave.endDate);
                 rangeDays.forEach(singleDate => {
@@ -724,27 +713,16 @@
                     let computedDayTitle = TURKISH_DAYS[calendarCheck.getDay()].toUpperCase();
                     let checkKey = "leave_range_day_" + lIdx + "_" + singleDate;
 
-                    // Havuzda zaten mükerrer bir kayıt yoksa ekle
+                    // Mükerrerliği önlemek için havuzu kontrol et ve iş olarak kaydet
                     let isAlreadyAdded = mainShiftsLogPool.some(s => s.workerName === leave.workerName && s.date === singleDate && s.program.includes("İZİN"));
                     if (!isAlreadyAdded) {
                         mainShiftsLogPool.push({
                             workerName: leave.workerName, date: singleDate, dayName: computedDayTitle, month: parts[1], year: parts[2],
-                            program: "🌴 YILLIK İZİN", subDetail: "Yönetici Hafızası Kalıcı İzin Dönemi", hour: "TAM GÜN", uniqueKey: checkKey, isProbability: false
+                            program: "🌴 YILLIK İZİN", subDetail: "Resmi İzinli Gün (Performansa Dahil)", hour: "TAM GÜN", uniqueKey: checkKey, 
+                            isProbability: false // KESİNLEŞMİŞ İŞ SAYILDI (Analizde puan kazandırır)
                         });
                     }
-
-                    // Eski tarih seçildiğinde de takvimde listelenmesi için gün listesine zorunlu ekliyoruz
-                    let hasDayInTakvim = timePeriodDaysList.some(d => d.dateTitle === singleDate);
-                    if (!hasDayInTakvim) {
-                        timePeriodDaysList.push({ dateTitle: singleDate, dayTitle: computedDayTitle, month: parts[1], year: parts[2], excelColIdx: -1 });
-                    }
                 });
-            });
-
-            // Gün listesini baştan sona kronolojik sıralıyoruz (Artık sadece 2 hafta ile sınırlı değil)
-            timePeriodDaysList.sort((a, b) => {
-                let pA = a.dateTitle.split('.'), pB = b.dateTitle.split('.');
-                return new Date(`${pA[2]}-${pA[1]}-${pA[0]}`) - new Date(`${pB[2]}-${pB[1]}-${pB[0]}`);
             });
 
             if (newIncomingDays.length > 0) {
@@ -788,7 +766,6 @@
             }
         }
 
-        // ORİJİNAL TEK SATIR İZİN LİSTELEME FONKSİYONU
         function displayLeaveHistoryTable() {
             const tbody = document.getElementById('table-body-leave-history'); if(!tbody) return;
             tbody.innerHTML = '';
@@ -802,13 +779,13 @@
                 const tr = document.createElement('tr'); tr.className = "hover:bg-slate-50";
                 tr.innerHTML = `
                     <td class="p-3 pl-4 font-black text-slate-900 flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 bg-orange-500 rounded-full animate-pulse"></span> ${leave.workerName}
+                        <span class="w-2.5 h-2.5 bg-orange-500 rounded-full"></span> ${leave.workerName}
                     </td>
                     <td class="p-3 text-slate-700 font-bold"><i class="fa-regular fa-calendar text-sky-500 mr-1.5"></i>${leave.startDate}</td>
                     <td class="p-3 text-slate-700 font-bold"><i class="fa-regular fa-calendar text-orange-500 mr-1.5"></i>${leave.endDate}</td>
                     <td class="p-3 text-center">
                         <button onclick="deleteLeaveRecord(${idx})" class="bg-red-50 hover:bg-red-500 text-red-600 hover:text-white border border-red-200 text-[11px] font-black px-3 py-1.5 rounded-xl transition-all cursor-pointer">
-                            <i class="fa-solid fa-trash-can mr-1"></i> Kaldır / Sil
+                            <i class="fa-solid fa-trash-can mr-1"></i> Sil
                         </button>
                     </td>
                 `;
@@ -823,6 +800,7 @@
             document.getElementById('worker-title-name').innerHTML = `<i class="fa-solid fa-user-check text-orange-500 mr-2"></i> ${selectedStaffName}`;
             const tableBody = document.getElementById('weekly-schedule-table-body'); tableBody.innerHTML = "";
 
+            // Personelin hem normal işlerini hem de işe çevrilmiş izinlerini süzüyoruz
             const personalShiftsList = mainShiftsLogPool.filter(s => s.workerName === selectedStaffName);
             const todayStr = new Date().toLocaleDateString('tr-TR', {day:'2-digit', month:'2-digit', year:'numeric'}).replace(/\//g,'.');
 
@@ -934,7 +912,6 @@
             let startDate = startDateVal ? new Date(startDateVal) : null;
             let endDate = endDateVal ? new Date(endDateVal) : null;
 
-            // Filtrelenmiş havuzda Yıllık İzinler de bir görev gibi tam puan kabul edilir!
             let filteredShifts = mainShiftsLogPool.filter(log => {
                 if (log.isProbability) return false; 
                 if (selectedStaff !== "ALL" && log.workerName !== selectedStaff) return false;
