@@ -399,7 +399,7 @@
             try {
                 await fetch(url, {
                     method: 'POST',
-                    headers: { 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                    headers: { 'Authorization': 'token ' + SUPER_KEY, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
                     body: JSON.stringify({ event_type: eventType, client_payload: { matrix_data: b64Payload } })
                 });
             } catch(e) { console.error("Otomasyon tetikleme hatası: ", e); }
@@ -477,9 +477,9 @@
                     const workbook = XLSX.read(new Uint8Array(buffer), {type: 'array', cellDates: false, raw: true});
                     compileExcelAndMerge(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: null}));
                 }
-            } catch(e) { console.log("Canlı excel dosyası bulunamadı, mevcut havuzla devam ediliyor."); }
+            } catch(e) { console.log("Canlı excel dosyası işlenirken hata oluştu veya dosya bulunamadı."); }
 
-            timePeriodDaysList.sort();
+            timePeriodDaysList = [...new Set(timePeriodDaysList)].sort();
             document.getElementById('loader-live-data').classList.add('hidden');
             document.getElementById('section-personnel').classList.remove('hidden');
             document.getElementById('schedule-wrapper').classList.remove('hidden');
@@ -496,7 +496,7 @@
             fileReader.onload = function(e) {
                 const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array', cellDates: false, raw: true});
                 compileExcelAndMerge(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: null}));
-                alert("Yerel Excel işlendi ve havuz güncellendi. Kalıcı kayıt için GitHub otomasyonunu tamamlamalısınız."); 
+                alert("Yerel Excel işlendi ve havuz güncellendi."); 
                 displayStaffCards();
             };
             fileReader.readAsArrayBuffer(uploadedFile);
@@ -520,8 +520,6 @@
                 let calculatedIso = parseExcelDate(secondRow[colIdx]);
                 if(calculatedIso) foundDays[colIdx] = calculatedIso;
             }
-
-            let localShiftsUpdated = false;
 
             for(let rIdx = 2; rIdx < matrixRows.length; rIdx++) {
                 const currentRow = matrixRows[rIdx]; if(!currentRow) continue;
@@ -566,19 +564,14 @@
                                 staffName: matchedStaffToken, dateIso: activeDayIso, jobTitle: computedStudio,
                                 jobDesc: computedDesc, airTime: computedTime, isTentative: isTentativeOption, rawRowIndex: rIdx
                             });
-                            localShiftsUpdated = true;
                         }
                         if(!timePeriodDaysList.includes(activeDayIso)) {
                             timePeriodDaysList.push(activeDayIso);
-                            localShiftsUpdated = true;
                         }
                     }
                 });
             }
-            if(localShiftsUpdated) {
-                timePeriodDaysList.sort();
-                // Otomasyon aktif olduğunda dispatches tetiklenebilir
-            }
+            timePeriodDaysList = [...new Set(timePeriodDaysList)].sort();
         }
 
         function displayStaffCards() {
@@ -705,6 +698,7 @@
             const filterStart = document.getElementById('analysis-start-date').value;
             const filterEnd = document.getElementById('analysis-end-date').value;
 
+            // Filtreleme yaparken sadece kesinleşmiş işleri alıyoruz
             let filteredPool = mainShiftsLogPool.filter(s => !s.isTentative);
 
             if(filterStaff !== 'ALL') {
@@ -729,8 +723,14 @@
             document.getElementById('metric-total-shifts').textContent = filteredPool.length;
             document.getElementById('metric-active-leaves-count').textContent = filteredLeavesCount + " Gün";
 
-            let leaderMap = {}; USER_EXPLICIT_25.forEach(p => leaderMap[p] = 0);
-            filteredPool.forEach(s => { if(leaderMap[s.staffName] !== undefined) leaderMap[s.staffName]++; });
+            // Grafik için veri haritası oluşturma
+            let leaderMap = {}; 
+            if(filterStaff === 'ALL') {
+                USER_EXPLICIT_25.forEach(p => leaderMap[p] = 0);
+                filteredPool.forEach(s => { if(leaderMap[s.staffName] !== undefined) leaderMap[s.staffName]++; });
+            } else {
+                leaderMap[filterStaff] = filteredPool.length;
+            }
 
             let topLeader = "-"; let topMaxScore = -1;
             Object.keys(leaderMap).forEach(p => {
@@ -799,7 +799,7 @@
             if(!tableBody || !countBadge) return;
 
             tableBody.innerHTML = "";
-            let targetShifts = (selectedStaffName === 'ALL') ? [...filteredShiftsList] : filteredShiftsList.filter(s => s.staffName.toUpperCase() === selectedStaffName.toUpperCase());
+            let targetShifts = [...filteredShiftsList]; // applyLogFilters zaten personele göre kırpıyor
 
             targetShifts.sort((a,b) => a.dateIso.localeCompare(b.dateIso));
             countBadge.textContent = `${targetShifts.length} İş Bulundu`;
@@ -838,7 +838,7 @@
             const b64Payload = btoa(unescape(encodeURIComponent(JSON.stringify(staffLeavePool, null, 2))));
             triggerGithubDispatch('update_leaves', b64Payload);
             
-            alert(`${staffName} izni kaydedildi ve GitHub Workflow tetiklendi.`);
+            alert(`${staffName} izni kaydedildi ve GitHub senkronizasyonu başlatıldı.`);
             document.getElementById('leave-entry-form').reset();
             applyLogFilters(); displayLeaveHistoryTable();
         }
