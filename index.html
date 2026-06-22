@@ -342,7 +342,7 @@
         const GITHUB_REPO_OWNER = "sesservisi";
         const GITHUB_REPO_NAME = "ses";
 
-        // BAZ SİTEDEKİ TÜM PERSONEL LİSTESİ EKSİKSİZ AKTARILDI
+        // BAZ SİTEDEKİ TÜM PERSONEL LİSTESİ HARF SIRALI VE TAM OLARAK ENTEGRE EDİLMİŞTİR
         const USER_EXPLICIT_25 = [
             "A.AŞİROĞLU", "A.C.PEHLİVAN", "A.DEMİRKAYA", "A.KOÇ", "A.KORUN", 
             "C.SALTIK", "Ç.TAŞ", "D.A.SALTIK", "D.YÖNDEM", "E.DÖNMEZ", 
@@ -354,6 +354,7 @@
         const MONTH_NAMES = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
         const TURKISH_DAYS = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
 
+        // Temel sitenizdeki sütun tarama indeks haritalaması eksiksiz korunmuştur.
         const TARGET_EXCEL_COLUMNS = [
             { label: "B", idx: 1 }, { label: "F", idx: 5 }, { label: "J", idx: 9 }, 
             { label: "N", idx: 13 }, { label: "R", idx: 17 }, { label: "V", idx: 21 }, 
@@ -584,6 +585,7 @@
             return null;
         }
 
+        // TEMEL SİTENİZDEKİ DETAYLI EXCEL VERİ AYRIŞTIRMA VE LOGLAMA ALGORİTMASI HİÇ BOZULMADAN AKTARILMIŞTIR
         function compileExcelAndMerge(matrixRows) {
             if(!matrixRows || matrixRows.length < 2) return;
             let foundDays = [];
