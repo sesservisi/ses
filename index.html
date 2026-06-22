@@ -360,8 +360,41 @@
             { label: "AL", idx: 37 }
         ];
 
-        let mainShiftsLogPool = [];
-        let timePeriodDaysList = []; 
+        // 05.06.2026 tarihinden itibaren tüm personellerin ham veri havuzu buraya eksiksiz enjekte edildi.
+        let mainShiftsLogPool = [
+            {"date":"2026-06-12","staff":"Ö.KARAKUŞ","job":"İSTANBUL'DA ZAMAN / AKTÜEL","time":"","isSure":true},
+            {"date":"2026-06-12","staff":"A.DEMİRKAYA","job":"İSTANBUL'DA ZAMAN / AKTÜEL","time":"","isSure":true},
+            {"date":"2026-06-12","staff":"A.DEMİRKAYA","job":"ZÜLEYHA İLE SINIRSIZ EZGİLER / 2. KAYIT","time":"","isSure":true},
+            {"date":"2026-06-12","staff":"E.YURDAGÜL","job":"ZÜLEYHA İLE SINIRSIZ EZGİLER / PA","time":"","isSure":true},
+            {"date":"2026-06-12","staff":"D.YÖNDEM","job":"ZÜLEYHA İLE SINIRSIZ EZGİLER / REJİ","time":"","isSure":true},
+            {"date":"2026-06-13","staff":"T.ERDEN","job":"İÇ YAPIMLAR STÜDYOSU - AYAZAĞA / İSTANBUL STÜDYOSU","time":"13.00","isSure":true},
+            {"date":"2026-06-13","staff":"S.CÜREBAL","job":"İÇ YAPIMLAR STÜDYOSU - AYAZAĞA / İSTANBUL STÜDYOSU","time":"","isSure":true},
+            {"date":"2026-06-13","staff":"A.DEMİRKAYA","job":"SERKAN ÇAĞRI SAHNESİ / KAYIT","time":"","isSure":true},
+            {"date":"2026-06-13","staff":"E.YURDAGÜL","job":"SERKAN ÇAĞRI SAHNESİ / PA","time":"","isSure":true},
+            {"date":"2026-06-14","staff":"T.ERDEN","job":"İÇ YAPIMLAR STÜDYOSU - AYAZAĞA / İSTANBUL STÜDYOSU","time":"13.00","isSure":true},
+            {"date":"2026-06-14","staff":"S.CÜREBAL","job":"İÇ YAPIMLAR STÜDYOSU - AYAZAĞA / İSTANBUL STÜDYOSU","time":"","isSure":true},
+            {"date":"2026-06-15","staff":"A.KOÇ","job":"İÇ YAPIMLAR STÜDYOSU - AYAZAĞA / KADIN GÖZÜYLE YAŞAM x3","time":"10.00","isSure":true},
+            {"date":"2026-06-19","staff":"E.SAVAŞ","job":"İSTANBUL'DA ZAMAN / AKTÜEL","time":"","isSure":true},
+            {"date":"2026-06-20","staff":"E.SAVAŞ","job":"İSTANBUL'DA ZAMAN / AKTÜEL","time":"","isSure":true},
+            {"date":"2026-06-21","staff":"E.SAVAŞ","job":"İSTANBUL'DA ZAMAN / AKTÜEL","time":"","isSure":true},
+            {"date":"2026-06-15","staff":"F.BOZKURT","job":"YENİ TIR EĞİTİMİ / Çekmeköy","time":"","isSure":true},
+            {"date":"2026-06-16","staff":"F.BOZKURT","job":"YENİ TIR EĞİTİMİ / Çekmeköy","time":"","isSure":true},
+            {"date":"2026-06-17","staff":"F.BOZKURT","job":"YENİ TIR EĞİTİMİ / Çekmeköy","time":"","isSure":true},
+            {"date":"2026-06-18","staff":"F.BOZKURT","job":"YENİ TIR EĞİTİMİ / Çekmeköy","time":"","isSure":true},
+            {"date":"2026-06-19","staff":"F.BOZKURT","job":"YENİ TIR EĞİTİMİ / Çekmeköy","time":"","isSure":true},
+            {"date":"2026-06-21","staff":"H.BAKIRCI","job":"CENK VE ERDEM İLE","time":"10.00","isSure":true},
+            {"date":"2026-06-21","staff":"A.KOÇ","job":"CENK VE ERDEM İLE","time":"","isSure":true},
+            {"date":"2026-06-21","staff":"C.SALTIK","job":"CENK VE ERDEM İLE","time":"","isSure":true},
+            {"date":"2026-06-21","staff":"D.A.SALTIK","job":"CENK VE ERDEM İLE","time":"","isSure":true}
+        ];
+
+        // 05.06.2026'dan itibaren zaman tünelini inşa eden tarih listesi
+        let timePeriodDaysList = [
+            "2026-06-05", "2026-06-06", "2026-06-07", "2026-06-08", "2026-06-09", "2026-06-10", "2026-06-11",
+            "2026-06-12", "2026-06-13", "2026-06-14", "2026-06-15", "2026-06-16", "2026-06-17", "2026-06-18",
+            "2026-06-19", "2026-06-20", "2026-06-21"
+        ];
+
         let staffLeavePool = [];
         let currentActiveTab = 'personnel';
         let chartInstanceReference = null;
@@ -390,8 +423,16 @@
             const savedPool = localStorage.getItem('ses_cumulative_shifts_pool');
             const savedDays = localStorage.getItem('ses_cumulative_days_list');
             const savedLeaves = localStorage.getItem('ses_staff_leaves_pool');
-            if(savedPool) mainShiftsLogPool = JSON.parse(savedPool);
-            if(savedDays) timePeriodDaysList = JSON.parse(savedDays);
+            
+            // Eğer localstorage boşsa enjekte ettiğimiz ham verileri koru, doluysa üzerine ekle/bütünleştir
+            if(savedPool) {
+                let localPool = JSON.parse(savedPool);
+                mainShiftsLogPool = [...mainShiftsLogPool, ...localPool.filter(lp => !mainShiftsLogPool.some(mp => mp.date === lp.date && mp.staff === lp.staff && mp.job === lp.job))];
+            }
+            if(savedDays) {
+                let localDays = JSON.parse(savedDays);
+                timePeriodDaysList = [...new Set([...timePeriodDaysList, ...localDays])].sort();
+            }
             if(savedLeaves) staffLeavePool = JSON.parse(savedLeaves);
         }
 
@@ -450,8 +491,12 @@
         }
 
         function checkAdminAccess() {
-            if(localStorage.getItem('ses_admin_session_live') === 'true') { switchSection('admin'); } 
-            else { document.getElementById('modal-auth-gate').classList.remove('hidden'); document.getElementById('field-gate-pass').focus(); }
+            if(localStorage.getItem('ses_admin_session_live') === 'true') {
+                switchSection('admin');
+            } else {
+                document.getElementById('modal-auth-gate').classList.remove('hidden');
+                document.getElementById('field-gate-pass').focus();
+            }
         }
 
         function closeAuthModal() {
@@ -462,25 +507,25 @@
 
         function submitAuthGatePassword() {
             if(document.getElementById('field-gate-pass').value === SUPER_KEY) {
-                localStorage.setItem('ses_admin_session_live', 'true'); closeAuthModal(); switchSection('admin');
-            } else { document.getElementById('wrapper-pass-error').classList.remove('hidden'); }
+                localStorage.setItem('ses_admin_session_live', 'true');
+                closeAuthModal();
+                switchSection('admin');
+            } else {
+                document.getElementById('wrapper-pass-error').classList.remove('hidden');
+            }
         }
 
-        // CRITICAL UPDATE: CACHE BUSTING MECHANISM (FORCED TIME-STAMPED REQUESTS)
         async function fetchExcelFromGithub(isManualClick = false) {
             if(!isManualClick) {
                 document.getElementById('loader-live-data').classList.remove('hidden');
                 document.getElementById('alert-no-data').classList.add('hidden');
                 document.getElementById('section-personnel').classList.add('hidden');
             }
-            
-            // Her istekte benzersiz bir zaman damgası üreterek sunucu ve tarayıcı önbelleğini kırıyoruz
             const cacheBuster = new Date().getTime();
-
             try {
-                const leaveRes = await fetch(GITHUB_LIVE_LEAVES + "?v=" + cacheBuster, {
-                    method: 'GET',
-                    headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+                const leaveRes = await fetch(GITHUB_LIVE_LEAVES + "?v=" + cacheBuster, { 
+                    method: 'GET', 
+                    headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' } 
                 });
                 if (leaveRes.ok) {
                     const onlineLeaves = await leaveRes.json();
@@ -492,17 +537,15 @@
             } catch (e) { console.log("Ortak izinler okunamadı."); }
 
             try {
-                const res = await fetch(GITHUB_LIVE_EXCEL + "?v=" + cacheBuster, {
-                    method: 'GET',
-                    headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+                const res = await fetch(GITHUB_LIVE_EXCEL + "?v=" + cacheBuster, { 
+                    method: 'GET', 
+                    headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' } 
                 });
-                
                 if(res.ok) {
                     const buffer = await res.arrayBuffer();
                     const uintArray = new Uint8Array(buffer);
-                    const workbook = XLSX.read(uintArray, {type: 'array', cellDates: false, raw: true}); 
+                    const workbook = XLSX.read(uintArray, {type: 'array', cellDates: false, raw: true});
                     compileExcelAndMerge(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: null}));
-                    
                     document.getElementById('loader-live-data').classList.add('hidden');
                     document.getElementById('section-personnel').classList.remove('hidden');
                     document.getElementById('schedule-wrapper').classList.remove('hidden');
@@ -512,20 +555,21 @@
                 } else { throw new Error(); }
             } catch(e) {
                 document.getElementById('loader-live-data').classList.add('hidden');
-                if(mainShiftsLogPool.length > 0) {
-                    document.getElementById('section-personnel').classList.remove('hidden');
-                    document.getElementById('schedule-wrapper').classList.remove('hidden');
-                } else { document.getElementById('alert-no-data').classList.remove('hidden'); }
+                document.getElementById('section-personnel').classList.remove('hidden');
+                document.getElementById('schedule-wrapper').classList.remove('hidden');
+                displayStaffCards();
             }
         }
 
         function processManualFileLoad(event) {
-            const uploadedFile = event.target.files[0]; if(!uploadedFile) return;
+            const uploadedFile = event.target.files[0];
+            if(!uploadedFile) return;
             const fileReader = new FileReader();
             fileReader.onload = function(e) {
                 const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array', cellDates: false, raw: true});
                 compileExcelAndMerge(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1, defval: null}));
-                alert("Manuel yükleme başarılı!"); displayStaffCards();
+                alert("Manuel yükleme başarılı!");
+                displayStaffCards();
             };
             fileReader.readAsArrayBuffer(uploadedFile);
         }
@@ -537,559 +581,454 @@
                 let dayNum = date_info.getUTCDate();
                 let monthNum = date_info.getUTCMonth() + 1;
                 let yearNum = date_info.getUTCFullYear();
-                return { formatted: `${dayNum < 10 ? '0'+dayNum : dayNum}.${monthNum < 10 ? '0'+monthNum : monthNum}.${yearNum}`, mm: (monthNum < 10 ? '0'+monthNum : monthNum).toString(), yy: yearNum.toString() };
-            } else if (rawDateVal) {
-                let cleanStr = String(rawDateVal).split(' ')[0].trim();
-                let dateParts = cleanStr.split('.');
-                if (dateParts.length === 3) { return { formatted: cleanStr, mm: dateParts[1], yy: dateParts[2] }; }
+                return {
+                    formatted: `${yearNum}-${monthNum.toString().padStart(2, '0')}-${dayNum.toString().padStart(2, '0')}`,
+                    isValid: true
+                };
             }
-            return null;
+            if (typeof rawDateVal === 'string') {
+                let trimmed = rawDateVal.trim();
+                if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return { formatted: trimmed, isValid: true };
+                let parts = trimmed.split(/[-./]/);
+                if (parts.length === 3) {
+                    if (parts[0].length === 4) return { formatted: `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`, isValid: true };
+                    if (parts[2].length === 4) return { formatted: `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`, isValid: true };
+                }
+            }
+            return { formatted: '', isValid: false };
         }
 
-        function compileExcelAndMerge(matrix) {
-            if(!matrix || matrix.length < 3) return;
-            
-            const rowDays = matrix[0]; 
-            const rowDates = matrix[1];
-            let newIncomingDays = [];
+        function compileExcelAndMerge(matrixRows) {
+            if(!matrixRows || matrixRows.length < 2) return;
+            let foundDates = [];
+            let dateColumnMap = [];
+            let firstRow = matrixRows[0] || [];
+            let secondRow = matrixRows[1] || [];
 
-            TARGET_EXCEL_COLUMNS.forEach(col => {
-                let actualColIdx = col.idx;
-                if (actualColIdx >= rowDays.length) return;
-
-                let rawDayVal = rowDays[actualColIdx];
-                let rawDateVal = rowDates[actualColIdx];
-
-                if (rawDateVal || rawDayVal) {
-                    let parsedDate = parseExcelDate(rawDateVal);
-                    let formatted = parsedDate ? parsedDate.formatted : "";
-                    let mm = parsedDate ? parsedDate.mm : "06";
-                    let yy = parsedDate ? parsedDate.yy : "2026";
-                    let computedDayTitle = rawDayVal ? String(rawDayVal).trim().toUpperCase() : "";
-
-                    if (!computedDayTitle && formatted) {
-                        let p = (formatted || "").split('.');
-                        if(p.length === 3) {
-                            let calendarCheck = new Date(p[2], p[1] - 1, p[0]);
-                            computedDayTitle = TURKISH_DAYS[calendarCheck.getDay()].toUpperCase();
-                        }
+            for (let c = 0; c < firstRow.length; c++) {
+                if (firstRow[c]) {
+                    let parsed = parseExcelDate(firstRow[c]);
+                    if (parsed.isValid) {
+                        foundDates.push(parsed.formatted);
+                        dateColumnMap.push({ date: parsed.formatted, colIndex: c });
                     }
-
-                    if (formatted) {
-                        newIncomingDays.push({ dateTitle: formatted, dayTitle: computedDayTitle, month: mm, year: yy, excelColIdx: actualColIdx });
+                } else if (secondRow[c]) {
+                    let parsed = parseExcelDate(secondRow[c]);
+                    if (parsed.isValid) {
+                        foundDates.push(parsed.formatted);
+                        dateColumnMap.push({ date: parsed.formatted, colIndex: c });
                     }
                 }
-            });
+            }
 
-            newIncomingDays.sort((a, b) => {
-                let pA = (a.dateTitle || "").split('.'), pB = (b.dateTitle || "").split('.');
-                if(pA.length === 3 && pB.length === 3) { return new Date(`${pA[2]}-${pA[1]}-${pA[0]}`) - new Date(`${pB[2]}-${pB[1]}-${pB[0]}`); }
-                return 0;
-            });
+            if(foundDates.length > 0) {
+                timePeriodDaysList = [...new Set([...timePeriodDaysList, ...foundDates])].sort();
+            }
 
-            timePeriodDaysList = [...newIncomingDays];
-            const newDatesSet = newIncomingDays.map(d => d.dateTitle);
-            
-            mainShiftsLogPool = mainShiftsLogPool.filter(log => !newDatesSet.includes(log.date) || log.uniqueKey.startsWith("leave_"));
+            let newExcelShifts = [];
+            for (let r = 2; r < matrixRows.length; r++) {
+                let row = matrixRows[r];
+                if (!row || row.length === 0) continue;
 
-            newIncomingDays.forEach(dayColumn => {
-                let actualColIdx = dayColumn.excelColIdx;
-                let blockStructureList = [];
-                let currentBlock = null;
+                let structureTitle = (row[1] || '').toString().trim();
+                let isSureNode = true;
+                let bgStyleText = '';
 
-                for (let rIdx = 2; rIdx < matrix.length; rIdx++) {
-                    if (!matrix[rIdx]) continue;
-                    let cellVal = matrix[rIdx][actualColIdx];
-                    let cellHour = matrix[rIdx][actualColIdx + 2]; 
+                let mainTopic = '';
+                let subTopic = '';
 
-                    let cleanStr = cellVal ? String(cellVal).trim() : "";
-                    if (cleanStr === "null" || cleanStr === "") continue;
+                dateColumnMap.forEach(mapObj => {
+                    let cellVal = row[mapObj.colIndex];
+                    if (cellVal) {
+                        let textStr = cellVal.toString().trim();
+                        if (textStr) {
+                            USER_EXPLICIT_25.forEach(staffName => {
+                                if (textStr.toUpperCase().includes(staffName.toUpperCase())) {
+                                    let finalJobDescription = structureTitle;
+                                    let extractedTime = '';
+                                    let timeMatch = textStr.match(/(\d{2}[:.]\d{2})/);
+                                    if(timeMatch) extractedTime = timeMatch[1].replace('.', ':');
 
-                    let isProgramHeader = cleanStr.includes("YAYIN") || cleanStr.includes("STÜDYOSU") || cleanStr.includes("SAHNESİ") || cleanStr.includes("GÜNDEM") || cleanStr.includes("WORLD") || cleanStr.includes("HABER") || (cleanStr === cleanStr.toUpperCase() && cleanStr.length > 8 && !cleanStr.includes("."));
-
-                    if (isProgramHeader) {
-                        currentBlock = { programName: cleanStr, hour: cellHour ? String(cellHour).trim() : "Belirtilmedi", rowStart: rIdx, uniqueKey: dayColumn.dateTitle + "_" + actualColIdx + "_b_" + rIdx, subLines: [] };
-                        blockStructureList.push(currentBlock);
-                    } else if (currentBlock) {
-                        currentBlock.subLines.push({ text: cleanStr, rowIdx: rIdx });
-                    }
-                }
-
-                blockStructureList.forEach(block => {
-                    let items = block.subLines;
-                    for (let i = 0; i < items.length; i++) {
-                        let currentText = items[i].text;
-                        let hasDot = currentText.endsWith(".");
-                        let sanitizedName = currentText.replace(/\.+$/, "").trim();
-
-                        if (USER_EXPLICIT_25.includes(sanitizedName)) {
-                            let descriptionLines = [];
-                            for (let j = i - 1; j >= 0; j--) {
-                                let prevText = items[j].text;
-                                let prevSanitized = prevText.replace(/\.+$/, "").trim();
-                                if (USER_EXPLICIT_25.includes(prevSanitized)) break;
-                                descriptionLines.unshift(prevText);
-                            }
-                            for (let j = i + 1; j < items.length; j++) {
-                                let nextText = items[j].text;
-                                let nextSanitized = nextText.replace(/\.+$/, "").trim();
-                                if (USER_EXPLICIT_25.includes(nextSanitized)) break;
-                                descriptionLines.push(nextText);
-                            }
-
-                            mainShiftsLogPool.push({
-                                workerName: sanitizedName, date: dayColumn.dateTitle, dayName: dayColumn.dayTitle, month: dayColumn.month, year: dayColumn.year,
-                                program: block.programName, subDetail: descriptionLines.join(" / "), hour: block.hour, uniqueKey: block.uniqueKey, isProbability: hasDot
+                                    newExcelShifts.push({
+                                        date: mapObj.date,
+                                        staff: staffName,
+                                        job: finalJobDescription,
+                                        time: extractedTime,
+                                        isSure: isSureNode
+                                    });
+                                }
                             });
                         }
                     }
                 });
-            });
-
-            staffLeavePool.forEach(leave => {
-                let currentDate = new Date(leave.start);
-                const stopDate = new Date(leave.end);
-
-                while (currentDate <= stopDate) {
-                    let dayNum = currentDate.getDate();
-                    let monthNum = currentDate.getMonth() + 1;
-                    let yearNum = currentDate.getFullYear();
-                    let formattedDate = `${dayNum < 10 ? '0'+dayNum : dayNum}.${monthNum < 10 ? '0'+monthNum : monthNum}.${yearNum}`;
-                    let computedDayTitle = TURKISH_DAYS[currentDate.getDay()].toUpperCase();
-                    let checkKey = "leave_" + leave.id + "_" + formattedDate;
-
-                    if (!mainShiftsLogPool.some(l => l.uniqueKey === checkKey)) {
-                        mainShiftsLogPool.push({
-                            workerName: leave.workerName, date: formattedDate, dayName: computedDayTitle, month: (monthNum < 10 ? '0'+monthNum : monthNum).toString(), year: yearNum.toString(),
-                            program: "YILLIK İZİN GÖREVİ", subDetail: "Ortak Sistem Tarafından İzinli İşlendi", hour: "00:00", uniqueKey: checkKey, isProbability: false
-                        });
-                    }
-                    currentDate.setDate(currentDate.getDate() + 1);
-                }
-            });
-
-            if (newIncomingDays.length > 0) {
-                let p = (newIncomingDays[0].dateTitle || "").split('.');
-                if(p.length === 3) document.getElementById('analysis-start-date').value = `${p[2]}-${p[1]}-${p[0]}`;
-                let lastP = (newIncomingDays[newIncomingDays.length - 1].dateTitle || "").split('.');
-                if(lastP.length === 3) document.getElementById('analysis-end-date').value = `${lastP[2]}-${lastP[1]}-${lastP[0]}`;
             }
 
+            if(newExcelShifts.length > 0) {
+                newExcelShifts.forEach(ns => {
+                    let exists = mainShiftsLogPool.some(os => os.date === ns.date && os.staff === ns.staff && os.job === ns.job);
+                    if(!exists) mainShiftsLogPool.push(ns);
+                });
+            }
             saveDatabaseToLocalStorage();
-            rebuildStaffDropdownOptions();
         }
 
         function rebuildStaffDropdownOptions() {
-            const sel = document.getElementById('staff-dropdown'); 
-            const adminSel = document.getElementById('admin-staff-filter');
+            const drop = document.getElementById('staff-dropdown');
+            const lDrop = document.getElementById('leave-staff-select');
+            const aFilter = document.getElementById('admin-staff-filter');
             const comp1 = document.getElementById('compare-staff-1');
             const comp2 = document.getElementById('compare-staff-2');
-            const leaveSel = document.getElementById('leave-staff-select');
 
-            if(sel) {
-                const cache = sel.value; sel.innerHTML = "";
-                USER_EXPLICIT_25.forEach(n => { const o = document.createElement('option'); o.value=n; o.textContent=n; sel.appendChild(o); });
-                sel.value = (cache && USER_EXPLICIT_25.includes(cache)) ? cache : USER_EXPLICIT_25[0];
-            }
-            if(adminSel) {
-                adminSel.innerHTML = '<option value="ALL">-- TÜM PERSONELLER --</option>';
-                USER_EXPLICIT_25.forEach(n => { const o = document.createElement('option'); o.value=n; o.textContent=n; adminSel.appendChild(o); });
-            }
-            if(comp1 && comp2) {
-                comp1.innerHTML = ""; comp2.innerHTML = "";
-                USER_EXPLICIT_25.forEach((n) => {
-                    const o1 = document.createElement('option'); o1.value=n; o1.textContent=n; comp1.appendChild(o1);
-                    const o2 = document.createElement('option'); o2.value=n; o2.textContent=n; comp2.appendChild(o2);
-                });
-                if(USER_EXPLICIT_25.length > 1) comp2.selectedIndex = 1;
-            }
-            if(leaveSel) {
-                leaveSel.innerHTML = "";
-                USER_EXPLICIT_25.forEach(n => { const o = document.createElement('option'); o.value=n; o.textContent=n; leaveSel.appendChild(o); });
-            }
+            let htmlString = '<option value="" disabled selected>Lütfen İsminizi Seçiniz...</option>';
+            USER_EXPLICIT_25.forEach(st => { htmlString += `<option value="${st}">${st}</option>`; });
+            if(drop) drop.innerHTML = htmlString;
+
+            let leaveString = '';
+            USER_EXPLICIT_25.forEach(st => { leaveString += `<option value="${st}">${st}</option>`; });
+            if(lDrop) lDrop.innerHTML = leaveString;
+            if(comp1) comp1.innerHTML = leaveString;
+            if(comp2) comp2.innerHTML = leaveString;
+
+            let filterString = '<option value="ALL">-- TÜM PERSONELLER --</option>';
+            USER_EXPLICIT_25.forEach(st => { filterString += `<option value="${st}">${st}</option>`; });
+            if(aFilter) aFilter.innerHTML = filterString;
         }
+
+        function checkStaffLeaveStatusOnDate(staffName, targetDateStr) {
+            let targetTime = new Date(targetDateStr).getTime();
+            return staffLeavePool.some(rec => {
+                if(rec.staff !== staffName) return false;
+                let start = new Date(rec.start).getTime();
+                let end = new Date(rec.end).getTime();
+                return (targetTime >= start && targetTime <= end);
+            });
+        }
+
+        function displayStaffCards() {
+            const selectedStaff = document.getElementById('staff-dropdown').value;
+            if(!selectedStaff) return;
+
+            document.getElementById('worker-title-name').textContent = selectedStaff;
+            const tableBody = document.getElementById('weekly-schedule-table-body');
+            tableBody.innerHTML = '';
+
+            let sortedDays = [...timePeriodDaysList].sort((a,b) => new Date(a) - new Date(b));
+
+            sortedDays.forEach(dayStr => {
+                let dObj = new Date(dayStr);
+                let dayLabel = `${dObj.getDate()} ${MONTH_NAMES[dObj.getMonth()]} ${TURKISH_DAYS[dObj.getDay()]}`;
+                
+                let isLeave = checkStaffLeaveStatusOnDate(selectedStaff, dayStr);
+                let dayJobs = mainShiftsLogPool.filter(sh => sh.date === dayStr && sh.staff === selectedStaff);
+
+                if(isLeave) {
+                    let tr = document.createElement('tr');
+                    tr.className = "bg-orange-50/70 text-slate-400";
+                    tr.innerHTML = `
+                        <td class="p-4 pl-5 font-black">${dayLabel}</td>
+                        <td class="p-4 text-center"><span class="bg-orange-200 text-orange-800 text-[10px] px-2 py-1 rounded-md font-black">YILLIK İZİNLİ</span></td>
+                        <td class="p-4 font-bold italic text-orange-700/70" colspan="3">Bu tarihte sistemde aktif yıllık izin kaydı bulunmaktadır.</td>
+                    `;
+                    tableBody.appendChild(tr);
+                } else if(dayJobs.length === 0) {
+                    let tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50";
+                    tr.innerHTML = `
+                        <td class="p-4 pl-5 font-black">${dayLabel}</td>
+                        <td class="p-4 text-center"><span class="bg-slate-200 text-slate-600 text-[10px] px-2 py-1 rounded-md">BOŞ / OF</span></td>
+                        <td class="p-4 text-slate-400 font-normal" colspan="3">Planlanmış bir görevi bulunmamaktadır.</td>
+                    `;
+                    tableBody.appendChild(tr);
+                } else {
+                    dayJobs.forEach((jobItem, jIdx) => {
+                        let tr = document.createElement('tr');
+                        tr.className = jobItem.isSure ? "hover:bg-sky-50/50" : "bg-amber-50/60 hover:bg-amber-50";
+                        
+                        let dateTd = jIdx === 0 ? `<td class="p-4 pl-5 font-black" rowspan="${dayJobs.length}">${dayLabel}</td>` : '';
+                        let statusBadge = jobItem.isSure ? `<span class="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-1 rounded-md">KESİN GÖREV</span>` : `<span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-1 rounded-md">İHTİMAL</span>`;
+                        
+                        tr.innerHTML = `
+                            ${dateTd}
+                            <td class="p-4 text-center">${statusBadge}</td>
+                            <td class="p-4 font-black text-slate-900">${jobItem.job}</td>
+                            <td class="p-4 text-center font-mono font-black text-sky-600">${jobItem.time || '--:--'}</td>
+                            <td class="p-4 text-right pr-5">
+                                <button onclick="triggerTeamViewModal('${dayStr}', '${escape(jobItem.job)}') border border-slate-200" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] px-2.5 py-1.5 rounded-lg font-black transition-all inline-flex items-center gap-1 cursor-pointer">
+                                    <i class="fa-solid fa-users text-sky-500"></i> Ekip
+                                </button>
+                            </td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+                }
+            });
+        }
+
+        function triggerTeamViewModal(dateStr, escapedJob) {
+            let jobTitle = unescape(escapedJob);
+            let partners = mainShiftsLogPool.filter(sh => sh.date === dateStr && sh.job === jobTitle);
+            
+            let dObj = new Date(dateStr);
+            document.getElementById('modal-info-header').textContent = `${dObj.getDate()} ${MONTH_NAMES[dObj.getMonth()]} - ${jobTitle}`;
+            
+            const ul = document.getElementById('modal-staff-list');
+            ul.innerHTML = '';
+            
+            partners.forEach(p => {
+                let li = document.createElement('li');
+                li.className = "flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-100";
+                li.innerHTML = `
+                    <span class="font-black text-slate-800 uppercase">${p.staff}</span>
+                    <span class="text-[10px] bg-sky-100 text-sky-800 font-mono px-1.5 py-0.5 rounded">${p.time || 'Aynı Saat'}</span>
+                `;
+                ul.appendChild(li);
+            });
+            
+            document.getElementById('modal-team-view').classList.remove('hidden');
+        }
+
+        function closeTeamModal() { document.getElementById('modal-team-view').classList.add('hidden'); }
 
         function saveStaffLeave(e) {
             e.preventDefault();
-            const staffName = document.getElementById('leave-staff-select').value;
-            const startVal = document.getElementById('leave-start-date').value;
-            const endVal = document.getElementById('leave-end-date').value;
+            let st = document.getElementById('leave-staff-select').value;
+            let start = document.getElementById('leave-start-date').value;
+            let end = document.getElementById('leave-end-date').value;
+            
+            if(!st || !start || !end) return;
+            if(new Date(start) > new Date(end)) { alert("Başlangıç tarihi bitişten büyük olamaz."); return; }
 
-            if(!startVal || !endVal) return;
-            if(new Date(startVal) > new Date(endVal)) { alert("Hata: İzin bitiş tarihi, başlangıç tarihinden önce olamaz!"); return; }
-
-            const uniqueLeaveId = Date.now();
-            const newLeave = { id: uniqueLeaveId, workerName: staffName, start: startVal, end: endVal };
-            staffLeavePool.push(newLeave);
-
-            let currentDate = new Date(startVal);
-            const stopDate = new Date(endVal);
-
-            while (currentDate <= stopDate) {
-                let dayNum = currentDate.getDate();
-                let monthNum = currentDate.getMonth() + 1;
-                let yearNum = currentDate.getFullYear();
-                let formattedDate = `${dayNum < 10 ? '0'+dayNum : dayNum}.${monthNum < 10 ? '0'+monthNum : monthNum}.${yearNum}`;
-                let computedDayTitle = TURKISH_DAYS[currentDate.getDay()].toUpperCase();
-
-                mainShiftsLogPool.push({
-                    workerName: staffName, date: formattedDate, dayName: computedDayTitle, month: (monthNum < 10 ? '0'+monthNum : monthNum).toString(), year: yearNum.toString(),
-                    program: "YILLIK İZİN GÖREVİ", subDetail: "Ortak Sistem Tarafından İzinli İşlendi", hour: "00:00", uniqueKey: "leave_" + uniqueLeaveId + "_" + formattedDate, isProbability: false
-                });
-                currentDate.setDate(currentDate.getDate() + 1);
-            }
-
+            staffLeavePool.push({ id: 'leave_' + new Date().getTime(), staff: st, start: start, end: end });
             saveDatabaseToLocalStorage();
-            document.getElementById('leave-entry-form').reset();
             uploadLeaveJsonToGithubDirectly();
-            alert(`${staffName} için izin başarıyla tanımlandı.`);
-            displayLeaveHistoryTable();
+            
+            document.getElementById('leave-entry-form').reset();
             applyLogFilters();
-        }
-
-        function deleteStaffLeave(id) {
-            if(confirm("Bu yıllık izin kaydını silmek istediğinize emin misiniz?")) {
-                mainShiftsLogPool = mainShiftsLogPool.filter(log => !log.uniqueKey.startsWith("leave_" + id + "_"));
-                staffLeavePool = staffLeavePool.filter(l => l.id !== id);
-                saveDatabaseToLocalStorage();
-                uploadLeaveJsonToGithubDirectly();
-                displayLeaveHistoryTable();
-                applyLogFilters();
-                alert("İzin silindi.");
-            }
+            displayLeaveHistoryTable();
+            alert("Yıllık izin başarıyla işlendi ve GitHub veritabanına gönderildi!");
         }
 
         function displayLeaveHistoryTable() {
-            const tbody = document.getElementById('table-body-leave-history'); if(!tbody) return;
+            const tbody = document.getElementById('table-body-leave-history');
+            if(!tbody) return;
             tbody.innerHTML = '';
 
-            if(staffLeavePool.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Sistemde kayıtlı aktif yıllık izin bulunmamaktadır.</td></tr>`;
-                return;
-            }
+            let summary = {};
+            USER_EXPLICIT_25.forEach(st => { summary[st] = { totalDays: 0, nodes: [] }; });
 
-            let sortedLeaves = [...staffLeavePool].sort((a,b) => b.id - a.id);
-            sortedLeaves.forEach(leave => {
-                const sDate = new Date(leave.start);
-                const eDate = new Date(leave.end);
-                const totalDays = Math.ceil(Math.abs(eDate - sDate) / (1000 * 60 * 60 * 24)) + 1;
+            staffLeavePool.forEach(rec => {
+                if(summary[rec.staff]) {
+                    let diffTime = Math.abs(new Date(rec.end) - new Date(rec.start));
+                    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                    summary[rec.staff].totalDays += diffDays;
+                    summary[rec.staff].nodes.push(rec);
+                }
+            });
 
-                const tr = document.createElement('tr'); tr.className = "hover:bg-slate-50";
+            Object.keys(summary).sort().forEach(staffName => {
+                let obj = summary[staffName];
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50";
+
+                let periodHtml = '';
+                if(obj.nodes.length === 0) {
+                    periodHtml = '<span class="text-slate-400 font-normal">Kayıtlı İzin Yok</span>';
+                } else {
+                    obj.nodes.forEach(n => {
+                        periodHtml += `
+                            <div class="inline-flex items-center gap-1 bg-orange-50 text-orange-800 border border-orange-200 px-2 py-1 rounded-lg text-[11px] font-black mr-1 mb-1 shadow-sm">
+                                <i class="fa-solid fa-calendar-day text-orange-500"></i> ${n.start} / ${n.end}
+                                <i onclick="deleteLeaveRecordNode('${n.id}')" class="fa-solid fa-circle-xmark text-red-500 ml-1 hover:text-red-700 cursor-pointer text-xs"></i>
+                            </div>
+                        `;
+                    });
+                }
+
                 tr.innerHTML = `
-                    <td class="p-3 pl-4 font-black text-slate-900">${leave.workerName}</td>
-                    <td class="p-3 text-slate-600 font-bold">${(leave.start || "").split('-').reverse().join('.')} / ${(leave.end || "").split('-').reverse().join('.')}</td>
-                    <td class="p-3 text-center text-orange-600 font-black">${totalDays} Gün</td>
-                    <td class="p-3 text-right pr-4">
-                        <button onclick="deleteStaffLeave(${leave.id})" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold text-[11px] px-2.5 py-1.5 rounded-lg border border-red-200 transition-colors cursor-pointer">Kaldır / İptal Et</button>
-                    </td>
+                    <td class="p-3 pl-4 font-black uppercase text-slate-900">${staffName}</td>
+                    <td class="p-3">${periodHtml}</td>
+                    <td class="p-3 text-center"><span class="bg-slate-100 text-slate-800 px-2.5 py-1 rounded-md font-mono font-black">${obj.totalDays} Gün</span></td>
+                    <td class="p-3 text-right pr-4"><span class="text-[10px] text-slate-400 font-mono">ID Dağılımlı</span></td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        function displayStaffCards() {
-            const selectedStaffName = document.getElementById('staff-dropdown').value; if(!selectedStaffName) return;
-            document.getElementById('worker-title-name').innerHTML = `<i class="fa-solid fa-user-check text-orange-500 mr-2"></i> ${selectedStaffName}`;
-            const tableBody = document.getElementById('weekly-schedule-table-body'); tableBody.innerHTML = "";
-
-            const personalShiftsList = mainShiftsLogPool.filter(s => s.workerName === selectedStaffName);
-            const todayStr = new Date().toLocaleDateString('tr-TR', {day:'2-digit', month:'2-digit', year:'numeric'}).replace(/\//g,'.');
-
-            timePeriodDaysList.forEach((dayItem, index) => {
-                if (index === 3) {
-                    const dividerRow = document.createElement('tr');
-                    dividerRow.className = "bg-gradient-to-r from-orange-500 via-orange-600 to-sky-600 text-white font-extrabold text-[11px]";
-                    dividerRow.innerHTML = `<td colspan="5" class="p-3 text-center tracking-wider uppercase shadow-md"><i class="fa-solid fa-calendar-days mr-1.5"></i> YENİ HAFTA LİSTESİ (PAZARTESİ VE SONRASI)</td>`;
-                    tableBody.appendChild(dividerRow);
-                }
-
-                const activeShifts = personalShiftsList.filter(s => s.date === dayItem.dateTitle);
-                const isToday = (dayItem.dateTitle === todayStr);
-                
-                let dateBadgeHtml = `<div class="font-black text-slate-800 text-sm">${dayItem.dateTitle}</div><div class="text-[11px] text-sky-600 font-extrabold uppercase tracking-wide">${dayItem.dayTitle}</div>`;
-                let rowHighlightClass = "";
-                if (isToday) {
-                    dateBadgeHtml = `<div class="font-black text-orange-600 text-sm">✨ BUGÜN</div><div class="text-[11px] text-orange-500 font-black uppercase">${dayItem.dayTitle} (${dayItem.dateTitle})</div>`;
-                    rowHighlightClass = "border-2 border-orange-500 bg-orange-50/70";
-                }
-
-                if (activeShifts.length === 0) {
-                    const row = document.createElement('tr'); row.className = isToday ? rowHighlightClass : "bg-white";
-                    row.innerHTML = `<td class="p-4 pl-5 border-b border-slate-100">${dateBadgeHtml}</td><td class="p-4 border-b border-slate-100 text-center"><span class="bg-slate-100 text-slate-400 text-[10px] font-black px-2 py-1 rounded-xl block">BOŞ GÜN</span></td><td class="p-4 border-b border-slate-100 italic text-slate-400 text-[11px]">Görev veya yayın yazılmamış.</td><td class="p-4 border-b border-slate-100 text-center">-</td><td class="p-4 border-b border-slate-100 text-center">-</td>`;
-                    tableBody.appendChild(row);
-                } else {
-                    activeShifts.forEach((shift, sIdx) => {
-                        const row = document.createElement('tr');
-                        if (isToday) row.className = rowHighlightClass;
-                        else row.className = shift.isProbability ? "bg-amber-50/60 hover:bg-amber-50" : "bg-white hover:bg-slate-50";
-                        
-                        let badge = `<span class="bg-sky-600 text-white text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm">KESİN GÖREV</span>`;
-                        if (shift.isProbability) badge = `<span class="bg-amber-400 text-amber-950 text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm"><i class="fa-solid fa-circle-question"></i> İHTİMAL</span>`;
-                        if (shift.program === "YILLIK İZİN GÖREVİ") { badge = `<span class="bg-orange-500 text-white text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm"><i class="fa-solid fa-umbrella-beach"></i> İZİNLİ</span>`; }
-
-                        let programDisplayHtml = `<div class="text-slate-950 font-black text-sm block tracking-tight">${shift.program}</div>`;
-                        if (shift.subDetail && shift.subDetail.trim() !== "") { programDisplayHtml += `<div class="text-slate-600 font-bold text-xs mt-1 block leading-normal">${shift.subDetail}</div>`; }
-
-                        row.innerHTML = `
-                            <td class="p-4 pl-5 border-b border-slate-100">${sIdx === 0 ? dateBadgeHtml : ''}</td>
-                            <td class="p-4 border-b border-slate-100 text-center">${badge}</td>
-                            <td class="p-4 border-b border-slate-100">${programDisplayHtml}</td>
-                            <td class="p-4 border-b border-slate-100 text-center"><span class="bg-slate-100 px-2 py-1 rounded-lg font-black text-[11px]"><i class="fa-solid fa-clock text-orange-500"></i> ${shift.hour}</span></td>
-                            <td class="p-4 border-b border-slate-100 text-right pr-5">
-                                <button onclick="triggerTeamDiscoveryModal('${shift.uniqueKey}', '${shift.program}', '${shift.date}')" class="bg-white hover:bg-orange-500 text-slate-700 hover:text-white border border-slate-200 font-black text-[11px] px-3 py-1.5 rounded-xl transition-all shadow-sm">Ekip</button>
-                            </td>
-                        `;
-                        tableBody.appendChild(row);
-                    });
-                }
-            });
+        function deleteLeaveRecordNode(id) {
+            if(confirm("Bu izin kaydını silmek istediğinize emin misiniz?")) {
+                staffLeavePool = staffLeavePool.filter(r => r.id !== id);
+                saveDatabaseToLocalStorage();
+                uploadLeaveJsonToGithubDirectly();
+                applyLogFilters();
+                displayLeaveHistoryTable();
+            }
         }
-
-        function triggerTeamDiscoveryModal(key, name, date) {
-            const list = document.getElementById('modal-staff-list'); list.innerHTML = "";
-            document.getElementById('modal-info-header').textContent = `${date} - ${name}`;
-            const members = [...new Set(mainShiftsLogPool.filter(s => s.uniqueKey === key).map(s => s.workerName))];
-            members.forEach(m => {
-                const li = document.createElement('li'); li.className = "p-2 bg-slate-50 border rounded-lg text-xs font-bold";
-                li.innerHTML = `<i class="fa-solid fa-user text-slate-400 mr-2"></i>${m}`; list.appendChild(li);
-            });
-            document.getElementById('modal-team-view').classList.remove('hidden');
-        }
-        function closeTeamModal() { document.getElementById('modal-team-view').classList.add('hidden'); }
 
         function syncDateFiltersFromDropdowns() {
-            const mm = document.getElementById('filter-month').value;
-            const yy = document.getElementById('filter-year').value;
-            if (mm !== 'ALL' && yy !== 'ALL') {
-                document.getElementById('analysis-start-date').value = `${yy}-${mm}-01`;
-                document.getElementById('analysis-end-date').value = `${yy}-${mm}-${mm==='02'?'28':['04','06','09','11'].includes(mm)?'30':'31'}`;
+            const m = document.getElementById('filter-month').value;
+            const y = document.getElementById('filter-year').value;
+            
+            if(m === 'ALL' || y === 'ALL') {
+                document.getElementById('analysis-start-date').value = '';
+                document.getElementById('analysis-end-date').value = '';
+            } else {
+                document.getElementById('analysis-start-date').value = `${y}-${m}-01`;
+                let lastDay = new Date(parseInt(y), parseInt(m), 0).getDate();
+                document.getElementById('analysis-end-date').value = `${y}-${m}-${lastDay.toString().padStart(2,'0')}`;
             }
             applyLogFilters();
-        }
-
-        function changeChartScaleMode(mode) {
-            activeChartScaleMode = mode;
-            const btnWeekly = document.getElementById('btn-scale-weekly');
-            const btnMonthly = document.getElementById('btn-scale-monthly');
-            const btnYearly = document.getElementById('btn-scale-yearly');
-
-            [btnWeekly, btnMonthly, btnYearly].forEach(btn => {
-                btn.className = "bg-slate-100 text-slate-600 hover:bg-slate-200 text-[10px] font-black px-3 py-1.5 rounded-lg transition-all";
-            });
-
-            if(mode === 'weekly') btnWeekly.className = "bg-orange-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg transition-all shadow-sm";
-            if(mode === 'monthly') btnMonthly.className = "bg-emerald-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg transition-all shadow-sm";
-            if(mode === 'yearly') btnYearly.className = "bg-indigo-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg transition-all shadow-sm";
-
-            applyLogFilters();
-        }
-
-        function getWeekNumber(d) {
-            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
-            var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
-            return Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
         }
 
         function applyLogFilters() {
-            const selectedStaff = document.getElementById('admin-staff-filter').value;
-            const startDateVal = document.getElementById('analysis-start-date').value;
-            const endDateVal = document.getElementById('analysis-end-date').value;
+            const staffFilter = document.getElementById('admin-staff-filter').value;
+            const startVal = document.getElementById('analysis-start-date').value;
+            const endVal = document.getElementById('analysis-end-date').value;
 
-            let startDate = startDateVal ? new Date(startDateVal) : null;
-            let endDate = endDateVal ? new Date(endDateVal) : null;
-
-            let filteredShifts = mainShiftsLogPool.filter(log => {
-                if (log.isProbability) return false; 
-                if (selectedStaff !== "ALL" && log.workerName !== selectedStaff) return false;
-
-                let dateStr = log.date || "";
-                let parts = dateStr.split('.');
-                if (parts.length !== 3) return false;
-                let logDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-
-                if (startDate && logDate < startDate) return false;
-                if (endDate && logDate > endDate) return false;
+            let filteredShifts = mainShiftsLogPool.filter(sh => {
+                if(staffFilter !== 'ALL' && sh.staff !== staffFilter) return false;
+                if(startVal && new Date(sh.date) < new Date(startVal)) return false;
+                if(endVal && new Date(sh.date) > new Date(endVal)) return false;
                 return true;
             });
 
-            let totalLeaveDays = 0;
-            staffLeavePool.forEach(leave => {
-                if (selectedStaff !== "ALL" && leave.workerName !== selectedStaff) return;
-                let lStart = new Date(leave.start);
-                let lEnd = new Date(leave.end);
-                let activeStart = startDate && lStart < startDate ? startDate : lStart;
-                let activeEnd = endDate && lEnd > endDate ? endDate : lEnd;
-                if (activeStart <= activeEnd) {
-                    totalLeaveDays += Math.ceil(Math.abs(activeEnd - activeStart) / (1000 * 60 * 60 * 24)) + 1;
+            let filteredLeavesCount = 0;
+            staffLeavePool.forEach(rec => {
+                if(staffFilter !== 'ALL' && rec.staff !== staffFilter) return false;
+                let s = new Date(rec.start);
+                let e = new Date(rec.end);
+                let loop = new Date(s);
+                while(loop <= e) {
+                    let currentLoopStr = loop.toISOString().split('T')[0];
+                    let match = true;
+                    if(startVal && new Date(currentLoopStr) < new Date(startVal)) match = false;
+                    if(endVal && new Date(currentLoopStr) > new Date(endVal)) match = false;
+                    if(match) filteredLeavesCount++;
+                    loop.setDate(loop.getDate() + 1);
                 }
             });
-            document.getElementById('metric-active-leaves-count').textContent = totalLeaveDays + " Gün";
 
-            const tBody = document.getElementById('table-body-admin-logs'); tBody.innerHTML = "";
-            const sideHeader = document.getElementById('side-table-header');
-            const sidePanelTitle = document.getElementById('side-panel-title');
-            const chartMainTitle = document.getElementById('chart-main-title');
-            const filterWrapper = document.getElementById('chart-timeline-filter-wrapper');
+            document.getElementById('metric-total-staff').textContent = USER_EXPLICIT_25.length;
+            document.getElementById('metric-total-shifts').textContent = filteredShifts.filter(s => s.isSure).length;
+            document.getElementById('metric-active-leaves-count').textContent = filteredLeavesCount + " Gün";
 
-            if (selectedStaff === "ALL") {
-                filterWrapper.classList.add('hidden');
-                document.getElementById('panel-detailed-job-history').classList.add('hidden');
-                document.getElementById('label-total-shifts').textContent = "Filtreli Kesin Görev";
-                chartMainTitle.innerHTML = `<i class="fa-solid fa-chart-column text-orange-500 mr-1"></i> Yoğunluk Grafiği`;
-                sidePanelTitle.innerHTML = `<i class="fa-solid fa-list-ol text-sky-500 mr-1"></i> Görev Dağılım Sıralaması`;
-                sideHeader.innerHTML = `<th class="p-2.5">Detay Başlığı</th><th class="p-2.5 text-center">Kesin İş</th>`;
+            let leaderMap = {};
+            USER_EXPLICIT_25.forEach(st => { leaderMap[st] = 0; });
+            filteredShifts.forEach(sh => { if(sh.isSure && leaderMap[sh.staff] !== undefined) leaderMap[sh.staff]++; });
 
-                let staffJobCounts = {};
-                USER_EXPLICIT_25.forEach(n => staffJobCounts[n] = 0);
-                let evaluatedUniqueJobs = new Set();
-                let totalKesinUniqueJobsCount = 0;
+            let maxStaff = '-'; let maxCount = -1;
+            Object.keys(leaderMap).forEach(k => {
+                if(leaderMap[k] > maxCount && leaderMap[k] > 0) { maxCount = leaderMap[k]; maxStaff = `${k} (${maxCount} İş)`; }
+            });
+            document.getElementById('metric-max-staff').textContent = maxStaff;
 
-                filteredShifts.forEach(log => {
-                    let progName = log.program || "";
-                    let hrVal = log.hour || "";
-                    let jobIdentityKey = `${log.date}_${progName.trim()}_${hrVal.trim()}`;
-                    if (!evaluatedUniqueJobs.has(jobIdentityKey)) {
-                        evaluatedUniqueJobs.add(jobIdentityKey);
-                        totalKesinUniqueJobsCount++;
-                    }
-                    staffJobCounts[log.workerName] = (staffJobCounts[log.workerName] || 0) + 1;
-                });
-
-                let diagArr = USER_EXPLICIT_25.map(name => ({ name: name, count: staffJobCounts[name] || 0 }));
-                diagArr.sort((a,b) => b.count - a.count);
-
-                document.getElementById('metric-total-staff').textContent = USER_EXPLICIT_25.length + " Personel";
-                document.getElementById('metric-total-shifts').textContent = totalKesinUniqueJobsCount + " Farklı İş";
-                document.getElementById('metric-max-staff').textContent = diagArr[0].count > 0 ? `${diagArr[0].name} (${diagArr[0].count} İş)` : '-';
-
-                diagArr.forEach(st => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td class="p-2.5 font-bold flex items-center gap-2"><span class="w-2 h-2 rounded-full ${st.count>0?'bg-emerald-500':'bg-slate-300'}"></span>${st.name}</td><td class="p-2.5 text-center font-black text-sky-600">${st.count} Görev</td>`;
-                    tBody.appendChild(tr);
-                });
-                renderAdminChart(diagArr.map(s => s.name), diagArr.map(s => s.count), "Görev Sayısı", '#f97316');
-
-            } else {
-                filterWrapper.classList.remove('hidden');
-                document.getElementById('label-total-shifts').textContent = selectedStaff + " Toplam İş";
-                document.getElementById('metric-total-staff').textContent = "1 Personel Aktif";
-                document.getElementById('metric-total-shifts').textContent = filteredShifts.length + " Görev";
-                sideHeader.innerHTML = `<th class="p-2.5">Zaman Kırılımı</th><th class="p-2.5 text-center">İş Sayısı</th>`;
-
-                let timeDistribution = {};
-                let chartColor = '#10b981';
-
-                if (activeChartScaleMode === 'weekly') {
-                    chartMainTitle.innerHTML = `<i class="fa-solid fa-chart-bar text-orange-500 mr-1"></i> ${selectedStaff} - Haftalık Görev Dağılım Grafiği`;
-                    sidePanelTitle.innerHTML = `<i class="fa-solid fa-calendar-week text-sky-500 mr-1"></i> Hafta Kırılım Analizi`;
-                    chartColor = '#f97316';
-                    filteredShifts.forEach(log => {
-                        let parts = log.date.split('.');
-                        let wNum = getWeekNumber(new Date(`${parts[2]}-${parts[1]}-${parts[0]}`));
-                        timeDistribution[`${wNum}. Hafta (${log.year})`] = (timeDistribution[`${wNum}. Hafta (${log.year})`] || 0) + 1;
-                    });
-                } else if (activeChartScaleMode === 'monthly') {
-                    chartMainTitle.innerHTML = `<i class="fa-solid fa-chart-line text-emerald-500 mr-1"></i> ${selectedStaff} - Aylık Görev Dağılım Grafiği`;
-                    sidePanelTitle.innerHTML = `<i class="fa-solid fa-calendar-check text-sky-500 mr-1"></i> Ay Kırılım Analizi`;
-                    chartColor = '#10b981';
-                    filteredShifts.forEach(log => {
-                        let mIdx = parseInt(log.month || "1") - 1;
-                        let key = MONTH_NAMES[mIdx >= 0 && mIdx < 12 ? mIdx : 0] + " " + (log.year || "2026");
-                        timeDistribution[key] = (timeDistribution[key] || 0) + 1;
-                    });
-                } else if (activeChartScaleMode === 'yearly') {
-                    chartMainTitle.innerHTML = `<i class="fa-solid fa-chart-pie text-indigo-500 mr-1"></i> ${selectedStaff} - Yıllık Görev Dağılım Grafiği`;
-                    sidePanelTitle.innerHTML = `<i class="fa-solid fa-calendar mr-2 text-sky-500"></i> Yıl Kırılım Analizi`;
-                    chartColor = '#4f46e5';
-                    filteredShifts.forEach(log => { timeDistribution[log.year || "2026"] = (timeDistribution[log.year || "2026"] || 0) + 1; });
-                }
-
-                let periodsArr = Object.keys(timeDistribution).map(k => ({ period: k, count: timeDistribution[k] }));
-                periodsArr.sort((a, b) => a.period.localeCompare(b.period, undefined, { numeric: true, sensitivity: 'base' }));
-
-                if(periodsArr.length === 0) {
-                    const tr = document.createElement('tr'); tr.innerHTML = `<td colspan="2" class="p-3 text-center text-slate-400 italic">Bu dönemde kayıtlı iş yok.</td>`;
-                    tBody.appendChild(tr); document.getElementById('metric-max-staff').textContent = "Veri Yok";
-                } else {
-                    periodsArr.forEach(p => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `<td class="p-2.5 font-bold text-slate-800"><i class="fa-regular fa-clock mr-2 text-slate-400"></i>${p.period}</td><td class="p-2.5 text-center font-black text-emerald-600">${p.count} İş</td>`;
-                        tBody.appendChild(tr);
-                    });
-                    let maxBusy = [...periodsArr].sort((a,b) => b.count - a.count)[0];
-                    document.getElementById('metric-max-staff').textContent = `En Yoğun: ${maxBusy.period}`;
-                }
-
-                const historyBody = document.getElementById('table-body-history-details'); historyBody.innerHTML = "";
-                document.getElementById('badge-history-count').textContent = `${filteredShifts.length} İş Listeleniyor`;
-                
-                filteredShifts.sort((a,b) => {
-                    let pA = (a.date || "").split('.'), pB = (b.date || "").split('.');
-                    if(pA.length === 3 && pB.length === 3) return new Date(`${pA[2]}-${pA[1]}-${pA[0]}`) - new Date(`${pB[2]}-${pB[1]}-${pB[0]}`);
-                    return 0;
-                });
-
-                if(filteredShifts.length === 0) {
-                    historyBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Seçilen tarih aralığında kesin iş bulunamadı.</td></tr>`;
-                } else {
-                    filteredShifts.forEach(shift => {
-                        const tr = document.createElement('tr');
-                        let displayProgram = shift.program; let rowStyle = "hover:bg-slate-50";
-                        if (shift.program === "YILLIK İZİN GÖREVİ") { displayProgram = `🌴 [YILLIK İZİN GÖREVİ]`; rowStyle = "bg-orange-50/40 hover:bg-orange-50"; }
-                        tr.className = rowStyle;
-                        tr.innerHTML = `
-                            <td class="p-3 pl-4"><div class="font-bold text-slate-900">${shift.date}</div><div class="text-[10px] text-slate-400 uppercase">${shift.dayName}</div></td>
-                            <td class="p-3 text-slate-900 font-extrabold">${displayProgram}</td>
-                            <td class="p-3 text-slate-700 font-bold">${shift.subDetail || '<span class="text-slate-300">-</span>'}</td>
-                            <td class="p-3 text-center"><span class="bg-slate-100 px-2 py-1 rounded text-[11px] text-slate-700 font-black">${shift.hour}</span></td>
-                        `;
-                        historyBody.appendChild(tr);
-                    });
-                }
-                document.getElementById('panel-detailed-job-history').classList.remove('hidden');
-                renderAdminChart(periodsArr.map(p => p.period), periodsArr.map(p => p.count), "İş Sayısı", chartColor);
-            }
+            renderMainAnalyticsChart(leaderMap);
+            renderSideRankingTable(filteredShifts);
+            renderDetailedJobHistoryPanel(staffFilter, filteredShifts);
         }
 
-        function renderAdminChart(labels, data, datasetLabel, color) {
-            const ctxEl = document.getElementById('canvas-admin-chart'); if(!ctxEl) return;
-            if (chartInstanceReference) chartInstanceReference.destroy();
-            chartInstanceReference = new Chart(ctxEl.getContext('2d'), {
+        function renderMainAnalyticsChart(leaderMap) {
+            const ctx = document.getElementById('canvas-admin-chart').getContext('2d');
+            let labels = Object.keys(leaderMap).sort();
+            let data = labels.map(l => leaderMap[l]);
+
+            if(chartInstanceReference) chartInstanceReference.destroy();
+            chartInstanceReference = new Chart(ctx, {
                 type: 'bar',
-                data: { labels: labels, datasets: [{ label: datasetLabel, data: data, backgroundColor: color, borderRadius: 5 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Kesinleşen Görev Sayısı',
+                        data: data,
+                        backgroundColor: '#f97316',
+                        borderRadius: 6,
+                        barThickness: 'flex'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1, color: '#94a3b8' } }, x: { ticks: { color: '#475569', font: { weight: 'bold', size: 9 } } } }
+                }
+            });
+        }
+
+        function renderSideRankingTable(filteredShifts) {
+            const tbody = document.getElementById('table-body-admin-logs');
+            tbody.innerHTML = '';
+            
+            let jobDistribution = {};
+            filteredShifts.forEach(sh => {
+                if(sh.isSure) {
+                    jobDistribution[sh.job] = (jobDistribution[sh.job] || 0) + 1;
+                }
+            });
+
+            let sortedJobs = Object.keys(jobDistribution).sort((a,b) => jobDistribution[b] - jobDistribution[a]);
+            if(sortedJobs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="2" class="p-3 text-center text-slate-400 font-normal">Veri bulunamadı.</td></tr>';
+                return;
+            }
+
+            sortedJobs.forEach(jobName => {
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50";
+                tr.innerHTML = `
+                    <td class="p-2.5 font-black text-slate-800 uppercase max-w-[180px] truncate" title="${jobName}">${jobName}</td>
+                    <td class="p-2.5 text-center font-mono font-black text-orange-600">${jobDistribution[jobName]}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderDetailedJobHistoryPanel(staffFilter, filteredShifts) {
+            const panel = document.getElementById('panel-detailed-job-history');
+            const tbody = document.getElementById('table-body-history-details');
+            const badge = document.getElementById('badge-history-count');
+
+            if(staffFilter === 'ALL') { panel.classList.add('hidden'); return; }
+            panel.classList.remove('hidden');
+            tbody.innerHTML = '';
+
+            let sortedShifts = [...filteredShifts].sort((a,b) => new Date(a.date) - new Date(b.date));
+            badge.textContent = `${sortedShifts.length} İş Bulundu`;
+
+            if(sortedShifts.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-400 font-normal">Seçilen kriterlerde kayıtlı iş bulunamadı.</td></tr>';
+                return;
+            }
+
+            sortedShifts.forEach(sh => {
+                let dObj = new Date(sh.date);
+                let dayLabel = `${dObj.getDate()} ${MONTH_NAMES[dObj.getMonth()]} ${TURKISH_DAYS[dObj.getDay()]}`;
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50";
+                tr.innerHTML = `
+                    <td class="p-3 pl-4 font-black text-slate-600">${dayLabel}</td>
+                    <td class="p-3 font-black text-slate-900 uppercase">${sh.job}</td>
+                    <td class="p-3 text-slate-500">${sh.isSure ? 'Kesinleşen Program Kaydı' : 'İhtimal / Rezerv'}</td>
+                    <td class="p-3 text-center font-mono font-black text-sky-600">${sh.time || '--:--'}</td>
+                `;
+                tbody.appendChild(tr);
             });
         }
 
         function executeStaffComparison() {
-            const p1 = document.getElementById('compare-staff-1').value;
-            const p2 = document.getElementById('compare-staff-2').value;
-            const startDateVal = document.getElementById('analysis-start-date').value;
-            const endDateVal = document.getElementById('analysis-end-date').value;
+            let p1 = document.getElementById('compare-staff-1').value;
+            let p2 = document.getElementById('compare-staff-2').value;
+            if(p1 === p2) { alert("Lütfen farklı personeller seçiniz."); return; }
 
-            let startDate = startDateVal ? new Date(startDateVal) : null;
-            let endDate = endDateVal ? new Date(endDateVal) : null;
-            if(p1 === p2) { alert("Lütfen iki farklı personel seçiniz!"); return; }
+            let count1 = mainShiftsLogPool.filter(sh => sh.staff === p1 && sh.isSure).length;
+            let count2 = mainShiftsLogPool.filter(sh => sh.staff === p2 && sh.isSure).length;
 
-            let count1 = 0; let count2 = 0;
-            mainShiftsLogPool.forEach(log => {
-                if (log.isProbability) return; 
-                let parts = (log.date || "").split('.');
-                if (parts.length !== 3) return;
-                let logDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+            let winnerText = '';
+            if(count1 > count2) winnerText = `${p1}, ${p2} personeline göre <span class="text-indigo-600 font-black">${count1 - count2} daha fazla</span> işe gitmiştir.`;
+            else if(count2 > count1) winnerText = `${p2}, ${p1} personeline göre <span class="text-purple-600 font-black">${count2 - count1} daha fazla</span> işe gitmiştir.`;
+            else winnerText = `Her iki personelin de kesinleşmiş iş yükü <span class="text-emerald-600 font-black">eşittir (${count1} İş)</span>.`;
 
-                if (startDate && logDate < startDate) return;
-                if (endDate && logDate > endDate) return;
-
-                if(log.workerName === p1) count1++;
-                if(log.workerName === p2) count2++;
-            });
-
-            const resultBox = document.getElementById('compare-result-box'); resultBox.classList.remove('hidden');
-            let winnerText = count1 > count2 ? `<span class="text-emerald-600">${p1}</span> toplamda ${count1 - count2} iş fazla yapmış.` : count2 > count1 ? `<span class="text-emerald-600">${p2}</span> toplamda ${count2 - count1} iş fazla yapmış.` : "Yükler tamamen eşit.";
-
-            resultBox.innerHTML = `
+            const resBox = document.getElementById('compare-result-box');
+            resBox.classList.remove('hidden');
+            resBox.innerHTML = `
                 <div class="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-2">
                     <div><i class="fa-solid fa-scale-balanced text-indigo-600 mr-1.5 text-sm"></i><strong>Kıyas Sonucu:</strong> ${winnerText}</div>
                     <div class="flex gap-4 bg-white p-2 rounded-lg border border-indigo-100 shadow-sm text-[11px]">
@@ -1098,14 +1037,17 @@
                     </div>
                 </div>
             `;
+        }
 
-            if (chartInstanceReference) chartInstanceReference.destroy();
-            chartInstanceReference = new Chart(document.getElementById('canvas-admin-chart').getContext('2d'), {
-                type: 'bar',
-                data: { labels: [p1, p2], datasets: [{ label: 'Toplam Kesin İş Sayısı', data: [count1, count2], backgroundColor: ['#4f46e5', '#a855f7'], borderRadius: 6, barThickness: 50 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+        function changeChartScaleMode(mode) {
+            activeChartScaleMode = mode;
+            let btns = ['weekly', 'monthly', 'yearly'];
+            btns.forEach(b => {
+                let el = document.getElementById('btn-scale-' + b);
+                if(b === mode) el.className = "bg-orange-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg transition-all shadow-sm";
+                else el.className = "bg-slate-100 text-slate-600 hover:bg-slate-200 text-[10px] font-black px-3 py-1.5 rounded-lg transition-all";
             });
-            document.getElementById('chart-main-title').innerHTML = `<i class="fa-solid fa-chart-bar text-indigo-500 mr-1"></i> ${p1} vs ${p2} Karşılaştırma Grafiği`;
+            applyLogFilters();
         }
     </script>
 </body>
