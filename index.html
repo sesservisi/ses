@@ -286,7 +286,7 @@
                 </div>
             </div>
 
-            <div id="panel-detailed-job-history" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hidden">
+            <div id="panel-detailed-job-history" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                 <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider mb-3 flex items-center justify-between">
                     <span><i class="fa-solid fa-business-time text-emerald-500 mr-1"></i> SEÇİLEN PERSONELİN BU TARİH ARALIĞINDAKİ TÜM İŞLERİ GÖRÜNTÜLEME ALANI</span>
                     <span id="badge-history-count" class="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-1 rounded-md">0 İş Bulundu</span>
@@ -342,7 +342,6 @@
         const GITHUB_REPO_OWNER = "sesservisi";
         const GITHUB_REPO_NAME = "ses";
 
-        // BAZ SİTEDEKİ TÜM PERSONEL LİSTESİ HARF SIRALI VE TAM OLARAK ENTEGRE EDİLMİŞTİR
         const USER_EXPLICIT_25 = [
             "A.AŞİROĞLU", "A.C.PEHLİVAN", "A.DEMİRKAYA", "A.KOÇ", "A.KORUN", 
             "C.SALTIK", "Ç.TAŞ", "D.A.SALTIK", "D.YÖNDEM", "E.DÖNMEZ", 
@@ -354,7 +353,6 @@
         const MONTH_NAMES = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
         const TURKISH_DAYS = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
 
-        // Temel sitenizdeki sütun tarama indeks haritalaması eksiksiz korunmuştur.
         const TARGET_EXCEL_COLUMNS = [
             { label: "B", idx: 1 }, { label: "F", idx: 5 }, { label: "J", idx: 9 }, 
             { label: "N", idx: 13 }, { label: "R", idx: 17 }, { label: "V", idx: 21 }, 
@@ -585,7 +583,6 @@
             return null;
         }
 
-        // TEMEL SİTENİZDEKİ DETAYLI EXCEL VERİ AYRIŞTIRMA VE LOGLAMA ALGORİTMASI HİÇ BOZULMADAN AKTARILMIŞTIR
         function compileExcelAndMerge(matrixRows) {
             if(!matrixRows || matrixRows.length < 2) return;
             let foundDays = [];
@@ -910,29 +907,33 @@
             const countBadge = document.getElementById('badge-history-count');
             if(!panel || !tableBody || !countBadge) return;
 
-            if(selectedStaffName === 'ALL') {
-                panel.classList.add('hidden'); return;
-            }
-
-            panel.classList.remove('hidden');
+            // ESKİ HATA BURADAYDI: "ALL" seçildiğinde de tüm kadronun iş loglarını görebilmeniz için gizleme filtresi kaldırıldı!
             tableBody.innerHTML = "";
             
-            let sortedPersonalList = filteredShiftsList.filter(s => s.staffName.toUpperCase() === selectedStaffName.toUpperCase()).sort((a,b) => a.dateIso.localeCompare(b.dateIso));
-            countBadge.textContent = `${sortedPersonalList.length} İş Bulundu`;
+            let targetShifts = [];
+            if(selectedStaffName === 'ALL') {
+                targetShifts = [...filteredShiftsList];
+            } else {
+                targetShifts = filteredShiftsList.filter(s => s.staffName.toUpperCase() === selectedStaffName.toUpperCase());
+            }
 
-            if(sortedPersonalList.length === 0) {
+            // Tarihe göre sırala
+            targetShifts.sort((a,b) => a.dateIso.localeCompare(b.dateIso));
+            countBadge.textContent = `${targetShifts.length} İş Bulundu`;
+
+            if(targetShifts.length === 0) {
                 tableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Seçilen kriterlerde kesinleşmiş görev kaydı bulunamadı.</td></tr>`;
                 return;
             }
 
-            sortedPersonalList.forEach(s => {
+            targetShifts.forEach(s => {
                 let prettyD = s.dateIso; let dObj = new Date(s.dateIso);
                 if(!isNaN(dObj.getTime())) {
                     prettyD = dObj.toLocaleDateString('tr-TR', {day:'numeric', month:'long', year:'numeric'}) + " - " + TURKISH_DAYS[dObj.getDay()];
                 }
                 tableBody.innerHTML += `
                     <tr class="hover:bg-slate-50">
-                        <td class="p-3 pl-4 font-black text-slate-900 whitespace-nowrap text-[11px]">${prettyD}</td>
+                        <td class="p-3 pl-4 font-black text-slate-900 whitespace-nowrap text-[11px]">${prettyD} <br><span class="text-[9px] text-orange-600 uppercase font-extrabold">${s.staffName}</span></td>
                         <td class="p-3 uppercase text-slate-800 font-black text-[11px]">${s.jobTitle}</td>
                         <td class="p-3 text-slate-500 font-bold text-[11px]">${s.jobDesc || '-'}</td>
                         <td class="p-3 text-center text-indigo-700 font-black">${s.airTime || '-'}</td>
