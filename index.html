@@ -105,7 +105,7 @@
                     <p class="text-[10px] text-slate-400 mt-0.5">Artık cihazlarda bireysel token tanımlamaya gerek yoktur. Tüm işlemler merkezi işleyiciyle senkronize edilir.</p>
                 </div>
                 <div class="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 px-3 py-1.5 rounded-xl font-mono text-center">
-                    Bağlantı Türı: Dispatch API (Token-Free UI)
+                    Bağlantı Türü: Dispatch API (Token-Free UI)
                 </div>
             </div>
 
@@ -290,7 +290,7 @@
     </footer>
 
     <script>
-        // GLOBAL DEĞİŞKENLER VE VERİ HAVUZU (ORİJİNAL ADLANDIRMALAR GERİ GELDİ)
+        // GLOBAL DEĞİŞKENLER VE VERİ HAVUZU
         let globalShiftsLogPool = [];
         let globalTimePeriodDaysList = [];
         let globalLeavesDataArray = [];
@@ -302,6 +302,21 @@
         const GITHUB_REPO_NAME = "ses";
         const GITHUB_EXCEL_FILENAME = "Gorev-Listesi.xlsx";
 
+        // GÜVENLİ TARİH PARSER (Zaman dilimi kaymalarını önler)
+        function safeParseISO(dateStr) {
+            if (!dateStr) return null;
+            const cleanStr = String(dateStr).trim();
+            const parts = cleanStr.split('-');
+            if (parts.length === 3) {
+                return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 0, 0, 0, 0);
+            }
+            const dotParts = cleanStr.split('.');
+            if (dotParts.length === 3) {
+                return new Date(parseInt(dotParts[2]), parseInt(dotParts[1]) - 1, parseInt(dotParts[0]), 0, 0, 0, 0);
+            }
+            return new Date(cleanStr);
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
             setupExcelUploadListener();
             fetchExcelFromGithub(false);
@@ -312,6 +327,7 @@
             const yearSelect = document.getElementById('filter-year');
             if (yearSelect) {
                 const currentYear = new Date().getFullYear();
+                yearSelect.innerHTML = '<option value="ALL">Tüm Yıllar</option>';
                 for (let y = currentYear - 1; y <= currentYear + 2; y++) {
                     const opt = document.createElement('option');
                     opt.value = String(y);
@@ -400,7 +416,6 @@
                 });
         }
 
-        // ESKİ ÇALIŞAN ORİJİNAL EXCEL PARSER YAPISI GERİ GETİRİLDİ
         function processWorkbookData(workbook, sourceName) {
             globalShiftsLogPool = [];
             globalTimePeriodDaysList = [];
@@ -445,7 +460,6 @@
                             let cleanName = rawName.trim().toUpperCase();
                             if (cleanName.endsWith('.')) cleanName = cleanName.slice(0, -1).trim();
                             if (cleanName !== "" && cleanName !== "BOŞ" && cleanName !== "NÖBETÇİ") {
-                                // Orijinal veri yapınızdaki nesne adlandırmaları (workerName, date, program vb.)
                                 globalShiftsLogPool.push({
                                     workerName: cleanName,
                                     date: dayIso, 
@@ -496,29 +510,35 @@
             });
 
             const filterStaff = document.getElementById('admin-staff-filter');
-            filterStaff.innerHTML = '<option value="ALL">-- TÜM PERSONELLER --</option>';
-            uniqueStaffList.forEach(name => {
-                const opt = document.createElement('option');
-                opt.value = name; opt.textContent = name;
-                filterStaff.appendChild(opt);
-            });
+            if (filterStaff) {
+                filterStaff.innerHTML = '<option value="ALL">-- TÜM PERSONELLER --</option>';
+                uniqueStaffList.forEach(name => {
+                    const opt = document.createElement('option');
+                    opt.value = name; opt.textContent = name;
+                    filterStaff.appendChild(opt);
+                });
+            }
 
             const leaveStaff = document.getElementById('leave-staff-select');
-            leaveStaff.innerHTML = '<option value="" disabled selected>Seçiniz...</option>';
-            uniqueStaffList.forEach(name => {
-                const opt = document.createElement('option');
-                opt.value = name; opt.textContent = name;
-                leaveStaff.appendChild(opt);
-            });
+            if (leaveStaff) {
+                leaveStaff.innerHTML = '<option value="" disabled selected>Seçiniz...</option>';
+                uniqueStaffList.forEach(name => {
+                    const opt = document.createElement('option');
+                    opt.value = name; opt.textContent = name;
+                    leaveStaff.appendChild(opt);
+                });
+            }
 
             const comp1 = document.getElementById('compare-staff-1');
             const comp2 = document.getElementById('compare-staff-2');
-            comp1.innerHTML = '<option value="" disabled selected>1. Personel</option>';
-            comp2.innerHTML = '<option value="" disabled selected>2. Personel</option>';
-            uniqueStaffList.forEach(name => {
-                const opt1 = document.createElement('option'); opt1.value = name; opt1.textContent = name; comp1.appendChild(opt1);
-                const opt2 = document.createElement('option'); opt2.value = name; opt2.textContent = name; comp2.appendChild(opt2);
-            });
+            if (comp1 && comp2) {
+                comp1.innerHTML = '<option value="" disabled selected>1. Personel</option>';
+                comp2.innerHTML = '<option value="" disabled selected>2. Personel</option>';
+                uniqueStaffList.forEach(name => {
+                    const opt1 = document.createElement('option'); opt1.value = name; opt1.textContent = name; comp1.appendChild(opt1);
+                    const opt2 = document.createElement('option'); opt2.value = name; opt2.textContent = name; comp2.appendChild(opt2);
+                });
+            }
         }
 
         function displayStaffCards() {
@@ -531,10 +551,10 @@
             const tbody = document.getElementById('weekly-schedule-table-body');
             tbody.innerHTML = "";
 
-            const daysArray = globalTimePeriodDaysList;
+            globalTimePeriodDaysList.forEach(dayIso => {
+                const dateObj = safeParseISO(dayIso);
+                if (!dateObj) return;
 
-            daysArray.forEach(dayIso => {
-                const dateObj = new Date(dayIso);
                 const options = { weekday: 'long', day: 'numeric', month: 'numeric', year: 'numeric' };
                 const dateStrTurkish = dateObj.toLocaleDateString('tr-TR', options);
 
@@ -586,9 +606,6 @@
             });
         }
 
-        // =========================================================================
-        // SADECE FİLTRELEME VE TARİH ÇAKIŞMASINI DÜZELTEN GÜVENLİ applyLogFilters FONKSİYONU
-        // =========================================================================
         function applyLogFilters() {
             const selectedPersonnel = document.getElementById('admin-staff-filter') ? document.getElementById('admin-staff-filter').value : 'ALL';
             const selectedMonth = document.getElementById('filter-month') ? document.getElementById('filter-month').value : 'ALL';
@@ -597,14 +614,10 @@
             const startDateInput = document.getElementById('analysis-start-date') ? document.getElementById('analysis-start-date').value : '';
             const endDateInput = document.getElementById('analysis-end-date') ? document.getElementById('analysis-end-date').value : '';
 
-            // Manuel takvim aralığı seçildiyse saat kırılımlarını normalize et
-            let filterStartDate = startDateInput ? new Date(startDateInput).setHours(0,0,0,0) : null;
-            let filterEndDate = endDateInput ? new Date(endDateInput).setHours(23,59,59,999) : null;
+            let filterStartDate = startDateInput ? safeParseISO(startDateInput).setHours(0,0,0,0) : null;
+            let filterEndDate = endDateInput ? safeParseISO(endDateInput).setHours(23,59,59,999) : null;
 
-            // Orijinal veri yapınızdaki havuzdan filtrele
             const filteredTasks = globalShiftsLogPool.filter(task => {
-                
-                // 1. Personel Eşleşmesi
                 if (selectedPersonnel !== 'ALL') {
                     const taskPersonnel = task.workerName ? task.workerName.trim().toUpperCase() : '';
                     const searchPersonnel = selectedPersonnel.trim().toUpperCase();
@@ -613,26 +626,24 @@
 
                 if (!task.date) return false;
 
-                let taskDateParsed = new Date(task.date);
-                const taskTime = taskDateParsed.getTime();
-                
-                const taskMonth = String(taskDateParsed.getMonth() + 1).padStart(2, '0');
-                const taskYear = String(taskDateParsed.getFullYear());
+                const dateObj = safeParseISO(task.date);
+                if (!dateObj) return false;
 
-                // 2. Eğer manuel tarih girilmediyse Drop-down Ay ve Yıl filtresini dinle
+                const taskTime = dateObj.getTime();
+                const taskMonth = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const taskYear = String(dateObj.getFullYear());
+
                 if (!startDateInput && !endDateInput) {
                     if (selectedMonth !== 'ALL' && taskMonth !== selectedMonth) return false;
                     if (selectedYear !== 'ALL' && taskYear !== selectedYear) return false;
                 }
 
-                // 3. Manuel Takvim Tarih Aralığı Süzgeci (Bypass / Çakışma önleyici aktif)
                 if (filterStartDate && taskTime < filterStartDate) return false;
                 if (filterEndDate && taskTime > filterEndDate) return false;
 
                 return true;
             });
 
-            // İzin hesaplamaları
             const filteredLeaves = globalLeavesDataArray.filter(leave => {
                 if (selectedPersonnel !== 'ALL' && leave.staffName !== selectedPersonnel) return false;
                 return true;
@@ -640,13 +651,14 @@
 
             let totalLeaveDaysCount = 0;
             filteredLeaves.forEach(l => {
-                const s = new Date(l.start);
-                const e = new Date(l.end);
-                const diffTime = Math.abs(e - s);
-                totalLeaveDaysCount += (Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
+                const s = safeParseISO(l.start);
+                const e = safeParseISO(l.end);
+                if (s && e) {
+                    const diffTime = Math.abs(e - s);
+                    totalLeaveDaysCount += (Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
+                }
             });
 
-            // Ekran Metriklerini Güncelle
             document.getElementById('metric-total-shifts').textContent = filteredTasks.length + " İş";
             document.getElementById('metric-active-leaves-count').textContent = totalLeaveDaysCount + " Gün";
             document.getElementById('filtered-rows-badge-count').textContent = filteredTasks.length + " Satır Listelendi";
@@ -669,14 +681,15 @@
 
         function renderAdminLogTableRows(tasks) {
             const tbody = document.getElementById('admin-log-table-rows');
+            if (!tbody) return;
             if (tasks.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400 font-bold">Seçili filtrelere uygun görev kaydı bulunamadı.</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = tasks.map(t => {
-                const d = new Date(t.date);
-                const dateStr = d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const dateObj = safeParseISO(t.date);
+                const dateStr = dateObj ? dateObj.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : t.date;
                 return `
                     <tr class="hover:bg-slate-50 transition-colors">
                         <td class="p-3 pl-5 font-bold text-slate-900">${dateStr}</td>
@@ -692,6 +705,7 @@
 
         function renderAdminSummaryDistributionList(tasks) {
             const container = document.getElementById('admin-summary-list-container');
+            if (!container) return;
             if (tasks.length === 0) {
                 container.innerHTML = `<p class="text-xs text-slate-400 font-bold py-4 text-center">Dağılım çıkarılacak veri yok.</p>`;
                 document.getElementById('metric-max-staff').textContent = "-";
@@ -801,6 +815,7 @@
             }
 
             const box = document.getElementById('compare-result-box');
+            if (!box) return;
             box.classList.remove('hidden');
 
             const count1 = globalShiftsLogPool.filter(t => t.workerName === p1).length;
