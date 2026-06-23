@@ -105,7 +105,7 @@
                     <p class="text-[10px] text-slate-400 mt-0.5">Artık cihazlarda bireysel token tanımlamaya gerek yoktur. Tüm işlemler merkezi işleyiciyle senkronize edilir.</p>
                 </div>
                 <div class="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 px-3 py-1.5 rounded-xl font-mono text-center">
-                    Bağlantı Türü: Dispatch API (Token-Free UI)
+                    Bağlantı Türı: Dispatch API (Token-Free UI)
                 </div>
             </div>
 
@@ -290,7 +290,7 @@
     </footer>
 
     <script>
-        // GLOBAL DEĞİŞKENLER VE VERİ HAVUZU
+        // GLOBAL DEĞİŞKENLER VE VERİ HAVUZU (ORİJİNAL ADLANDIRMALAR GERİ GELDİ)
         let globalShiftsLogPool = [];
         let globalTimePeriodDaysList = [];
         let globalLeavesDataArray = [];
@@ -380,7 +380,7 @@
                 .then(buffer => {
                     const workbook = XLSX.read(new Uint8Array(buffer), { type: 'array' });
                     processWorkbookData(workbook, "GitHub Canlı Depo");
-                    if (isManualRefresh) alert("Veriler başarıyla depodan tazeledi!");
+                    if (isManualRefresh) alert("Veriler başarıyla depodan tazelendi!");
                 })
                 .catch(err => {
                     console.warn("GitHub otomasyon verisi çekilemedi:", err);
@@ -400,6 +400,7 @@
                 });
         }
 
+        // ESKİ ÇALIŞAN ORİJİNAL EXCEL PARSER YAPISI GERİ GETİRİLDİ
         function processWorkbookData(workbook, sourceName) {
             globalShiftsLogPool = [];
             globalTimePeriodDaysList = [];
@@ -412,7 +413,6 @@
                 return;
             }
 
-            const headerRow = matrix[0];
             const dateRow = matrix[1];
 
             for (let c = 2; c < dateRow.length; c += 4) {
@@ -445,14 +445,15 @@
                             let cleanName = rawName.trim().toUpperCase();
                             if (cleanName.endsWith('.')) cleanName = cleanName.slice(0, -1).trim();
                             if (cleanName !== "" && cleanName !== "BOŞ" && cleanName !== "NÖBETÇİ") {
+                                // Orijinal veri yapınızdaki nesne adlandırmaları (workerName, date, program vb.)
                                 globalShiftsLogPool.push({
-                                    staffName: cleanName,
-                                    dateIso: dayIso,
-                                    jobTitle: programName,
-                                    jobDesc: descField,
-                                    airTime: timeField,
-                                    isTentative: false,
-                                    rawRowIndex: r
+                                    workerName: cleanName,
+                                    date: dayIso, 
+                                    program: programName,
+                                    subDetail: descField,
+                                    hour: timeField,
+                                    isProbability: false,
+                                    uniqueKey: dayIso + "_" + r
                                 });
                             }
                         });
@@ -483,7 +484,7 @@
 
         function populateDropdownMenus() {
             const staffSet = new Set();
-            globalShiftsLogPool.forEach(x => { if (x.staffName) staffSet.add(x.staffName); });
+            globalShiftsLogPool.forEach(x => { if (x.workerName) staffSet.add(x.workerName); });
             const uniqueStaffList = Array.from(staffSet).sort((a, b) => a.localeCompare(b, 'tr'));
 
             const pDropdown = document.getElementById('staff-dropdown');
@@ -530,7 +531,7 @@
             const tbody = document.getElementById('weekly-schedule-table-body');
             tbody.innerHTML = "";
 
-            const daysArray = globalTimePeriodDaysList.length > 0 ? globalTimePeriodDaysList : getFallbackDaysList();
+            const daysArray = globalTimePeriodDaysList;
 
             daysArray.forEach(dayIso => {
                 const dateObj = new Date(dayIso);
@@ -551,7 +552,7 @@
                     return;
                 }
 
-                const tasks = globalShiftsLogPool.filter(t => t.staffName === selectedName && t.dateIso === dayIso);
+                const tasks = globalShiftsLogPool.filter(t => t.workerName === selectedName && t.date === dayIso);
 
                 if (tasks.length === 0) {
                     const rowHtml = `
@@ -565,17 +566,17 @@
                 } else {
                     tasks.forEach((task, index) => {
                         const labelHtml = `<span class="bg-emerald-600 text-white px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider shadow-sm">GÖREVLİ</span>`;
-                        const timeText = (task.airTime && task.airTime.trim() !== "") ? task.airTime : "Belirtilmedi";
-                        const descText = (task.jobDesc && task.jobDesc.trim() !== "") ? ` <span class="text-slate-400 mx-1.5">|</span> <span class="text-slate-500 font-medium bg-slate-100 px-1.5 py-0.5 rounded">${task.jobDesc}</span>` : "";
+                        const timeText = (task.hour && task.hour.trim() !== "") ? task.hour : "Belirtilmedi";
+                        const descText = (task.subDetail && task.subDetail.trim() !== "") ? ` <span class="text-slate-400 mx-1.5">|</span> <span class="text-slate-500 font-medium bg-slate-100 px-1.5 py-0.5 rounded">${task.subDetail}</span>` : "";
 
                         const rowHtml = `
                             <tr class="hover:bg-slate-50 transition-colors border-b border-slate-200">
                                 ${index === 0 ? `<td class="p-4 pl-5 font-black text-slate-900 border-r border-slate-100" rowspan="${tasks.length}">${dateStrTurkish}</td>` : ''}
                                 <td class="p-4 text-center border-r border-slate-100">${labelHtml}</td>
-                                <td class="p-4 text-slate-900 font-extrabold tracking-tight">${task.jobTitle}${descText}</td>
+                                <td class="p-4 text-slate-900 font-extrabold tracking-tight">${task.program}${descText}</td>
                                 <td class="p-4 text-center text-slate-900 font-black border-l border-r border-slate-100">${timeText}</td>
                                 <td class="p-4 text-right pr-5">
-                                    <button onclick="alert('Görev Detayı:\\nProgram: ${task.jobTitle}\\nAçıklama: ${task.jobDesc || 'Yok'}\\nTarih: ${dateStrTurkish}')" class="text-sky-600 hover:text-sky-800 transition-colors"><i class="fa-solid fa-circle-info text-base"></i></button>
+                                    <button onclick="alert('Görev Detayı:\\nProgram: ${task.program}\\nAçıklama: ${task.subDetail || 'Yok'}\\nTarih: ${dateStrTurkish}')" class="text-sky-600 hover:text-sky-800 transition-colors"><i class="fa-solid fa-circle-info text-base"></i></button>
                                 </td>
                             </tr>
                         `;
@@ -585,15 +586,10 @@
             });
         }
 
-        function getFallbackDaysList() {
-            return [];
-        }
-
         // =========================================================================
-        // YENİLENMİŞ, EKSİKSİZ VE GELİŞMİŞapplyLogFilters FONKSİYONU (SORUNLU YERİ DÜZELTEN KISIM)
+        // SADECE FİLTRELEME VE TARİH ÇAKIŞMASINI DÜZELTEN GÜVENLİ applyLogFilters FONKSİYONU
         // =========================================================================
         function applyLogFilters() {
-            // 1. Filtre Girdilerini Elemanlardan Çek
             const selectedPersonnel = document.getElementById('admin-staff-filter') ? document.getElementById('admin-staff-filter').value : 'ALL';
             const selectedMonth = document.getElementById('filter-month') ? document.getElementById('filter-month').value : 'ALL';
             const selectedYear = document.getElementById('filter-year') ? document.getElementById('filter-year').value : 'ALL';
@@ -601,54 +597,42 @@
             const startDateInput = document.getElementById('analysis-start-date') ? document.getElementById('analysis-start-date').value : '';
             const endDateInput = document.getElementById('analysis-end-date') ? document.getElementById('analysis-end-date').value : '';
 
-            // 2. Güvenlik Kilidi ve Senkronizasyon:
-            // Eğer kullanıcı manuel takvimden bir tarih aralığı seçtiyse, Hızlı Ay süzgeciyle çakışma olmaması için
-            // Ay drop-down değerini otomatikman "ALL" (Tüm Aylar) konumuna çekelim ki eski kayıtların önünü kesmesin.
-            if (startDateInput || endDateInput) {
-                if (selectedMonth !== 'ALL' && document.getElementById('filter-month')) {
-                    // Kullanıcı manuel tarih aralığı girdiyse dropdown'ı arka planda etkisiz kılalım veya tüm aylar yapalım.
-                    // Burada çakışmayı önlemek adına manuel girdi varken drop-down ay filtresini bypass edeceğiz.
-                }
-            }
-
-            // Tarih nesnelerini milisaniye cinsinden zamana güvenle dönüştür (Saat sınırlarını netle)
+            // Manuel takvim aralığı seçildiyse saat kırılımlarını normalize et
             let filterStartDate = startDateInput ? new Date(startDateInput).setHours(0,0,0,0) : null;
             let filterEndDate = endDateInput ? new Date(endDateInput).setHours(23,59,59,999) : null;
 
-            // 3. Ana Veri Havuzunu Süz (481 Kesin/İhtimal Kayıt Üzerinde Birebir Filtreleme Yapar)
+            // Orijinal veri yapınızdaki havuzdan filtrele
             const filteredTasks = globalShiftsLogPool.filter(task => {
                 
-                // --- A. PERSONEL FİLTRE KONTROLÜ ---
+                // 1. Personel Eşleşmesi
                 if (selectedPersonnel !== 'ALL') {
-                    const taskPersonnel = task.staffName ? task.staffName.trim().toUpperCase() : '';
+                    const taskPersonnel = task.workerName ? task.workerName.trim().toUpperCase() : '';
                     const searchPersonnel = selectedPersonnel.trim().toUpperCase();
                     if (taskPersonnel !== searchPersonnel) return false;
                 }
 
-                if (!task.dateIso) return false; // Hatalı boş kayıtları süz
+                if (!task.date) return false;
 
-                // Görevin tarihini ISO string'den ayıklayıp Date objesi yapalım
-                let taskDateParsed = new Date(task.dateIso);
+                let taskDateParsed = new Date(task.date);
                 const taskTime = taskDateParsed.getTime();
                 
-                // Karşılaştırma için Ay ve Yıl bilgisini al ("06", "2026" gibi)
                 const taskMonth = String(taskDateParsed.getMonth() + 1).padStart(2, '0');
                 const taskYear = String(taskDateParsed.getFullYear());
 
-                // --- B. HIZLI AY VE YIL FİLTRESİ (Sadece manuel tarih aralığı seçilmediyse aktiftir) ---
+                // 2. Eğer manuel tarih girilmediyse Drop-down Ay ve Yıl filtresini dinle
                 if (!startDateInput && !endDateInput) {
                     if (selectedMonth !== 'ALL' && taskMonth !== selectedMonth) return false;
                     if (selectedYear !== 'ALL' && taskYear !== selectedYear) return false;
                 }
 
-                // --- C. MANUEL TAKVİM TARİH ARALIĞI FİLTRESİ (Örn: 01.06.2026 - 28.06.2026) ---
+                // 3. Manuel Takvim Tarih Aralığı Süzgeci (Bypass / Çakışma önleyici aktif)
                 if (filterStartDate && taskTime < filterStartDate) return false;
                 if (filterEndDate && taskTime > filterEndDate) return false;
 
-                return true; // Tüm süzgeçleri başarıyla geçen kayıt listeye eklenir
+                return true;
             });
 
-            // 4. İzin Günlerini Hesapla ve Süz
+            // İzin hesaplamaları
             const filteredLeaves = globalLeavesDataArray.filter(leave => {
                 if (selectedPersonnel !== 'ALL' && leave.staffName !== selectedPersonnel) return false;
                 return true;
@@ -659,16 +643,14 @@
                 const s = new Date(l.start);
                 const e = new Date(l.end);
                 const diffTime = Math.abs(e - s);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                totalLeaveDaysCount += diffDays;
+                totalLeaveDaysCount += (Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
             });
 
-            // Metrik Kartlarını ve Arayüz Elemanlarını Güncelle
+            // Ekran Metriklerini Güncelle
             document.getElementById('metric-total-shifts').textContent = filteredTasks.length + " İş";
             document.getElementById('metric-active-leaves-count').textContent = totalLeaveDaysCount + " Gün";
             document.getElementById('filtered-rows-badge-count').textContent = filteredTasks.length + " Satır Listelendi";
 
-            // Alt Detay Tablosunu ve İstatistik Özetlerini Oluştur
             renderAdminLogTableRows(filteredTasks);
             renderAdminSummaryDistributionList(filteredTasks);
             updateAdminDashboardCharts(filteredTasks);
@@ -678,7 +660,6 @@
             const selectedMonth = document.getElementById('filter-month').value;
             const selectedYear = document.getElementById('filter-year').value;
             
-            // Eğer hızlı ay veya yıl seçildiyse manuel giriş alanlarını temizleyelim ki çakışmasınlar
             if (selectedMonth !== 'ALL' || selectedYear !== 'ALL') {
                 if (document.getElementById('analysis-start-date')) document.getElementById('analysis-start-date').value = '';
                 if (document.getElementById('analysis-end-date')) document.getElementById('analysis-end-date').value = '';
@@ -694,15 +675,15 @@
             }
 
             tbody.innerHTML = tasks.map(t => {
-                const d = new Date(t.dateIso);
+                const d = new Date(t.date);
                 const dateStr = d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
                 return `
                     <tr class="hover:bg-slate-50 transition-colors">
                         <td class="p-3 pl-5 font-bold text-slate-900">${dateStr}</td>
-                        <td class="p-3 font-black text-indigo-600 uppercase">${t.staffName}</td>
-                        <td class="p-3 font-bold text-slate-800">${t.jobTitle}</td>
-                        <td class="p-3 text-slate-500 font-medium">${t.jobDesc || '-'}</td>
-                        <td class="p-3 text-center font-black text-slate-900">${t.airTime || 'Belirtilmedi'}</td>
+                        <td class="p-3 font-black text-indigo-600 uppercase">${t.workerName}</td>
+                        <td class="p-3 font-bold text-slate-800">${t.program}</td>
+                        <td class="p-3 text-slate-500 font-medium">${t.subDetail || '-'}</td>
+                        <td class="p-3 text-center font-black text-slate-900">${t.hour || 'Belirtilmedi'}</td>
                         <td class="p-3 text-center"><span class="bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 rounded text-[10px] font-black uppercase">KESİN</span></td>
                     </tr>
                 `;
@@ -718,7 +699,7 @@
             }
 
             const counts = {};
-            tasks.forEach(t => { counts[t.staffName] = (counts[t.staffName] || 0) + 1; });
+            tasks.forEach(t => { counts[t.workerName] = (counts[t.workerName] || 0) + 1; });
 
             const sortedDistribution = Object.keys(counts).map(k => ({ name: k, count: counts[k] }))
                 .sort((a, b) => b.count - a.count);
@@ -741,7 +722,7 @@
             if (typeof Chart === 'undefined') return;
 
             const countsMap = {};
-            tasks.forEach(t => { countsMap[t.staffName] = (countsMap[t.staffName] || 0) + 1; });
+            tasks.forEach(t => { countsMap[t.workerName] = (countsMap[t.workerName] || 0) + 1; });
 
             const labels = Object.keys(countsMap).sort((a,b) => countsMap[b] - countsMap[a]);
             const values = labels.map(l => countsMap[l]);
@@ -822,8 +803,8 @@
             const box = document.getElementById('compare-result-box');
             box.classList.remove('hidden');
 
-            const count1 = globalShiftsLogPool.filter(t => t.staffName === p1).length;
-            const count2 = globalShiftsLogPool.filter(t => t.staffName === p2).length;
+            const count1 = globalShiftsLogPool.filter(t => t.workerName === p1).length;
+            const count2 = globalShiftsLogPool.filter(t => t.workerName === p2).length;
 
             let winnerText = "";
             if (count1 > count2) winnerText = `${p1}, ${p2} personeline göre <span class="text-emerald-600 font-extrabold">${count1 - count2} adet daha fazla</span> iş yüküne sahip.`;
