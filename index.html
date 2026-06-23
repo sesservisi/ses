@@ -17,416 +17,526 @@
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
 
-    <header class="bg-gradient-to-r from-indigo-700 to-indigo-900 text-white p-4 shadow-lg sticky top-0 z-50">
-        <div class="flex justify-between items-center max-w-4xl mx-auto">
-            <div class="flex items-center gap-2.5">
-                <div class="bg-white/10 p-2 rounded-xl backdrop-blur-sm border border-white/10">
-                    <i class="fa-solid fa-layer-group text-xl text-amber-400"></i>
+    <header class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-lg border-b border-indigo-500/20">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-br from-indigo-500 to-purple-600 p-2.5 rounded-xl shadow-md border border-indigo-400/30 animate-pulse">
+                    <i class="fa-solid fa-wave-square text-xl text-white"></i>
                 </div>
                 <div>
-                    <h1 class="font-black text-base tracking-tight leading-none">TRT SES SERVİSİ</h1>
-                    <span class="text-[10px] text-indigo-200 font-bold tracking-wider uppercase">Çalışma Planı & Analiz</span>
+                    <h1 class="text-lg sm:text-xl font-black tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-200 bg-clip-text text-transparent">SES SERVİSİ</h1>
+                    <p class="text-[11px] text-slate-400 font-medium tracking-wider">ÇALIŞMA PLANI & ANALİZ PANELİ</p>
                 </div>
             </div>
-            <div class="flex items-center gap-2">
-                <button onclick="switchView('user')" id="btn-user-view" class="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-white/10 flex items-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-user text-amber-400"></i> Personel Görünümü
-                </button>
-                <button onclick="switchView('admin')" id="btn-admin-view" class="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-white/10 flex items-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-lock text-slate-300"></i> Yönetim
+            
+            <div class="flex flex-wrap items-center gap-2">
+                <label class="relative flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer transition-all duration-300 transform active:scale-95 shadow-md shadow-orange-600/20 group border border-amber-400/20">
+                    <i class="fa-solid fa-file-excel text-sm group-hover:rotate-12 transition-transform"></i>
+                    <span>Yeni Excel Programı Yükle</span>
+                    <input type="file" id="excel-file-input" accept=".xlsx, .xls" class="hidden">
+                </label>
+                <button id="btn-toggle-admin" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-300">
+                    <i class="fa-solid fa-user-gear"></i>
+                    <span id="text-toggle-admin">Yönetici Paneli</span>
                 </button>
             </div>
         </div>
     </header>
 
-    <main class="flex-grow p-3 sm:p-4 max-w-4xl mx-auto w-full space-y-4">
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-6 space-y-6">
+        
+        <section id="section-admin-panel" class="hidden bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-5 transition-all duration-300">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+                <div class="flex items-center gap-2">
+                    <span class="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-sm"><i class="fa-solid fa-chart-pie"></i></span>
+                    <h2 class="text-sm font-black text-slate-900 tracking-tight">Yönetici Analitik & Veri Karşılaştırma Havuzu</h2>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <select id="select-compare-p1" class="flex-1 sm:flex-none text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-none focus:border-indigo-500"></select>
+                    <span class="text-[11px] font-bold text-slate-400 px-1">VS</span>
+                    <select id="select-compare-p2" class="flex-1 sm:flex-none text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-none focus:border-indigo-500"></select>
+                    <button id="btn-trigger-compare" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">Kıyasla</button>
+                </div>
+            </div>
 
-        <div id="panel-user" class="space-y-4">
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80">
-                <div class="flex flex-col gap-3">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                <div class="lg:col-span-1 bg-slate-50 p-4 rounded-xl border border-slate-200/60 space-y-3 flex flex-col justify-between">
                     <div>
-                        <label class="block text-xs font-black text-slate-500 uppercase tracking-wider mb-1.5">Personel Seçimi</label>
-                        <div class="relative">
-                            <select id="user-worker-select" onchange="onUserWorkerChange()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-semibold appearance-none focus:outline-none focus:border-indigo-500 transition-all text-slate-700">
-                                <option value="">-- Personel Seçiniz --</option>
-                            </select>
-                            <div class="absolute right-3.5 top-3.5 pointer-events-none text-slate-400 text-xs">
-                                <i class="fa-solid fa-chevron-down"></i>
-                            </div>
+                        <h3 class="text-[11px] font-black tracking-wider text-slate-400 uppercase mb-2">Seçili Personel Kıyaslama Analizi</h3>
+                        <div id="wrapper-compare-results" class="text-xs text-slate-600 leading-relaxed space-y-2">
+                            Filtre havuzundan iki çalışan seçerek kesinleşmiş iş hacimlerini, dağılımlarını ve grafiksel yoğunluk farklarını anlık olarak kıyaslayabilirsiniz.
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div id="user-result-info" class="hidden bg-gradient-to-r from-slate-800 to-slate-900 text-white p-4 rounded-2xl shadow-md border border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                    <h2 id="user-result-title" class="font-black text-base">Personel Bilgisi</h2>
-                    <p id="user-result-subtitle" class="text-xs text-slate-400 font-medium mt-0.5">Yükleniyor...</p>
-                </div>
-                <div class="flex gap-2">
-                    <div class="bg-white/10 px-3 py-2 rounded-xl border border-white/5 text-center min-w-[70px]">
-                        <div id="user-stat-kesin" class="text-base font-black text-emerald-400">0</div>
-                        <div class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Kesin İş</div>
-                    </div>
-                    <div class="bg-white/10 px-3 py-2 rounded-xl border border-white/5 text-center min-w-[70px]">
-                        <div id="user-stat-taslak" class="text-base font-black text-amber-400">0</div>
-                        <div class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Taslak</div>
-                    </div>
-                    <div class="bg-white/10 px-3 py-2 rounded-xl border border-white/5 text-center min-w-[70px]">
-                        <div id="user-stat-izin" class="text-base font-black text-sky-400">0</div>
-                        <div class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">İzinli</div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="user-schedule-flow" class="space-y-3"></div>
-        </div>
-
-        <div id="panel-admin" class="hidden space-y-4">
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 space-y-3">
-                <h3 class="text-xs font-black text-slate-500 uppercase tracking-wider"><i class="fa-solid fa-file-excel text-emerald-600 mr-1"></i> Excel Veri Yönetimi</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <label class="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 hover:border-indigo-400 bg-slate-50/50 hover:bg-indigo-50/20 rounded-xl p-4 cursor-pointer transition-all group">
-                        <i class="fa-solid fa-cloud-arrow-up text-xl text-slate-400 group-hover:text-indigo-500 mb-1"></i>
-                        <span class="text-xs font-bold text-slate-600 group-hover:text-indigo-600">Yeni Excel Planı Yükle</span>
-                        <input type="file" id="excel-file-input" onchange="handleExcelImport(event)" class="hidden" accept=".xlsx, .xls">
-                    </label>
-                    <button onclick="exportCurrentDataToExcel()" class="flex flex-col items-center justify-center border border-slate-200 hover:border-emerald-300 bg-white hover:bg-emerald-50/20 rounded-xl p-4 transition-all group">
-                        <i class="fa-solid fa-file-arrow-down text-xl text-slate-400 group-hover:text-emerald-600 mb-1"></i>
-                        <span class="text-xs font-bold text-slate-600 group-hover:text-emerald-600">Mevcut Veriyi Excel Yap</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
-                <h3 class="text-xs font-black text-slate-500 uppercase tracking-wider"><i class="fa-solid fa-code-compare text-indigo-600 mr-1"></i> Personel Yük Kıyaslaması</h3>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">1. Personel</label>
-                        <select id="compare-p1" onchange="renderComparison()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold focus:outline-none"></select>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">2. Personel</label>
-                        <select id="compare-p2" onchange="renderComparison()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold focus:outline-none"></select>
-                    </div>
-                </div>
-                <div id="comparison-result-box" class="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs text-slate-600 font-medium space-y-3">
-                    Seçim yaptığınızda yük analizi grafiği burada belirecektir.
-                </div>
-                <div id="admin-chart-container" class="hidden h-48 w-full mt-2">
+                <div class="lg:col-span-2 h-48 bg-slate-50 rounded-xl border border-slate-200/60 p-3 relative">
                     <canvas id="canvas-admin-chart"></canvas>
                 </div>
             </div>
+        </section>
 
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 space-y-3">
-                <h3 class="text-xs font-black text-slate-500 uppercase tracking-wider"><i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i> Olası Planlama Çakışmaları</h3>
-                <div id="conflict-alerts-list" class="space-y-2 max-h-60 overflow-y-auto custom-scroll text-xs">
-                    </div>
+        <section class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 items-end">
+            <div class="space-y-1.5">
+                <label class="text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
+                    <i class="fa-solid fa-user text-indigo-500"></i> Personnel Seçimi
+                </label>
+                <select id="filter-worker-name" class="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"></select>
             </div>
-        </div>
+            
+            <div class="space-y-1.5">
+                <label class="text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
+                    <i class="fa-solid fa-tv text-purple-500"></i> Program / İş Adı
+                </label>
+                <select id="filter-program-name" class="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"></select>
+            </div>
+
+            <div class="space-y-1.5">
+                <label class="text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
+                    <i class="fa-solid fa-calendar-days text-amber-500"></i> Tarih Filtresi
+                </label>
+                <select id="filter-date-select" class="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"></select>
+            </div>
+
+            <div class="flex gap-2">
+                <button id="btn-clear-filters" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1.5 border border-slate-200/40">
+                    <i class="fa-solid fa-filter-circle-xmark"></i> Temizle
+                </button>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm shadow-slate-100">
+                <div class="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl text-sm"><i class="fa-solid fa-briefcase"></i></div>
+                <div>
+                    <div id="stat-total-jobs" class="text-base font-black text-slate-900 leading-none">0</div>
+                    <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mt-1">Toplam İş</span>
+                </div>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm shadow-slate-100">
+                <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl text-sm"><i class="fa-solid fa-circle-check"></i></div>
+                <div>
+                    <div id="stat-exact-jobs" class="text-base font-black text-slate-900 leading-none">0</div>
+                    <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mt-1">Kesinleşen</span>
+                </div>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm shadow-slate-100">
+                <div class="p-2.5 bg-amber-50 text-amber-600 rounded-xl text-sm"><i class="fa-solid fa-hourglass-half"></i></div>
+                <div>
+                    <div id="stat-prob-jobs" class="text-base font-black text-slate-900 leading-none">0</div>
+                    <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mt-1">Muhtemel</span>
+                </div>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm shadow-slate-100">
+                <div class="p-2.5 bg-purple-50 text-purple-600 rounded-xl text-sm"><i class="fa-solid fa-users"></i></div>
+                <div>
+                    <div id="stat-active-workers" class="text-base font-black text-slate-900 leading-none">0</div>
+                    <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mt-1">Aktif Personel</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
+            <div class="px-5 py-4 bg-slate-50 border-b border-slate-200/60 flex justify-between items-center flex-wrap gap-3">
+                <div class="flex items-center gap-2">
+                    <span class="p-1.5 bg-slate-200 text-slate-700 rounded-lg text-xs font-bold" id="badge-results-count">0</span>
+                    <h2 class="text-xs font-black text-slate-800 tracking-tight uppercase">Listelenen Görev Kayıtları</h2>
+                </div>
+                <div class="text-[11px] text-slate-400 font-bold" id="text-date-pool-info">Tarih Aralığı: Dinamik Havuz</div>
+            </div>
+
+            <div class="overflow-x-auto custom-scroll">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-200 bg-slate-100/50 text-[10px] font-black text-slate-500 uppercase tracking-wider">
+                            <th class="py-3 px-4">Tarih / Gün</th>
+                            <th class="py-3 px-4">Personel</th>
+                            <th class="py-3 px-4">Program / Görev Adı</th>
+                            <th class="py-3 px-4">Detay / Konum</th>
+                            <th class="py-3 px-4 text-center">Saat</th>
+                            <th class="py-3 px-4 text-center">Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-jobs-body" class="divide-y divide-slate-100 text-xs">
+                        </tbody>
+                </table>
+            </div>
+            
+            <div id="wrapper-empty-state" class="hidden py-12 flex flex-col items-center justify-center text-center space-y-2">
+                <div class="bg-slate-100 text-slate-400 p-4 rounded-full text-xl"><i class="fa-solid fa-folder-open"></i></div>
+                <p class="text-xs font-bold text-slate-600">Aranan Kriterlere Uygun Kayıt Bulunamadı</p>
+                <p class="text-[11px] text-slate-400">Filtreleri sıfırlayarak geniş arama yapabilirsiniz.</p>
+            </div>
+        </section>
 
     </main>
 
-    <footer class="bg-white border-t border-slate-200 text-center py-3 text-[11px] font-semibold text-slate-400">
-        &copy; 2026 TRT Ses Servisi Planlama Paneli &bull; Tüm Hakları Saklıdır.
+    <footer class="bg-slate-900 border-t border-slate-800 py-4 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center text-[11px] text-slate-500 font-semibold tracking-wider uppercase">
+            © 2026 TRT SES SERVİSİ PLANLAMA SİSTEMİ • TÜM HAKLARI SAKLIDIR
+        </div>
     </footer>
 
     <script>
-        // Sitenin Tüm Alt Yapısında Kullanılan Global Havuzlar
-        let timePeriodDaysList = [];
-        let mainShiftsLogPool = [];
-        let leaveRecordsPool = [];
-        let globalWorkersSet = new Set();
+        // -------------------------------------------------------------------------
+        // YÜKLENEN EK 'islerson.txt' DOSYASINDAKİ TÜM İŞ LOGLARININ EKSİKSİZ POOL ENTEGRASYONU
+        // -------------------------------------------------------------------------
+        const initialJobsPool = [
+            {"workerName":"A.DEMİRKAYA","date":"04.06.2026","dayName":"Perşembe","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","hour":"14.00","uniqueKey":"04.06.2026_1_b_19","isProbability":false},
+            {"workerName":"E.YURDAGÜL","date":"04.06.2026","dayName":"Perşembe","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","hour":"14.00","uniqueKey":"04.06.2026_1_b_19","isProbability":false},
+            {"workerName":"A.KOÇ","date":"04.06.2026","dayName":"Perşembe","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","hour":"14.00","uniqueKey":"04.06.2026_1_b_19","isProbability":false},
+            {"workerName":"Y.ŞAHİN","date":"04.06.2026","dayName":"Perşembe","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","hour":"14.00","uniqueKey":"04.06.2026_1_b_19","isProbability":false},
+            {"workerName":"Ç.TAŞ","date":"04.06.2026","dayName":"Perşembe","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","hour":"14.00","uniqueKey":"04.06.2026_1_b_19","isProbability":false},
+            {"workerName":"H.HEKİMHAN","date":"04.06.2026","dayName":"Perşembe","month":"06","year":"2026","program":"YAĞLI GÜREŞ","hour":"Belirtilmedi","uniqueKey":"04.06.2026_1_b_30","isProbability":false},
+            {"workerName":"Ş.ÖNALAN","date":"04.06.2026","dayName":"Perşembe","month":"06","year":"2026","program":"YAĞLI GÜREŞ","hour":"Belirtilmedi","uniqueKey":"04.06.2026_1_b_30","isProbability":false},
+            {"workerName":"S.AKDAĞ","date":"04.06.2026","dayName":"Perşembe","month":"06","year":"2026","program":"YAĞLI GÜREŞ","hour":"Belirtilmedi","uniqueKey":"04.06.2026_1_b_30","isProbability":false},
+            {"workerName":"H.BAKIRCI","date":"04.06.2026","dayName":"Perşembe","month":"06","year":"2026","program":"SALON KURULUM","hour":"Belirtilmedi","uniqueKey":"04.06.2026_1_b_40","isProbability":false},
+            {"workerName":"Ö.KARAKUŞ","date":"04.06.2026","dayName":"Perşembe","month":"06","year":"2026","program":"SALON KURULUM","hour":"Belirtilmedi","uniqueKey":"04.06.2026_1_b_40","isProbability":false},
+            {"workerName":"S.CÜREBAL","date":"04.06.2026","dayName":"Perşembe","month":"06","year":"2026","program":"SALON KURULUM","hour":"Belirtilmedi","uniqueKey":"04.06.2026_1_b_40","isProbability":false},
+            {"workerName":"T.ERDEN","date":"04.06.2026","dayName":"Perşembe","month":"06","year":"2026","program":"SALON KURULUM","hour":"Belirtilmedi","uniqueKey":"04.06.2026_1_b_40","isProbability":false},
+            {"workerName":"S.ARAS","date":"04.06.2026","dayName":"Perşembe","month":"06","year":"2026","program":"SIFIR ATIK ÖZEL YAYIN","hour":"12.00","uniqueKey":"04.06.2026_1_b_52","isProbability":false},
+            {"workerName":"E.KOL","date":"04.06.2026","dayName":"Perşembe","month":"06","year":"2026","program":"SIFIR ATIK ÖZEL YAYIN","hour":"12.00","uniqueKey":"04.06.2026_1_b_52","isProbability":false},
+            {"workerName":"M.DİNER","date":"04.06.2026","dayName":"Perşembe","month":"06","year":"2026","program":"SIFIR ATIK ÖZEL YAYIN","hour":"12.00","uniqueKey":"04.06.2026_1_b_52","isProbability":false},
+            {"workerName":"C.SALTIK","date":"04.06.2026","dayName":"Perşembe","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","hour":"17.00","uniqueKey":"04.06.2026_1_b_67","isProbability":false},
+            {"workerName":"E.DÖNMEZ","date":"04.06.2026","dayName":"Perşembe","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","hour":"17.00","uniqueKey":"04.06.2026_1_b_67","isProbability":false},
+            {"workerName":"D.A.SALTIK","date":"04.06.2026","dayName":"Perşembe","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","hour":"17.00","uniqueKey":"04.06.2026_1_b_67","isProbability":false},
+            {"workerName":"K.GÜNGÖR","date":"04.06.2026","dayName":"Perşembe","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","hour":"17.00","uniqueKey":"04.06.2026_1_b_67","isProbability":false},
+            {"workerName":"A.KORUN","date":"04.06.2026","dayName":"Perşembe","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","hour":"17.00","uniqueKey":"04.06.2026_1_b_67","isProbability":false},
+            {"workerName":"A.DEMİRKAYA","date":"05.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","subDetail":"1. KAYIT","hour":"14.00","uniqueKey":"05.06.2026_1_b_19","isProbability":false},
+            {"workerName":"E.YURDAGÜL","date":"05.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","subDetail":"","hour":"14.00","uniqueKey":"05.06.2026_1_b_19","isProbability":false},
+            {"workerName":"A.KOÇ","date":"05.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","subDetail":"","hour":"14.00","uniqueKey":"05.06.2026_1_b_19","isProbability":false},
+            {"workerName":"Y.ŞAHİN","date":"05.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","subDetail":"","hour":"14.00","uniqueKey":"05.06.2026_1_b_19","isProbability":false},
+            {"workerName":"Ç.TAŞ","date":"05.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","subDetail":"","hour":"14.00","uniqueKey":"05.06.2026_1_b_19","isProbability":false},
+            {"workerName":"H.HEKİMHAN","date":"05.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"YAĞLI GÜREŞ","subDetail":"Manisa / TIR","hour":"Belirtilmedi","uniqueKey":"05.06.2026_1_b_30","isProbability":false},
+            {"workerName":"Ş.ÖNALAN","date":"05.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"YAĞLI GÜREŞ","subDetail":"","hour":"Belirtilmedi","uniqueKey":"05.06.2026_1_b_30","isProbability":false},
+            {"workerName":"S.AKDAĞ","date":"05.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"YAĞLI GÜREŞ","subDetail":"","hour":"Belirtilmedi","uniqueKey":"05.06.2026_1_b_30","isProbability":false},
+            {"workerName":"H.BAKIRCI","date":"05.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"SALON KURULUM","subDetail":"","hour":"Belirtilmedi","uniqueKey":"05.06.2026_1_b_40","isProbability":false},
+            {"workerName":"Ö.KARAKUŞ","date":"05.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"SALON KURULUM","subDetail":"SU TOPU / Galatasaray Kalamış Yüzme Havuzu","hour":"Belirtilmedi","uniqueKey":"05.06.2026_1_b_40","isProbability":false},
+            {"workerName":"S.CÜREBAL","date":"05.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"SALON KURULUM","subDetail":"SU TOPU / Galatasaray Kalamış Yüzme Havuzu","hour":"Belirtilmedi","uniqueKey":"05.06.2026_1_b_40","isProbability":false},
+            {"workerName":"T.ERDEN","date":"05.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"SALON KURULUM","subDetail":"","hour":"Belirtilmedi","uniqueKey":"05.06.2026_1_b_40","isProbability":false},
+            {"workerName":"S.ARAS","date":"05.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"SIFIR ATIK ÖZEL YAYIN","subDetail":"Atatürk Havalimanı","hour":"12.00","uniqueKey":"05.06.2026_1_b_52","isProbability":false},
+            {"workerName":"E.KOL","date":"05.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"SIFIR ATIK ÖZEL YAYIN","subDetail":"","hour":"12.00","uniqueKey":"05.06.2026_1_b_52","isProbability":false},
+            {"workerName":"M.DİNER","date":"05.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"SIFIR ATIK ÖZEL YAYIN","subDetail":"","hour":"12.00","uniqueKey":"05.06.2026_1_b_52","isProbability":false},
+            {"workerName":"C.SALTIK","date":"05.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","subDetail":"2. KAYIT","hour":"17.00","uniqueKey":"05.06.2026_1_b_67","isProbability":false},
+            {"workerName":"E.DÖNMEZ","date":"05.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","subDetail":"","hour":"17.00","uniqueKey":"05.06.2026_1_b_67","isProbability":false},
+            {"workerName":"D.A.SALTIK","date":"05.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","subDetail":"","hour":"17.00","uniqueKey":"05.06.2026_1_b_67","isProbability":false},
+            {"workerName":"K.GÜNGÖR","date":"05.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","subDetail":"","hour":"17.00","uniqueKey":"05.06.2026_1_b_67","isProbability":false},
+            {"workerName":"A.KORUN","date":"05.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","subDetail":"","hour":"17.00","uniqueKey":"05.06.2026_1_b_67","isProbability":false},
+            {"workerName":"A.KOÇ","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"İSTANBUL STÜDYOSU","subDetail":"","hour":"13.00","uniqueKey":"06.06.2026_5_b_5","isProbability":false},
+            {"workerName":"T.ERDEN","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"İSTANBUL STÜDYOSU","subDetail":"","hour":"13.00","uniqueKey":"06.06.2026_5_b_5","isProbability":false},
+            {"workerName":"S.CÜREBAL","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"GÜNDEM ÖTESİ","subDetail":"","hour":"23.50","uniqueKey":"06.06.2026_5_b_11","isProbability":false},
+            {"workerName":"D.A.SALTIK","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"GÜNDEM ÖTESİ","subDetail":"","hour":"23.50","uniqueKey":"06.06.2026_5_b_11","isProbability":false},
+            {"workerName":"H.BAKIRCI","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","subDetail":"1. KAYIT","hour":"14.00","uniqueKey":"06.06.2026_5_b_19","isProbability":false},
+            {"workerName":"E.YURDAGÜL","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","subDetail":"","hour":"14.00","uniqueKey":"06.06.2026_5_b_19","isProbability":false},
+            {"workerName":"A.AŞİROĞLU","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","subDetail":"","hour":"14.00","uniqueKey":"06.06.2026_5_b_19","isProbability":false},
+            {"workerName":"Ç.TAŞ","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","subDetail":"","hour":"14.00","uniqueKey":"06.06.2026_5_b_19","isProbability":false},
+            {"workerName":"H.HEKİMHAN","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"YAĞLI GÜREŞ","subDetail":"Manisa / TIR","hour":"Belirtilmedi","uniqueKey":"06.06.2026_5_b_30","isProbability":false},
+            {"workerName":"Ş.ÖNALAN","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"YAĞLI GÜREŞ","subDetail":"","hour":"Belirtilmedi","uniqueKey":"06.06.2026_5_b_30","isProbability":false},
+            {"workerName":"S.AKDAĞ","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"YAĞLI GÜREŞ","subDetail":"","hour":"Belirtilmedi","uniqueKey":"06.06.2026_5_b_30","isProbability":false},
+            {"workerName":"S.ARAS","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"NY KURULUM / PROVA","subDetail":"","hour":"Belirtilmedi","uniqueKey":"06.06.2026_5_b_40","isProbability":false},
+            {"workerName":"E.KOL","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"NY KURULUM / PROVA","subDetail":"","hour":"Belirtilmedi","uniqueKey":"06.06.2026_5_b_40","isProbability":false},
+            {"workerName":"Ö.KARAKUŞ","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"NY KURULUM / PROVA","subDetail":"","hour":"Belirtilmedi","uniqueKey":"06.06.2026_5_b_40","isProbability":false},
+            {"workerName":"Y.ŞAHİN","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"NY KURULUM / PROVA","subDetail":"","hour":"Belirtilmedi","uniqueKey":"06.06.2026_5_b_40","isProbability":false},
+            {"workerName":"M.DİNER","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"SIFIR ATIK ÖZEL YAYIN","subDetail":"Atatürk Havalimanı","hour":"12.00","uniqueKey":"06.06.2026_5_b_53","isProbability":false},
+            {"workerName":"D.YÖNDEM","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"SIFIR ATIK ÖZEL YAYIN","subDetail":"","hour":"12.00","uniqueKey":"06.06.2026_5_b_53","isProbability":false},
+            {"workerName":"A.C.PEHLİVAN","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"SIFIR ATIK ÖZEL YAYIN","subDetail":"","hour":"12.00","uniqueKey":"06.06.2026_5_b_53","isProbability":false},
+            {"workerName":"A.DEMİRKAYA","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","subDetail":"2. KAYIT","hour":"17.00","uniqueKey":"06.06.2026_5_b_67","isProbability":false},
+            {"workerName":"E.DÖNMEZ","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","subDetail":"","hour":"17.00","uniqueKey":"06.06.2026_5_b_67","isProbability":false},
+            {"workerName":"A.AŞİROĞLU","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","subDetail":"","hour":"17.00","uniqueKey":"06.06.2026_5_b_67","isProbability":false},
+            {"workerName":"K.GÜNGÖR","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","subDetail":"","hour":"17.00","uniqueKey":"06.06.2026_5_b_67","isProbability":false},
+            {"workerName":"A.KORUN","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"SERKAN ÇAĞRI SAHNESİ","subDetail":"","hour":"17.00","uniqueKey":"06.06.2026_5_b_67","isProbability":false},
+            {"workerName":"E.SAVAŞ","date":"06.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"GEÇMİŞE BİR BİLET","subDetail":"15 Temmuz Köprüsü / AKTÜEL","hour":"Belirtilmedi","uniqueKey":"06.06.2026_5_b_79","isProbability":false},
+            {"workerName":"A.AŞİROĞLU","date":"07.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"İSTANBUL STÜDYOSU","subDetail":"","hour":"13.00","uniqueKey":"07.06.2026_9_b_5","isProbability":false},
+            {"workerName":"T.ERDEN","date":"07.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"İSTANBUL STÜDYOSU","subDetail":"","hour":"13.00","uniqueKey":"07.06.2026_9_b_5","isProbability":false},
+            {"workerName":"A.DEMİRKAYA","date":"07.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"METİN ŞENTÜRK","subDetail":"İPTAL","hour":"20.00","uniqueKey":"07.06.2026_9_b_19","isProbability":true},
+            {"workerName":"E.YURDAGÜL","date":"07.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"METİN ŞENTÜRK","subDetail":"","hour":"20.00","uniqueKey":"07.06.2026_9_b_19","isProbability":true},
+            {"workerName":"D.YÖNDEM","date":"07.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"METİN ŞENTÜRK","subDetail":"","hour":"20.00","uniqueKey":"07.06.2026_9_b_19","isProbability":true},
+            {"workerName":"K.GÜNGÖR","date":"07.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"METİN ŞENTÜRK","subDetail":"","hour":"20.00","uniqueKey":"07.06.2026_9_b_19","isProbability":true},
+            {"workerName":"A.KORUN","date":"07.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"METİN ŞENTÜRK","subDetail":"","hour":"20.00","uniqueKey":"07.06.2026_9_b_19","isProbability":true},
+            {"workerName":"H.HEKİMHAN","date":"07.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"YAĞLI GÜREŞ","subDetail":"Manisa / TIR","hour":"Belirtilmedi","uniqueKey":"07.06.2026_9_b_30","isProbability":false},
+            {"workerName":"Ş.ÖNALAN","date":"07.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"YAĞLI GÜREŞ","subDetail":"","hour":"Belirtilmedi","uniqueKey":"07.06.2026_9_b_30","isProbability":false},
+            {"workerName":"S.AKDAĞ","date":"07.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"YAĞLI GÜREŞ","subDetail":"","hour":"Belirtilmedi","uniqueKey":"07.06.2026_9_b_30","isProbability":false},
+            {"workerName":"S.ARAS","date":"07.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"NY KURULUM / PROVA","subDetail":"","hour":"Belirtilmedi","uniqueKey":"07.06.2026_9_b_40","isProbability":false},
+            {"workerName":"E.KOL","date":"07.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"NY KURULUM / PROVA","subDetail":"","hour":"Belirtilmedi","uniqueKey":"07.06.2026_9_b_40","isProbability":false},
+            {"workerName":"Ö.KARAKUŞ","date":"07.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"NY KURULUM / PROVA","subDetail":"","hour":"Belirtilmedi","uniqueKey":"07.06.2026_9_b_40","isProbability":false},
+            {"workerName":"Y.ŞAHİN","date":"07.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"NY KURULUM / PROVA","subDetail":"","hour":"Belirtilmedi","uniqueKey":"07.06.2026_9_b_40","isProbability":false},
+            {"workerName":"M.DİNER","date":"07.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"NY PROVA / CANLI YAYIN","subDetail":"","hour":"12.00","uniqueKey":"07.06.2026_9_b_53","isProbability":false},
+            {"workerName":"A.C.PEHLİVAN","date":"07.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"NY PROVA / CANLI YAYIN","subDetail":"","hour":"12.00","uniqueKey":"07.06.2026_9_b_53","isProbability":false},
+            {"workerName":"C.SALTIK","date":"07.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"RECEP TAYYİP ERDOĞAN ÜNİ. ÖDÜL TÖRENİ","subDetail":"Rize","hour":"Belirtilmedi","uniqueKey":"07.06.2026_9_b_64","isProbability":false},
+            {"workerName":"E.DÖNMEZ","date":"07.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"RECEP TAYYİP ERDOĞAN ÜNİ. ÖDÜL TÖRENİ","subDetail":"","hour":"Belirtilmedi","uniqueKey":"07.06.2026_9_b_64","isProbability":false},
+            {"workerName":"A.KOÇ","date":"07.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"RECEP TAYYİP ERDOĞAN ÜNİ. ÖDÜL TÖRENİ","subDetail":"","hour":"Belirtilmedi","uniqueKey":"07.06.2026_9_b_64","isProbability":false},
+            {"workerName":"H.BAKIRCI","date":"07.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"GÖNÜL DAĞI","subDetail":"Eskişehir / Sivrihisar / AKTÜEL","hour":"Belirtilmedi","uniqueKey":"07.06.2026_9_b_71","isProbability":false},
+            {"workerName":"S.CÜREBAL","date":"07.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"MİRASIN İZİNDE","subDetail":"Erzurum / AKTÜEL","hour":"Belirtilmedi","uniqueKey":"07.06.2026_9_b_77","isProbability":false},
+            {"workerName":"T.ERDEN","date":"12.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"","hour":"12.00","uniqueKey":"12.06.2026_1_b_19","isProbability":false},
+            {"workerName":"S.CÜREBAL","date":"12.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"","hour":"12.00","uniqueKey":"12.06.2026_1_b_19","isProbability":false},
+            {"workerName":"A.KOÇ","date":"12.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"","hour":"12.00","uniqueKey":"12.06.2026_1_b_19","isProbability":false},
+            {"workerName":"A.AŞİROĞLU","date":"12.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"","hour":"12.00","uniqueKey":"12.06.2026_1_b_19","isProbability":false},
+            {"workerName":"A.DEMİRKAYA","date":"12.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"","hour":"12.00","uniqueKey":"12.06.2026_1_b_19","isProbability":false},
+            {"workerName":"E.YURDAGÜL","date":"12.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"","hour":"12.00","uniqueKey":"12.06.2026_1_b_19","isProbability":false},
+            {"workerName":"K.GÜNGÖR","date":"12.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"","hour":"12.00","uniqueKey":"12.06.2026_1_b_19","isProbability":false},
+            {"workerName":"Y.ŞAHİN","date":"12.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"","hour":"12.00","uniqueKey":"12.06.2026_1_b_19","isProbability":false},
+            {"workerName":"E.KOL","date":"12.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"YAĞLI GÜREŞ LİGİ","subDetail":"Kocaeli","hour":"Belirtilmedi","uniqueKey":"12.06.2026_1_b_30","isProbability":false},
+            {"workerName":"A.C.PEHLİVAN","date":"12.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"YAĞLI GÜREŞ LİGİ","subDetail":"","hour":"Belirtilmedi","uniqueKey":"12.06.2026_1_b_30","isProbability":false},
+            {"workerName":"S.ARAS","date":"12.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"ANKARA SES","subDetail":"","hour":"Belirtilmedi","uniqueKey":"12.06.2026_1_b_35","isProbability":true},
+            {"workerName":"H.HEKİMHAN","date":"12.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"MASA TENİSİ","subDetail":"Yalova","hour":"Belirtilmedi","uniqueKey":"12.06.2026_1_b_38","isProbability":false},
+            {"workerName":"A.AŞİROĞLU","date":"12.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"MASA TENİSİ","subDetail":"","hour":"Belirtilmedi","uniqueKey":"12.06.2026_1_b_38","isProbability":false},
+            {"workerName":"Ş.ÖNALAN","date":"12.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"HABER HİZMETİ","subDetail":"Çanakkale","hour":"Belirtilmedi","uniqueKey":"12.06.2026_1_b_45","isProbability":false},
+            {"workerName":"S.AKDAĞ","date":"12.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"HABER HİZMETİ","subDetail":"","hour":"Belirtilmedi","uniqueKey":"12.06.2026_1_b_45","isProbability":false},
+            {"workerName":"S.ARAS","date":"12.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"HABER HİZMETİ","subDetail":"Edirne","hour":"Belirtilmedi","uniqueKey":"12.06.2026_1_b_52","isProbability":false},
+            {"workerName":"M.DİNER","date":"12.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"KKYS DEMİRBAŞ EĞİTİMİ","subDetail":"","hour":"Belirtilmedi","uniqueKey":"12.06.2026_1_b_59","isProbability":false},
+            {"workerName":"Ş.ÖNALAN","date":"12.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"KKYS DEMİRBAŞ EĞİTİMİ","subDetail":"","hour":"Belirtilmedi","uniqueKey":"12.06.2026_1_b_59","isProbability":true},
+            {"workerName":"E.SAVAŞ","date":"12.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"BAŞKA BİR SAHNE","subDetail":"Kayseri / AKTÜEL","hour":"Belirtilmedi","uniqueKey":"12.06.2026_1_b_67","isProbability":false},
+            {"workerName":"E.DÖNMEZ","date":"12.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"TATLI NOTALAR","subDetail":"Ankara / AKTÜEL","hour":"Belirtilmedi","uniqueKey":"12.06.2026_1_b_73","isProbability":false},
+            {"workerName":"S.CÜREBAL","date":"12.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"BİZE KALAN","subDetail":"Tekirdağ / Şarköy / AKTÜEL","hour":"Belirtilmedi","uniqueKey":"12.06.2026_1_b_80","isProbability":false},
+            {"workerName":"A.DEMİRKAYA","date":"13.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"","hour":"12.00","uniqueKey":"13.06.2026_5_b_19","isProbability":false},
+            {"workerName":"E.YURDAGÜL","date":"13.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"","hour":"12.00","uniqueKey":"13.06.2026_5_b_19","isProbability":false},
+            {"workerName":"D.YÖNDEM","date":"13.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"","hour":"12.00","uniqueKey":"13.06.2026_5_b_19","isProbability":false},
+            {"workerName":"E.KOL","date":"13.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"YAĞLI GÜREŞ LİGİ","subDetail":"Kocaeli","hour":"Belirtilmedi","uniqueKey":"13.06.2026_5_b_30","isProbability":false},
+            {"workerName":"A.C.PEHLİVAN","date":"13.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"YAĞLI GÜREŞ LİGİ","subDetail":"","hour":"Belirtilmedi","uniqueKey":"13.06.2026_5_b_30","isProbability":false},
+            {"workerName":"H.HEKİMHAN","date":"13.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"MASA TENİSİ","subDetail":"Yalova","hour":"Belirtilmedi","uniqueKey":"13.06.2026_5_b_38","isProbability":false},
+            {"workerName":"A.AŞİROĞLU","date":"13.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"MASA TENİSİ","subDetail":"","hour":"Belirtilmedi","uniqueKey":"13.06.2026_5_b_38","isProbability":false},
+            {"workerName":"Ş.ÖNALAN","date":"13.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"HABER HİZMETİ","subDetail":"Çanakkale","hour":"Belirtilmedi","uniqueKey":"13.06.2026_5_b_45","isProbability":false},
+            {"workerName":"S.AKDAĞ","date":"13.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"HABER HİZMETİ","subDetail":"","hour":"Belirtilmedi","uniqueKey":"13.06.2026_5_b_45","isProbability":false},
+            {"workerName":"S.ARAS","date":"13.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"HABER HİZMETİ","subDetail":"Edirne","hour":"Belirtilmedi","uniqueKey":"13.06.2026_5_b_52","isProbability":false},
+            {"workerName":"F.BOZKURT","date":"14.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"YENİ TIR EĞİTİMİ","subDetail":"Çekmeköy","hour":"Belirtilmedi","uniqueKey":"14.06.2026_9_b_18","isProbability":false},
+            {"workerName":"A.DEMİRKAYA","date":"14.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"","hour":"12.00","uniqueKey":"14.06.2026_9_b_19","isProbability":false},
+            {"workerName":"E.YURDAGÜL","date":"14.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"","hour":"12.00","uniqueKey":"14.06.2026_9_b_19","isProbability":false},
+            {"workerName":"D.YÖNDEM","date":"14.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"","hour":"12.00","uniqueKey":"14.06.2026_9_b_19","isProbability":false},
+            {"workerName":"E.KOL","date":"14.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"YAĞLI GÜREŞ LİGİ","subDetail":"Kocaeli","hour":"Belirtilmedi","uniqueKey":"14.06.2026_9_b_30","isProbability":false},
+            {"workerName":"A.C.PEHLİVAN","date":"14.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"YAĞLI GÜREŞ LİGİ","subDetail":"","hour":"Belirtilmedi","uniqueKey":"14.06.2026_9_b_30","isProbability":false},
+            {"workerName":"H.HEKİMHAN","date":"14.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"MASA TENİSİ","subDetail":"Yalova","hour":"Belirtilmedi","uniqueKey":"14.06.2026_9_b_38","isProbability":false},
+            {"workerName":"A.AŞİROĞLU","date":"14.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"MASA TENİSİ","subDetail":"","hour":"Belirtilmedi","uniqueKey":"14.06.2026_9_b_38","isProbability":false},
+            {"workerName":"Ş.ÖNALAN","date":"14.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"HABER HİZMETİ","subDetail":"Çanakkale","hour":"Belirtilmedi","uniqueKey":"14.06.2026_9_b_45","isProbability":false},
+            {"workerName":"S.AKDAĞ","date":"14.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"HABER HİZMETİ","subDetail":"","hour":"Belirtilmedi","uniqueKey":"14.06.2026_9_b_45","isProbability":false},
+            {"workerName":"S.ARAS","date":"14.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"HABER HİZMETİ","subDetail":"Edirne","hour":"Belirtilmedi","uniqueKey":"14.06.2026_9_b_52","isProbability":false},
+            {"workerName":"A.DEMİRKAYA","date":"19.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"AMPUTE FUTBOL x2 / Ayazağa","hour":"12.00","uniqueKey":"19.06.2026_1_b_19","isProbability":false},
+            {"workerName":"E.YURDAGÜL","date":"19.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"AMPUTE FUTBOL x2 / Ayazağa","hour":"12.00","uniqueKey":"19.06.2026_1_b_19","isProbability":false},
+            {"workerName":"K.GÜNGÖR","date":"19.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"AMPUTE FUTBOL x2 / Ayazağa","hour":"12.00","uniqueKey":"19.06.2026_1_b_19","isProbability":false},
+            {"workerName":"Y.ŞAHİN","date":"19.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"AMPUTE FUTBOL x2 / Ayazağa","hour":"12.00","uniqueKey":"19.06.2026_1_b_19","isProbability":false},
+            {"workerName":"S.ARAS","date":"19.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"AMPUTE FUTBOL x2 / Ayazağa","hour":"12.00","uniqueKey":"19.06.2026_1_b_19","isProbability":false},
+            {"workerName":"D.YÖNDEM","date":"19.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"","hour":"12.00","uniqueKey":"19.06.2026_1_b_19","isProbability":false},
+            {"workerName":"A.KOÇ","date":"19.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"HABER HİZMETİ","subDetail":"Halkalı / Havalimanı","hour":"14.30","uniqueKey":"19.06.2026_1_b_37","isProbability":false},
+            {"workerName":"A.AŞİROĞLU","date":"19.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"HABER HİZMETİ","subDetail":"TRT SPOR / Gülhane / KEŞİF","hour":"14.30","uniqueKey":"19.06.2026_1_b_37","isProbability":false},
+            {"workerName":"E.KOL","date":"19.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"HABER HİZMETİ","subDetail":"TRT SPOR / Gülhane / KEŞİF","hour":"14.30","uniqueKey":"19.06.2026_1_b_37","isProbability":false},
+            {"workerName":"S.AKDAĞ","date":"19.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"DEPO DÜZENLEME","subDetail":"Çekmeköy","hour":"Belirtilmedi","uniqueKey":"19.06.2026_1_b_58","isProbability":true},
+            {"workerName":"T.ERDEN","date":"19.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"DEPO DÜZENLEME","subDetail":"","hour":"Belirtilmedi","uniqueKey":"19.06.2026_1_b_58","isProbability":true},
+            {"workerName":"S.CÜREBAL","date":"19.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"DEPO DÜZENLEME","subDetail":"","hour":"Belirtilmedi","uniqueKey":"19.06.2026_1_b_58","isProbability":true},
+            {"workerName":"H.BAKIRCI","date":"19.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"DEPO DÜZENLEME","subDetail":"","hour":"Belirtilmedi","uniqueKey":"19.06.2026_1_b_58","isProbability":true},
+            {"workerName":"Ö.KARAKUŞ","date":"19.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"DEPO DÜZENLEME","subDetail":"","hour":"Belirtilmedi","uniqueKey":"19.06.2026_1_b_58","isProbability":true},
+            {"workerName":"E.SAVAŞ","date":"19.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"YÜREKLERİN KULAKLARI","subDetail":"Kastamonu / AKTÜEL","hour":"Belirtilmedi","uniqueKey":"19.06.2026_1_b_69","isProbability":false},
+            {"workerName":"E.DÖNMEZ","date":"19.06.2026","dayName":"CUMA","month":"06","year":"2026","program":"ANADOLU COĞRAFYASI","subDetail":"Kırşehir / Kaman / AKTÜEL","hour":"Belirtilmedi","uniqueKey":"19.06.2026_1_b_75","isProbability":false},
+            {"workerName":"A.DEMİRKAYA","date":"20.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"AMPUTE FUTBOL x2 / Ayazağa","hour":"12.00","uniqueKey":"20.06.2026_5_b_19","isProbability":false},
+            {"workerName":"E.YURDAGÜL","date":"20.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"AMPUTE FUTBOL x2 / Ayazağa","hour":"12.00","uniqueKey":"20.06.2026_5_b_19","isProbability":false},
+            {"workerName":"D.YÖNDEM","date":"20.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"","hour":"12.00","uniqueKey":"20.06.2026_5_b_19","isProbability":false},
+            {"workerName":"A.KOÇ","date":"20.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"HABER HİZMETİ","subDetail":"Halkalı / Havalimanı","hour":"14.30","uniqueKey":"20.06.2026_5_b_37","isProbability":false},
+            {"workerName":"A.AŞİROĞLU","date":"20.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"HABER HİZMETİ","subDetail":"TRT SPOR / Gülhane / KEŞİF","hour":"14.30","uniqueKey":"20.06.2026_5_b_37","isProbability":false},
+            {"workerName":"E.KOL","date":"20.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"HABER HİZMETİ","subDetail":"TRT SPOR / Gülhane / KEŞİF","hour":"14.30","uniqueKey":"20.06.2026_5_b_37","isProbability":false},
+            {"workerName":"A.DEMİRKAYA","date":"21.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"AMPUTE FUTBOL x2 / Ayazağa","hour":"12.00","uniqueKey":"21.06.2026_9_b_19","isProbability":false},
+            {"workerName":"E.YURDAGÜL","date":"21.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"AMPUTE FUTBOL x2 / Ayazağa","hour":"12.00","uniqueKey":"21.06.2026_9_b_19","isProbability":false},
+            {"workerName":"D.YÖNDEM","date":"21.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"ZÜLEYHA İLE SINIRSIZ EZGİLER","subDetail":"","hour":"12.00","uniqueKey":"21.06.2026_9_b_19","isProbability":false},
+            {"workerName":"A.KOÇ","date":"21.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"HABER HİZMETİ","subDetail":"Halkalı / Havalimanı","hour":"14.30","uniqueKey":"21.06.2026_9_b_37","isProbability":false},
+            {"workerName":"A.AŞİROĞLU","date":"21.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"HABER HİZMETİ","subDetail":"TRT SPOR / Gülhane / KEŞİF","hour":"14.30","uniqueKey":"21.06.2026_9_b_37","isProbability":false},
+            {"workerName":"E.KOL","date":"21.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"HABER HİZMETİ","subDetail":"TRT SPOR / Gülhane / KEŞİF","hour":"14.30","uniqueKey":"21.06.2026_9_b_37","isProbability":false},
+            {"workerName":"H.HEKİMHAN","date":"27.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"HABER HİZMETİ","subDetail":"Sapanca","hour":"Belirtilmedi","uniqueKey":"27.06.2026_36_b_30","isProbability":false},
+            {"workerName":"S.ARAS","date":"27.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"HABER HİZMETİ","subDetail":"","hour":"Belirtilmedi","uniqueKey":"27.06.2026_36_b_30","isProbability":false},
+            {"workerName":"E.KOL","date":"27.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"ENGEL ATLAMA","subDetail":"Kemer Country Club","hour":"Belirtilmedi","uniqueKey":"27.06.2026_36_b_37","isProbability":false},
+            {"workerName":"A.C.PEHLİVAN","date":"27.06.2026","dayName":"CUMARTESİ","month":"06","year":"2026","program":"ENGEL ATLAMA","subDetail":"","hour":"Belirtilmedi","uniqueKey":"27.06.2026_36_b_37","isProbability":false},
+            {"workerName":"H.HEKİMHAN","date":"28.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"HABER HİZMETİ","subDetail":"Sapanca","hour":"Belirtilmedi","uniqueKey":"28.06.2026_37_b_30","isProbability":false},
+            {"workerName":"S.ARAS","date":"28.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"HABER HİZMETİ","subDetail":"","hour":"Belirtilmedi","uniqueKey":"28.06.2026_37_b_30","isProbability":false},
+            {"workerName":"E.KOL","date":"28.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"ENGEL ATLAMA","subDetail":"Kemer Country Club","hour":"Belirtilmedi","uniqueKey":"28.06.2026_37_b_37","isProbability":false},
+            {"workerName":"A.C.PEHLİVAN","date":"28.06.2026","dayName":"PAZAR","month":"06","year":"2026","program":"ENGEL ATLAMA","subDetail":"","hour":"Belirtilmedi","uniqueKey":"28.06.2026_37_b_37","isProbability":false}
+        ];
+
+        // Global Değişken Yapısı
+        let currentJobsActivePool = [...initialJobsPool];
         let chartInstanceReference = null;
-        let currentActiveView = 'user';
 
-        // Tarih formatlama yardımcısı (YYYY-MM-DD -> DD.MM.YYYY)
-        function convertISOToTRDate(isoStr) {
-            if (!isoStr || !isoStr.includes('-')) return isoStr;
-            const parts = isoStr.split('-');
-            if (parts.length === 3) {
-                return `${parts[2]}.${parts[1]}.${parts[0]}`;
-            }
-            return isoStr;
-        }
+        // DOM Elementleri
+        const filterWorkerSelect = document.getElementById('filter-worker-name');
+        const filterProgramSelect = document.getElementById('filter-program-name');
+        const filterDateSelect = document.getElementById('filter-date-select');
+        const tableJobsBody = document.getElementById('table-jobs-body');
+        const wrapperEmptyState = document.getElementById('wrapper-empty-state');
+        
+        const badgeResultsCount = document.getElementById('badge-results-count');
+        const textDatePoolInfo = document.getElementById('text-date-pool-info');
+        
+        const statTotalJobs = document.getElementById('stat-total-jobs');
+        const statExactJobs = document.getElementById('stat-exact-jobs');
+        const statProbJobs = document.getElementById('stat-prob-jobs');
+        const statActiveWorkers = document.getElementById('stat-active-workers');
+        
+        const sectionAdminPanel = document.getElementById('section-admin-panel');
+        const btnToggleAdmin = document.getElementById('btn-toggle-admin');
+        const textToggleAdmin = document.getElementById('text-toggle-admin');
+        const selectCompareP1 = document.getElementById('select-compare-p1');
+        const selectCompareP2 = document.getElementById('select-compare-p2');
+        const btnTriggerCompare = document.getElementById('btn-trigger-compare');
+        const wrapperCompareResults = document.getElementById('wrapper-compare-results');
+        const excelFileInput = document.getElementById('excel-file-input');
 
-        // Tarih formatlama yardımcısı (DD.MM.YYYY -> YYYY-MM-DD)
-        function convertTRDateToISO(trStr) {
-            if (!trStr || !trStr.includes('.')) return trStr;
-            const parts = trStr.split('.');
-            if (parts.length === 3) {
-                return `${parts[2]}-${parts[1]}-${parts[0]}`;
-            }
-            return trStr;
-        }
+        // INITIALIZATION
+        document.addEventListener('DOMContentLoaded', () => {
+            buildFilterOptions();
+            executeFilteringAndRender();
+            initChartStructure();
+        });
 
-        // Türkçe gün isimlerini üretme yardımcısı
-        function getTurkishDayName(dateStr) {
-            const iso = convertTRDateToISO(dateStr);
-            const d = new Date(iso);
-            if (isNaN(d.getTime())) return "Belirtilmedi";
-            const days = ["PAZAR", "PAZARTESİ", "SALI", "ÇARŞAMBA", "PERŞEMBE", "CUMA", "CUMARTESİ"];
-            return days[d.getDay()];
-        }
+        // FILTRE SEÇENEKLERİNİ OLUŞTURMA
+        function buildFilterOptions() {
+            const workers = new Set();
+            const programs = new Set();
+            const dates = new Set();
 
-        // SİSTEM BAŞLANGICI (INITIALIZATION)
-        async function runSystemInitializer() {
-            try {
-                // 1. isler.json Verisini Çek ve Eski Yapıya Entegre Et
-                const islerResponse = await fetch('isler.json?t=' + new Date().getTime());
-                const rawIsler = await islerResponse.json();
+            currentJobsActivePool.forEach(item => {
+                if(item.workerName) workers.add(item.workerName.trim());
+                if(item.program) programs.add(item.program.trim());
+                if(item.date) dates.add(item.date.trim());
+            });
 
-                mainShiftsLogPool = [];
-                const distinctDates = new Set();
-
-                rawIsler.forEach(item => {
-                    const trDate = convertISOToTRDate(item.isoDate || item.date);
-                    distinctDates.add(trDate);
-
-                    const staff = item.staffList || (item.workerName ? [item.workerName] : []);
-                    const dayName = item.dayName || getTurkishDayName(trDate);
-                    const monthStr = trDate.split('.')[1] || "06";
-                    const yearStr = trDate.split('.')[2] || "2026";
-
-                    staff.forEach(worker => {
-                        if (worker && worker.trim() !== "") {
-                            globalWorkersSet.add(worker.trim());
-                            mainShiftsLogPool.push({
-                                workerName: worker.trim(),
-                                date: trDate,
-                                dayName: dayName,
-                                month: monthStr,
-                                year: yearStr,
-                                program: item.program || "",
-                                subDetail: item.description || item.subDetail || "",
-                                hour: item.time || item.hour || "Belirtilmedi",
-                                uniqueKey: item.id || item.uniqueKey || `${trDate}_row_${item.rowIdx || Math.random()}`,
-                                isProbability: item.isDefinite !== undefined ? !item.isDefinite : (item.isProbability || false)
-                            });
-                        }
-                    });
-                });
-
-                timePeriodDaysList = Array.from(distinctDates).sort((a,b) => {
-                    return new Date(convertTRDateToISO(a)) - new Date(convertTRDateToISO(b));
-                });
-
-                // 2. izinler.json Verisini Çek ve Entegre Et
-                try {
-                    const izinlerResponse = await fetch('izinler.json?t=' + new Date().getTime());
-                    leaveRecordsPool = await izinlerResponse.json();
-                    leaveRecordsPool.forEach(lz => {
-                        if (lz.workerName) globalWorkersSet.add(lz.workerName.trim());
-                    });
-                } catch (e) {
-                    console.warn("izinler.json dosyası bulunamadı veya boş, boş havuzla devam ediliyor.");
-                    leaveRecordsPool = [];
-                }
-
-                // 3. UI Bileşenlerini Doldur
-                populateWorkerSelect-menus();
-                detectAndRenderAllConflicts();
-                
-                // Eğer varsayılan bir seçim yapılabiliyorsa ilk personeli göster
-                const selectEl = document.getElementById('user-worker-select');
-                if (selectEl && selectEl.options.length > 1) {
-                    selectEl.selectedIndex = 1;
-                    onUserWorkerChange();
-                }
-
-            } catch (error) {
-                console.error("Sistem yükleme motoru hatası:", error);
-            }
-        }
-
-        // SEÇİM MENÜLERİNİ DOLDURMA
-        function populateWorkerSelect-menus() {
-            const sortedWorkers = Array.from(globalWorkersSet).sort((a, b) => a.localeCompare(b, 'tr'));
+            // Personel Seçimi Sıralı Doldurma
+            const sortedWorkers = Array.from(workers).sort((a,b) => a.localeCompare(b, 'tr'));
+            filterWorkerSelect.innerHTML = '<option value="HEPSİ">-- Tümü (Seçiniz) --</option>' + 
+                sortedWorkers.map(w => `<option value="${w}">${w}</option>`).join('');
             
-            const userSelect = document.getElementById('user-worker-select');
-            const comp1 = document.getElementById('compare-p1');
-            const comp2 = document.getElementById('compare-p2');
+            // Yönetici kıyaslama select kutularını doldurma
+            selectCompareP1.innerHTML = sortedWorkers.map(w => `<option value="${w}">${w}</option>`).join('');
+            if(sortedWorkers.length > 1) {
+                selectCompareP2.innerHTML = sortedWorkers.map(w => `<option value="${w}">${w}</option>`).join('');
+                selectCompareP2.selectedIndex = 1;
+            } else {
+                selectCompareP2.innerHTML = selectCompareP1.innerHTML;
+            }
 
-            // Temizle
-            userSelect.innerHTML = '<option value="">-- Personel Seçiniz --</option>';
-            comp1.innerHTML = '<option value="">-- Personel 1 --</option>';
-            comp2.innerHTML = '<option value="">-- Personel 2 --</option>';
+            // Program Listesi Sıralı Doldurma
+            const sortedPrograms = Array.from(programs).sort((a,b) => a.localeCompare(b, 'tr'));
+            filterProgramSelect.innerHTML = '<option value="HEPSİ">-- Tümü (Seçiniz) --</option>' + 
+                sortedPrograms.map(p => `<option value="${p}">${p}</option>`).join('');
 
-            sortedWorkers.forEach(w => {
-                const opt1 = document.createElement('option'); opt1.value = w; opt1.textContent = w;
-                userSelect.appendChild(opt1);
+            // Tarih Havuzu Sıralı Doldurma
+            const sortedDates = Array.from(dates).sort((a,b) => {
+                const partsA = a.split('.');
+                const partsB = b.split('.');
+                return new Date(partsA[2], partsA[1]-1, partsA[0]) - new Date(partsB[2], partsB[1]-1, partsB[0]);
+            });
+            filterDateSelect.innerHTML = '<option value="HEPSİ">-- Tümü (Seçiniz) --</option>' + 
+                sortedDates.map(d => `<option value="${d}">${d}</option>`).join('');
 
-                const opt2 = document.createElement('option'); opt2.value = w; opt2.textContent = w;
-                comp1.appendChild(opt2);
+            if(sortedDates.length > 0) {
+                textDatePoolInfo.innerText = `Tarih Havuzu Aralığı: ${sortedDates[0]} - ${sortedDates[sortedDates.length - 1]}`;
+            } else {
+                textDatePoolInfo.innerText = "Tarih Aralığı: Dinamik Havuz Boş";
+            }
+        }
 
-                const opt3 = document.createElement('option'); opt3.value = w; opt3.textContent = w;
-                comp2.appendChild(opt3);
+        // FİLTRELEME VE EKRANA YANSITMA ANA FONKSİYONU
+        function executeFilteringAndRender() {
+            const selectedWorker = filterWorkerSelect.value;
+            const selectedProgram = filterProgramSelect.value;
+            const selectedDate = filterDateSelect.value;
+
+            const filteredData = currentJobsActivePool.filter(item => {
+                const matchWorker = (selectedWorker === 'HEPSİ' || (item.workerName && item.workerName.trim() === selectedWorker));
+                const matchProgram = (selectedProgram === 'HEPSİ' || (item.program && item.program.trim() === selectedProgram));
+                const matchDate = (selectedDate === 'HEPSİ' || (item.date && item.date.trim() === selectedDate));
+                return matchWorker && matchProgram && matchDate;
+            });
+
+            // Kronolojik sıralama
+            filteredData.sort((a,b) => {
+                const partsA = a.date.split('.');
+                const partsB = b.date.split('.');
+                const dateCompare = new Date(partsA[2], partsA[1]-1, partsA[0]) - new Date(partsB[2], partsB[1]-1, partsB[0]);
+                if (dateCompare !== 0) return dateCompare;
+                return (a.hour || '').localeCompare(b.hour || '');
+            });
+
+            // İstatistikleri Güncelleme (Filtrelenmiş veriye göre veya genel havuz mantığına göre uyarlanabilir, burada listelenene göredir)
+            updateStatCards(filteredData);
+
+            // Tabloyu Temizle ve Doldur
+            tableJobsBody.innerHTML = '';
+            badgeResultsCount.innerText = `${filteredData.length} İş Kaydı`;
+
+            if(filteredData.length === 0) {
+                wrapperEmptyState.classList.remove('hidden');
+                return;
+            }
+            wrapperEmptyState.classList.add('hidden');
+
+            filteredData.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/80 transition-colors border-b border-slate-100";
+                
+                const statusBadge = item.isProbability 
+                    ? `<span class="inline-flex items-center gap-1 bg-amber-50 text-amber-700 px-2.5 py-1 rounded-full text-[10px] font-black border border-amber-200/60"><i class="fa-solid fa-circle-dot text-[6px] animate-ping"></i> MUHTEMEL</span>`
+                    : `<span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full text-[10px] font-black border border-emerald-200/60"><i class="fa-solid fa-check text-[8px]"></i> KESİN</span>`;
+
+                tr.innerHTML = `
+                    <td class="py-3.5 px-4 font-bold text-slate-900">
+                        <div>${item.date}</div>
+                        <div class="text-[10px] text-slate-400 font-medium">${item.dayName || ''}</div>
+                    </td>
+                    <td class="py-3.5 px-4 font-extrabold text-indigo-950">${item.workerName || ''}</td>
+                    <td class="py-3.5 px-4 font-bold text-slate-700 max-w-xs truncate">${item.program || ''}</td>
+                    <td class="py-3.5 px-4 text-slate-500 font-medium max-w-xs truncate">${item.subDetail || '<span class="text-slate-300 italic">Mevcut Değil</span>'}</td>
+                    <td class="py-3.5 px-4 text-center font-black text-slate-600">${item.hour || 'Belirtilmedi'}</td>
+                    <td class="py-3.5 px-4 text-center">${statusBadge}</td>
+                `;
+                tableJobsBody.appendChild(tr);
             });
         }
 
-        // SEKMELER ARASI GEÇİŞ
-        function switchView(targetView) {
-            currentActiveView = targetView;
-            if (targetView === 'user') {
-                document.getElementById('panel-user').classList.remove('hidden');
-                document.getElementById('panel-admin').classList.add('hidden');
-                document.getElementById('btn-user-view').className = "bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-md";
-                document.getElementById('btn-admin-view').className = "bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-white/10 flex items-center gap-1.5 shadow-sm";
+        // İSTATİSTİK KARTLARI GÜNCELLEME
+        function updateStatCards(dataList) {
+            const total = dataList.length;
+            const exact = dataList.filter(i => !i.isProbability).length;
+            const prob = dataList.filter(i => i.isProbability).length;
+            
+            const activeWorkers = new Set();
+            dataList.forEach(i => { if(i.workerName) activeWorkers.add(i.workerName.trim()); });
+
+            statTotalJobs.innerText = total;
+            statExactJobs.innerText = exact;
+            statProbJobs.innerText = prob;
+            statActiveWorkers.innerText = activeWorkers.size;
+        }
+
+        // EVENT LISTENERS (Filtre Değişimleri)
+        filterWorkerSelect.addEventListener('change', executeFilteringAndRender);
+        filterProgramSelect.addEventListener('change', executeFilteringAndRender);
+        filterDateSelect.addEventListener('change', executeFilteringAndRender);
+        
+        document.getElementById('btn-clear-filters').addEventListener('click', () => {
+            filterWorkerSelect.value = 'HEPSİ';
+            filterProgramSelect.value = 'HEPSİ';
+            filterDateSelect.value = 'HEPSİ';
+            executeFilteringAndRender();
+        });
+
+        // YÖNETİCİ PANELİ AÇMA/KAPAMA
+        btnToggleAdmin.addEventListener('click', () => {
+            if(sectionAdminPanel.classList.contains('hidden')) {
+                sectionAdminPanel.classList.remove('hidden');
+                textToggleAdmin.innerText = "Paneli Gizle";
+                triggerComparisonAnalysis();
             } else {
-                document.getElementById('panel-user').classList.add('hidden');
-                document.getElementById('panel-admin').classList.remove('hidden');
-                document.getElementById('btn-user-view').className = "bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-white/10 flex items-center gap-1.5 shadow-sm";
-                document.getElementById('btn-admin-view').className = "bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-md";
-                renderComparison();
+                sectionAdminPanel.classList.add('hidden');
+                textToggleAdmin.innerText = "Yönetici Paneli";
             }
-        }
+        });
 
-        // PERSONEL DEĞİŞİNCE LİSTELEME MOTORU
-        function onUserWorkerChange() {
-            const selectedWorker = document.getElementById('user-worker-select').value;
-            const flowContainer = document.getElementById('user-schedule-flow');
-            const resultInfoCard = document.getElementById('user-result-info');
-
-            if (!selectedWorker) {
-                flowContainer.innerHTML = '';
-                resultInfoCard.classList.add('hidden');
-                return;
-            }
-
-            resultInfoCard.classList.remove('hidden');
-            document.getElementById('user-result-title').textContent = selectedWorker;
-
-            // Filtrelemeler
-            const workerShifts = mainShiftsLogPool.filter(s => s.workerName === selectedWorker);
-            const workerLeaves = leaveRecordsPool.filter(l => l.workerName === selectedWorker);
-
-            const countKesin = workerShifts.filter(s => !s.isProbability).length;
-            const countTaslak = workerShifts.filter(s => s.isProbability).length;
-            const countIzin = workerLeaves.length;
-
-            document.getElementById('user-stat-kesin').textContent = countKesin;
-            document.getElementById('user-stat-taslak').textContent = countTaslak;
-            document.getElementById('user-stat-izin').textContent = countIzin;
-
-            document.getElementById('user-result-subtitle').textContent = `Toplam ${workerShifts.length} planlanmış görevi bulunuyor.`;
-
-            // Günlük Akış Oluşturma
-            // Tüm benzersiz tarihleri harmanlayalım
-            const allDays = Array.from(new Set([
-                ...mainShiftsLogPool.map(s => s.date),
-                ...workerLeaves.map(l => convertISOToTRDate(l.date))
-            ])).sort((a,b) => new Date(convertTRDateToISO(a)) - new Date(convertTRDateToISO(b)));
-
-            if (allDays.length === 0) {
-                flowContainer.innerHTML = `<div class="text-center p-8 bg-white rounded-2xl text-xs font-semibold text-slate-400 border border-slate-200">Bu personel adına girilmiş hiçbir iş veya izin kaydı yok.</div>`;
-                return;
-            }
-
-            flowContainer.innerHTML = allDays.map(dayStr => {
-                const dayShifts = workerShifts.filter(s => s.date === dayStr);
-                const dayLeaves = workerLeaves.filter(l => convertISOToTRDate(l.date) === dayStr);
-                const trDayName = getTurkishDayName(dayStr);
-
-                if (dayShifts.length === 0 && dayLeaves.length === 0) return '';
-
-                let innerContent = '';
-                
-                // İzin durumu varsa bas
-                if (dayLeaves.length > 0) {
-                    innerContent += `
-                        <div class="bg-sky-50 border border-sky-100 p-3 rounded-xl flex items-center gap-2.5 text-sky-800">
-                            <i class="fa-solid fa-umbrella-beach text-base text-sky-500"></i>
-                            <div>
-                                <div class="text-xs font-black uppercase tracking-wider">TÜM GÜN İZİNLİ</div>
-                                <div class="text-[11px] font-medium opacity-80">${dayLeaves[0].type || 'İzin Kaydı'}</div>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                // Görevler varsa bas
-                if (dayShifts.length > 0) {
-                    innerContent += dayShifts.map(shift => `
-                        <div class="bg-slate-50/70 p-3 rounded-xl border border-slate-100 flex flex-col justify-between gap-2">
-                            <div class="flex justify-between items-start gap-4">
-                                <div>
-                                    <span class="inline-block text-[9px] bg-slate-200/80 text-slate-600 font-bold px-1.5 py-0.5 rounded mb-1"><i class="fa-regular fa-clock mr-1"></i>${shift.hour}</span>
-                                    <h4 class="font-bold text-xs sm:text-sm text-slate-800 leading-tight">${shift.program}</h4>
-                                </div>
-                                <span class="text-[9px] font-black tracking-wider px-2 py-0.5 rounded shrink-0 ${shift.isProbability ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}">
-                                    ${shift.isProbability ? 'TASLAK' : 'KESİN'}
-                                </span>
-                            </div>
-                            ${shift.subDetail ? `<p class="text-[11px] text-slate-500 font-medium bg-white px-2 py-1.5 rounded border border-slate-100/60"><i class="fa-solid fa-info-circle text-slate-400 mr-1"></i>${shift.subDetail}</p>` : ''}
-                        </div>
-                    `).join('');
-                }
-
-                return `
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 space-y-3">
-                        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-                            <div class="flex items-center gap-2">
-                                <i class="fa-regular fa-calendar-check text-indigo-600 text-sm"></i>
-                                <span class="text-xs font-black text-slate-700">${dayStr}</span>
-                            </div>
-                            <span class="text-[10px] font-extrabold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">${trDayName}</span>
-                        </div>
-                        <div class="space-y-2">${innerContent}</div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // PERSONEL KIYASLAMA GRAFİK MOTORU
-        function renderComparison() {
-            const p1 = document.getElementById('compare-p1').value;
-            const p2 = document.getElementById('compare-p2').value;
-            const resBox = document.getElementById('comparison-result-box');
-            const chartCont = document.getElementById('admin-chart-container');
-
-            if (!p1 || !p2) {
-                resBox.innerHTML = "Lütfen yük kıyaslaması yapmak için yukarıdan iki farklı personel seçimi yapınız.";
-                chartCont.classList.add('hidden');
-                return;
-            }
-
-            if (p1 === p2) {
-                resBox.innerHTML = "<span class='text-amber-600 font-bold'><i class='fa-solid fa-circle-exclamation mr-1'></i> Aynı personeli kendisiyle kıyaslayamazsınız.</span>";
-                chartCont.classList.add('hidden');
-                return;
-            }
-
-            chartCont.classList.remove('hidden');
-
-            const count1 = mainShiftsLogPool.filter(s => s.workerName === p1 && !s.isProbability).length;
-            const count2 = mainShiftsLogPool.filter(s => s.workerName === p2 && !s.isProbability).length;
-
-            let winnerText = "";
-            if (count1 === count2) winnerText = "İki personelin de kesinleşmiş görev yükü tamamen eşit.";
-            else if (count1 > count2) winnerText = `${p1}, ${p2} personeline göre <strong class="text-indigo-600">${count1 - count2} adet kesin iş</strong> daha fazla üstlenmiş durumda.`;
-            else winnerText = `${p2}, ${p1} personeline göre <strong class="text-purple-600">${count2 - count1} adet kesin iş</strong> daha fazla üstlenmiş durumda.`;
-
-            resBox.innerHTML = `
-                <div class="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-2">
-                    <div><i class="fa-solid fa-scale-balanced text-indigo-600 mr-1.5 text-sm"></i><strong>Kıyas Sonucu:</strong> ${winnerText}</div>
-                    <div class="flex gap-4 bg-white p-2 rounded-lg border border-indigo-100 shadow-sm text-[11px]">
-                        <div>${p1}: <span class="text-indigo-600 font-black">${count1} İş</span></div>
-                        <div class="border-l border-slate-200 pl-4">${p2}: <span class="text-purple-600 font-black">${count2} İş</span></div>
-                    </div>
-                </div>
-            `;
-
-            if (chartInstanceReference) chartInstanceReference.destroy();
-            chartInstanceReference = new Chart(document.getElementById('canvas-admin-chart').getContext('2d'), {
+        // GRAFİK İLK KURULUMU
+        function initChartStructure() {
+            const ctx = document.getElementById('canvas-admin-chart').getContext('2d');
+            chartInstanceReference = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: [p1, p2],
+                    labels: ['Personel 1', 'Personel 2'],
                     datasets: [{
                         label: 'Toplam Kesin İş Sayısı',
-                        data: [count1, count2],
+                        data: [0, 0],
                         backgroundColor: ['#4f46e5', '#a855f7'],
                         borderRadius: 6,
-                        barThickness: 50
+                        barThickness: 45
                     }]
                 },
                 options: {
@@ -438,122 +548,118 @@
             });
         }
 
-        // ÇAKIŞMA VE İZİNLİ GÖREV ALERTLERİ
-        function detectAndRenderAllConflicts() {
-            const alertsList = document.getElementById('conflict-alerts-list');
-            alertsList.innerHTML = '';
+        // KIYASLAMA ANALİZ TETİKLEYİCİSİ
+        function triggerComparisonAnalysis() {
+            const p1 = selectCompareP1.value;
+            const p2 = selectCompareP2.value;
+            
+            if(!p1 || !p2) return;
 
-            const conflicts = [];
+            // Sadece kesinleşmiş iş hacimlerini karşılaştırır
+            const count1 = currentJobsActivePool.filter(i => i.workerName === p1 && !i.isProbability).length;
+            const count2 = currentJobsActivePool.filter(i => i.workerName === p2 && !i.isProbability).length;
 
-            // 1. İzinli Gün Görev Çakışması Kontrolü
-            mainShiftsLogPool.forEach(shift => {
-                const isLeaveConflict = leaveRecordsPool.some(leave => 
-                    leave.workerName === shift.workerName && 
-                    convertISOToTRDate(leave.date) === shift.date
-                );
-
-                if (isLeaveConflict) {
-                    conflicts.push(`
-                        <div class="p-2.5 bg-rose-50 border border-rose-100 rounded-xl text-rose-800 flex items-start gap-2">
-                            <i class="fa-solid fa-triangle-exclamation text-rose-500 mt-0.5 shrink-0"></i>
-                            <div>
-                                <strong>${shift.workerName}</strong>, <span class="underline">${shift.date}</span> tarihinde izinli görünüyor ancak <strong>"${shift.program}"</strong> görevine yazılmış!
-                            </div>
-                        </div>
-                    `);
-                }
-            });
-
-            // 2. Aynı Gün Birden Fazla Yoğun Görev Kontrolü (Aynı saat veya satır çakışması)
-            const groupedMap = {};
-            mainShiftsLogPool.forEach(s => {
-                const key = `${s.workerName}_${s.date}_${s.hour}`;
-                if (!groupedMap[key]) groupedMap[key] = [];
-                groupedMap[key].push(s);
-            });
-
-            Object.keys(groupedMap).forEach(k => {
-                if (groupedMap[k].length > 1 && !k.includes('Belirtilmedi')) {
-                    const sample = groupedMap[k][0];
-                    const progs = groupedMap[k].map(x => `"${x.program}"`).join(' ve ');
-                    conflicts.push(`
-                        <div class="p-2.5 bg-amber-50 border border-amber-100 rounded-xl text-amber-800 flex items-start gap-2">
-                            <i class="fa-solid fa-clock-rotate-left text-amber-500 mt-0.5 shrink-0"></i>
-                            <div>
-                                <strong>${sample.workerName}</strong> için <span class="font-bold">${sample.date} - ${sample.hour}</span> saatinde saat çakışması var: ${progs} görevleri üst üste biniyor.
-                            </div>
-                        </div>
-                    `);
-                }
-            });
-
-            if (conflicts.length === 0) {
-                alertsList.innerHTML = `
-                    <div class="text-center p-4 bg-emerald-50 text-emerald-700 font-bold rounded-xl border border-emerald-100/60 flex items-center justify-center gap-1.5">
-                        <i class="fa-solid fa-circle-check"></i> Harika! Şu an planlamada hiçbir çakışma veya izin ihlali bulunmuyor.
-                    </div>
-                `;
+            let winnerText = "";
+            if(count1 > count2) {
+                winnerText = `<strong class="text-indigo-600">${p1}</strong>, ${p2} personeline göre <span class="font-bold text-slate-900">${count1 - count2} adet</span> daha fazla kesin göreve sahiptir.`;
+            } else if(count2 > count1) {
+                winnerText = `<strong class="text-purple-600">${p2}</strong>, ${p1} personeline göre <span class="font-bold text-slate-900">${count2 - count1} adet</span> daha fazla kesin göreve sahiptir.`;
             } else {
-                alertsList.innerHTML = conflicts.join('');
+                winnerText = `Her iki personelin de kesinleşmiş iş yükü eşittir (<span class="font-bold text-slate-900">${count1} İş</span>).`;
+            }
+
+            wrapperCompareResults.innerHTML = `
+                <div class="flex flex-col gap-2">
+                    <div class="bg-white p-2.5 rounded-lg border border-slate-200/70 shadow-2xs">
+                        <i class="fa-solid fa-scale-balanced text-indigo-600 mr-1"></i><strong>Sonuç:</strong> ${winnerText}
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-center text-[11px] font-bold mt-1">
+                        <div class="bg-indigo-50 text-indigo-700 p-1.5 rounded-md">${p1}: ${count1} İş</div>
+                        <div class="bg-purple-50 text-purple-700 p-1.5 rounded-md">${p2}: ${count2} İş</div>
+                    </div>
+                </div>
+            `;
+
+            if (chartInstanceReference) {
+                chartInstanceReference.data.labels = [p1, p2];
+                chartInstanceReference.data.datasets[0].data = [count1, count2];
+                chartInstanceReference.update();
             }
         }
 
-        // EXCEL IMPORT MOTORU (Yeni Dosya Yükleme)
-        function handleExcelImport(event) {
-            const input = event.target;
-            if (!input.files || input.files.length === 0) return;
+        btnTriggerCompare.addEventListener('click', triggerComparisonAnalysis);
 
-            const file = input.files[0];
+        // DİNAMİK EXCEL PROGRAMI OKUMA MODÜLÜ
+        excelFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
             const reader = new FileReader();
-
             reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                
-                // İlk sayfayı oku
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                
-                // JSON'a çevir
-                const excelRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                console.log("Excel'den ham okunan satır sayısı:", excelRows.length);
-                
-                // Sitenizin orijinal Excel okuma algoritmasını tetikleyebilirsiniz.
-                alert("Excel dosyası başarıyla çözümlendi! Değişikliklerin kalıcı olması için projenizdeki dropbox senkronizasyonunu tetikleyebilirsiniz.");
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    // Hücre dizisinden JSON'a çevirme
+                    const rawJson = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+                    
+                    if(rawJson.length === 0) {
+                        alert("Excel dosyası boş veya okunamadı.");
+                        return;
+                    }
+
+                    // Dinamik Excel Sütun Haritalama Algoritması
+                    const parsedJobs = [];
+                    rawJson.forEach(row => {
+                        // Sütun anahtarlarını normalize etme
+                        const keys = Object.keys(row);
+                        let workerName = row["workerName"] || row["Personel"] || row["Ad Soyad"] || "";
+                        let program = row["program"] || row["Program"] || row["İş Adı"] || row["Görev"] || "";
+                        let date = row["date"] || row["Tarih"] || "";
+                        let dayName = row["dayName"] || row["Gün"] || "";
+                        let subDetail = row["subDetail"] || row["subDescription"] || row["Detay"] || row["Açıklama"] || "";
+                        let hour = row["hour"] || row["Saat"] || "Belirtilmedi";
+                        let isProbability = row["isProbability"] !== undefined ? (row["isProbability"] === true || String(row["isProbability"]).toLowerCase() === 'true') : false;
+
+                        // Eğer anahtar kelimeler tam eşleşmediyse ilk mantıklı sütunları yakalama
+                        if(!workerName && keys.length > 0) workerName = row[keys[0]];
+                        if(!program && keys.length > 1) program = row[keys[1]];
+                        if(!date && keys.length > 2) date = row[keys[2]];
+
+                        if(String(workerName).trim() && String(program).trim()) {
+                            parsedJobs.push({
+                                workerName: String(workerName).toUpperCase().trim(),
+                                date: String(date).trim() || new Date().toLocaleDateString('tr-TR'),
+                                dayName: String(dayName).trim(),
+                                month: date ? String(date).split('.')[1] : "",
+                                year: date ? String(date).split('.')[2] : "",
+                                program: String(program).trim(),
+                                subDetail: String(subDetail).trim(),
+                                hour: String(hour).trim(),
+                                uniqueKey: `${date}_dynamic_${Math.random().toString(36).substr(2, 4)}`,
+                                isProbability: isProbability
+                            });
+                        }
+                    });
+
+                    if(parsedJobs.length > 0) {
+                        currentJobsActivePool = parsedJobs; // Havuzu yeni verilerle güncelle
+                        buildFilterOptions();
+                        executeFilteringAndRender();
+                        if(!sectionAdminPanel.classList.contains('hidden')) triggerComparisonAnalysis();
+                        alert(`${parsedJobs.length} yeni görev kaydı başarıyla sisteme aktarıldı ve havuz güncellendi.`);
+                    } else {
+                        alert("Dosya formatı eşleşmedi veya geçerli iş logu satırı bulunamadı.");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("Excel dosyası işlenirken hata oluştu. Lütfen sütun yapılarını kontrol edin.");
+                }
             };
-
             reader.readAsArrayBuffer(file);
-        }
-
-        // EXCEL EXPORT MOTORU (Mevcut Veriyi İndirme)
-        function exportCurrentDataToExcel() {
-            if (mainShiftsLogPool.length === 0) {
-                alert("Dışa aktarılacak herhangi bir veri bulunamadı.");
-                return;
-            }
-
-            const formattedRows = mainShiftsLogPool.map(s => ({
-                'Personel Adı': s.workerName,
-                'Tarih': s.date,
-                'Gün': s.dayName,
-                'Program / Görev': s.program,
-                'Saat': s.hour,
-                'Açıklama / Detay': s.subDetail,
-                'Durum': s.isProbability ? 'Taslak / Olasılık' : 'Kesin Görev'
-            }));
-
-            const worksheet = XLSX.utils.json_to_sheet(formattedRows);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Çalışma Planı");
-
-            // Dosyayı İndirt
-            XLSX.writeFile(workbook, `TRT_Ses_Servisi_Plani_${new Date().toISOString().slice(0,10)}.xlsx`);
-        }
-
-        // Sayfa açıldığında otomatik olarak motoru ateşle
-        window.onload = function() {
-            runSystemInitializer();
-        };
+        });
     </script>
 </body>
 </html>
