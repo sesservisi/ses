@@ -317,6 +317,17 @@
             return new Date(cleanStr);
         }
 
+        const MONTH_NAMES = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+        const TURKISH_DAYS = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
+        
+        const USER_EXPLICIT_25 = [
+            "H.BAKIRCI", "A.KOÇ", "C.SALTIK", "D.A.SALTIK", "A.AŞİROĞLU", 
+            "E.YURDAGÜL", "A.DEMİRKAYA", "F.BOZKURT", "H.HEKİMHAN", "Ş.ÖNALAN", 
+            "S.ARAS", "M.DİNER", "D.YÖNDEM", "E.KOL", "A.C.PEHLİVAN", 
+            "T.ERDEN", "S.CÜREBAL", "S.AKDAĞ", "A.KORUN", "Y.ŞAHİN", 
+            "K.GÜNGÖR", "Ç.TAŞ", "E.DÖNMEZ", "Ö.KARAKUŞ", "E.SAVAŞ"
+        ].sort();
+
         document.addEventListener("DOMContentLoaded", function() {
             setupExcelUploadListener();
             fetchExcelFromGithub(false);
@@ -606,6 +617,9 @@
             });
         }
 
+        // ==========================================
+        // DÜZELTİLMİŞ VE EKSİKSİZ FİLTRELEME
+        // ==========================================
         function applyLogFilters() {
             const selectedPersonnel = document.getElementById('admin-staff-filter') ? document.getElementById('admin-staff-filter').value : 'ALL';
             const selectedMonth = document.getElementById('filter-month') ? document.getElementById('filter-month').value : 'ALL';
@@ -618,6 +632,8 @@
             let filterEndDate = endDateInput ? safeParseISO(endDateInput).setHours(23,59,59,999) : null;
 
             const filteredTasks = globalShiftsLogPool.filter(task => {
+                if (task.isProbability) return false;
+                
                 if (selectedPersonnel !== 'ALL') {
                     const taskPersonnel = task.workerName ? task.workerName.trim().toUpperCase() : '';
                     const searchPersonnel = selectedPersonnel.trim().toUpperCase();
@@ -663,9 +679,108 @@
             document.getElementById('metric-active-leaves-count').textContent = totalLeaveDaysCount + " Gün";
             document.getElementById('filtered-rows-badge-count').textContent = filteredTasks.length + " Satır Listelendi";
 
-            renderAdminLogTableRows(filteredTasks);
-            renderAdminSummaryDistributionList(filteredTasks);
-            updateAdminDashboardCharts(filteredTasks);
+            const tBody = document.getElementById('admin-log-table-rows');
+            const sideHeader = document.getElementById('side-table-header');
+            const sidePanelTitle = document.getElementById('side-panel-title');
+            const chartMainTitle = document.getElementById('chart-main-title');
+            const filterWrapper = document.getElementById('chart-timeline-filter-wrapper');
+
+            if (selectedPersonnel === "ALL") {
+                if(filterWrapper) filterWrapper.classList.add('hidden');
+                if(document.getElementById('panel-detailed-job-history')) document.getElementById('panel-detailed-job-history').classList.add('hidden');
+                if(document.getElementById('label-total-shifts')) document.getElementById('label-total-shifts').textContent = "Filtreli Kesin Görev";
+                if(chartMainTitle) chartMainTitle.innerHTML = `<i class="fa-solid fa-chart-column text-orange-500 mr-1"></i> Yoğunluk Grafiği`;
+                if(sidePanelTitle) sidePanelTitle.innerHTML = `<i class="fa-solid fa-list-ol text-sky-500 mr-1"></i> Görev Dağılım Sıralaması`;
+                if(sideHeader) sideHeader.innerHTML = `<th class="p-2.5">Detay Başlığı</th><th class="p-2.5 text-center">Kesin İş</th>`;
+
+                renderAdminSummaryDistributionList(filteredTasks);
+                updateAdminDashboardCharts(filteredTasks);
+            } else {
+                if(filterWrapper) filterWrapper.classList.remove('hidden');
+                if(document.getElementById('label-total-shifts')) document.getElementById('label-total-shifts').textContent = selectedPersonnel + " Toplam İş";
+                document.getElementById('metric-total-staff').textContent = "1 Personel Aktif";
+                
+                if(sideHeader) sideHeader.innerHTML = `<th class="p-2.5">Zaman Kırılımı</th><th class="p-2.5 text-center">İş Sayısı</th>`;
+
+                let timeDistribution = {};
+                let chartColor = '#10b981';
+
+                if (activeChartTimelineScaleMode === 'weekly') {
+                    if(chartMainTitle) chartMainTitle.innerHTML = `<i class="fa-solid fa-chart-bar text-orange-500 mr-1"></i> ${selectedPersonnel} - Haftalık Görev Dağılım Grafiği`;
+                    if(sidePanelTitle) sidePanelTitle.innerHTML = `<i class="fa-solid fa-calendar-week text-sky-500 mr-1"></i> Hafta Kırılım Analizi`;
+                    chartColor = '#f97316';
+                    filteredTasks.forEach(log => {
+                        let dateObj = safeParseISO(log.date);
+                        if(dateObj) {
+                            let wNum = getWeekNumber(dateObj);
+                            let yr = dateObj.getFullYear();
+                            timeDistribution[`${wNum}. Hafta (${yr})`] = (timeDistribution[`${wNum}. Hafta (${yr})`] || 0) + 1;
+                        }
+                    });
+                } else if (activeChartTimelineScaleMode === 'monthly') {
+                    if(chartMainTitle) chartMainTitle.innerHTML = `<i class="fa-solid fa-chart-line text-emerald-500 mr-1"></i> ${selectedPersonnel} - Aylık Görev Dağılım Grafiği`;
+                    if(sidePanelTitle) sidePanelTitle.innerHTML = `<i class="fa-solid fa-calendar-check text-sky-500 mr-1"></i> Ay Kırılım Analizi`;
+                    chartColor = '#10b981';
+                    filteredTasks.forEach(log => {
+                        let dateObj = safeParseISO(log.date);
+                        if(dateObj) {
+                            let mIdx = dateObj.getMonth();
+                            let yr = dateObj.getFullYear();
+                            let key = MONTH_NAMES[mIdx >= 0 && mIdx < 12 ? mIdx : 0] + " " + yr;
+                            timeDistribution[key] = (timeDistribution[key] || 0) + 1;
+                        }
+                    });
+                } else if (activeChartTimelineScaleMode === 'yearly') {
+                    if(chartMainTitle) chartMainTitle.innerHTML = `<i class="fa-solid fa-chart-pie text-indigo-500 mr-1"></i> ${selectedPersonnel} - Yıllık Görev Dağılım Grafiği`;
+                    if(sidePanelTitle) sidePanelTitle.innerHTML = `<i class="fa-solid fa-calendar mr-2 text-sky-500"></i> Yıl Kırılım Analizi`;
+                    chartColor = '#4f46e5';
+                    filteredTasks.forEach(log => {
+                        let dateObj = safeParseISO(log.date);
+                        if(dateObj) {
+                            let yr = dateObj.getFullYear();
+                            timeDistribution[yr] = (timeDistribution[yr] || 0) + 1;
+                        }
+                    });
+                }
+
+                let periodsArr = Object.keys(timeDistribution).map(k => ({ period: k, count: timeDistribution[k] }));
+                periodsArr.sort((a, b) => a.period.localeCompare(b.period, undefined, { numeric: true, sensitivity: 'base' }));
+                
+                const container = document.getElementById('admin-summary-list-container');
+                if(container) {
+                    if(periodsArr.length === 0) {
+                        container.innerHTML = `<p class="text-xs text-slate-400 font-bold py-4 text-center">Bu dönemde kayıtlı iş yok.</p>`;
+                        document.getElementById('metric-max-staff').textContent = "Veri Yok";
+                    } else {
+                        container.innerHTML = periodsArr.map(p => `
+                            <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100 mb-1.5 text-xs font-bold">
+                                <span class="text-slate-700"><i class="fa-regular fa-clock mr-2 text-slate-400"></i>${p.period}</span>
+                                <span class="text-emerald-600">${p.count} İş</span>
+                            </div>
+                        `).join('');
+                        let maxBusy = [...periodsArr].sort((a,b) => b.count - a.count)[0];
+                        document.getElementById('metric-max-staff').textContent = `En Yoğun: ${maxBusy.period}`;
+                    }
+                }
+
+                filteredTasks.sort((a,b) => {
+                    let dA = safeParseISO(a.date);
+                    let dB = safeParseISO(b.date);
+                    if(dA && dB) return dA.getTime() - dB.getTime();
+                    return 0;
+                });
+                
+                renderAdminLogTableRows(filteredTasks);
+                if(document.getElementById('panel-detailed-job-history')) document.getElementById('panel-detailed-job-history').classList.remove('hidden');
+                renderAdminChart(periodsArr.map(p => p.period), periodsArr.map(p => p.count), "İş Sayısı", chartColor);
+            }
+        }
+
+        function getWeekNumber(d) {
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+            var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+            return Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
         }
 
         function syncDateFiltersFromDropdowns() {
@@ -778,11 +893,15 @@
             activeChartTimelineScaleMode = mode;
             document.getElementById('btn-scale-weekly').className = "bg-slate-100 text-slate-600 hover:bg-slate-200 text-[10px] font-black px-3 py-1.5 rounded-lg transition-all";
             document.getElementById('btn-scale-monthly').className = "bg-slate-100 text-slate-600 hover:bg-slate-200 text-[10px] font-black px-3 py-1.5 rounded-lg transition-all";
+            const yearlyBtn = document.getElementById('btn-scale-yearly');
+            if(yearlyBtn) yearlyBtn.className = "bg-slate-100 text-slate-600 hover:bg-slate-200 text-[10px] font-black px-3 py-1.5 rounded-lg transition-all";
 
             if (mode === 'weekly') {
                 document.getElementById('btn-scale-weekly').className = "bg-orange-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg transition-all shadow-sm";
-            } else {
+            } else if (mode === 'monthly') {
                 document.getElementById('btn-scale-monthly').className = "bg-orange-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg transition-all shadow-sm";
+            } else if (mode === 'yearly' && yearlyBtn) {
+                yearlyBtn.className = "bg-orange-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg transition-all shadow-sm";
             }
             applyLogFilters();
         }
@@ -818,13 +937,13 @@
             if (!box) return;
             box.classList.remove('hidden');
 
-            const count1 = globalShiftsLogPool.filter(t => t.workerName === p1).length;
-            const count2 = globalShiftsLogPool.filter(t => t.workerName === p2).length;
+            const count1 = globalShiftsLogPool.filter(t => t.workerName === p1 && !t.isProbability).length;
+            const count2 = globalShiftsLogPool.filter(t => t.workerName === p2 && !t.isProbability).length;
 
             let winnerText = "";
-            if (count1 > count2) winnerText = `${p1}, ${p2} personeline göre <span class="text-emerald-600 font-extrabold">${count1 - count2} adet daha fazla</span> iş yüküne sahip.`;
-            else if (count2 > count1) winnerText = `${p2}, ${p1} personeline göre <span class="text-emerald-600 font-extrabold">${count2 - count1} adet daha fazla</span> iş yüküne sahip.`;
-            else winnerText = `Her iki personelin de genel iş yükü dengede (<span class="text-indigo-600">${count1} iş</span>).`;
+            if (count1 > count2) winnerText = `${p1}, ${p2} personeline göre <span class="text-emerald-600 font-extrabold">${count1 - count2} adet daha fazla</span> kesin iş yüküne sahip.`;
+            else if (count2 > count1) winnerText = `${p2}, ${p1} personeline göre <span class="text-emerald-600 font-extrabold">${count2 - count1} adet daha fazla</span> kesin iş yüküne sahip.`;
+            else winnerText = `Her iki personelin de genel kesin iş yükü dengede (<span class="text-indigo-600">${count1} iş</span>).`;
 
             box.innerHTML = `
                 <div class="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-2">
