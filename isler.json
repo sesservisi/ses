@@ -1,398 +1,194 @@
 [
   {
-    "id": "2026-06-04_B_19",
-    "isoDate": "2026-06-04",
-    "colLabel": "B",
-    "rowIdx": 19,
-    "program": "SERKAN ÇAĞRI SAHNESİ",
-    "description": "",
-    "time": "14.00",
-    "staffList": ["A.DEMİRKAYA", "E.YURDAGÜL", "A.KOÇ", "Y.ŞAHİN", "Ç.TAŞ"],
-    "isDefinite": true
+    "tarih": "2026-06-26",
+    "personel": "A.KOÇ",
+    "gorev": "CENK VE ERDEM İLE",
+    "detay": "İç Yapımlar Stüdyosu - Ayazağa, Canlı Yayın / Kayıt Görevi"
   },
   {
-    "id": "2026-06-04_B_30",
-    "isoDate": "2026-06-04",
-    "colLabel": "B",
-    "rowIdx": 30,
-    "program": "YAĞLI GÜREŞ",
-    "description": "",
-    "time": "Belirtilmedi",
-    "staffList": ["H.HEKİMHAN", "Ş.ÖNALAN", "S.AKDAĞ"],
-    "isDefinite": true
+    "tarih": "2026-06-26",
+    "personel": "A.DEMİRKAYA",
+    "gorev": "SERKAN ÇAĞRI SAHNESİ",
+    "detay": "2. Kayıt - KAYIT Görevi"
   },
   {
-    "id": "2026-06-04_B_40",
-    "isoDate": "2026-06-04",
-    "colLabel": "B",
-    "rowIdx": 40,
-    "program": "SALON KURULUM",
-    "description": "",
-    "time": "Belirtilmedi",
-    "staffList": ["H.BAKIRCI", "Ö.KARAKUŞ", "S.CÜREBAL", "T.ERDEN"],
-    "isDefinite": true
+    "tarih": "2026-06-26",
+    "personel": "Ö.KARAKUŞ",
+    "gorev": "SERKAN ÇAĞRI SAHNESİ",
+    "detay": "2. Kayıt - PA Görevi"
   },
   {
-    "id": "2026-06-04_B_52",
-    "isoDate": "2026-06-04",
-    "colLabel": "B",
-    "rowIdx": 52,
-    "program": "SIFIR ATIK ÖZEL YAYIN",
-    "description": "",
-    "time": "12.00",
-    "staffList": ["S.ARAS", "E.KOL", "M.DİNER"],
-    "isDefinite": true
+    "tarih": "2026-06-26",
+    "personel": "D.A.SALTIK",
+    "gorev": "SERKAN ÇAĞRI SAHNESİ",
+    "detay": "2. Kayıt - REJİ Görevi"
   },
   {
-    "id": "2026-06-04_B_67",
-    "isoDate": "2026-06-04",
-    "colLabel": "B",
-    "rowIdx": 67,
-    "program": "SERKAN ÇAĞRI SAHNESİ",
-    "description": "",
-    "time": "17.00",
-    "staffList": ["C.SALTIK", "E.DÖNMEZ", "D.A.SALTIK", "K.GÜNGÖR", "A.KORUN"],
-    "isDefinite": true
+    "tarih": "2026-06-26",
+    "personel": "A.KORUN",
+    "gorev": "İNSAN İNSANIN YURDUDUR",
+    "detay": "Aktüel Çekim - Ses Ekibi"
   },
   {
-    "id": "2026-06-05_B_19",
-    "isoDate": "2026-06-05",
-    "colLabel": "B",
-    "rowIdx": 19,
-    "program": "SERKAN ÇAĞRI SAHNESİ",
-    "description": "1. KAYIT",
-    "time": "14.00",
-    "staffList": ["A.DEMİRKAYA", "E.YURDAGÜL", "A.KOÇ", "Y.ŞAHİN", "Ç.TAŞ"],
-    "isDefinite": true
+    "tarih": "2026-06-25",
+    "personel": "T.ERDEN",
+    "gorev": "İSTANBUL'DA ZAMAN",
+    "detay": "Aktüel Çekim Görevi"
   },
   {
-    "id": "2026-06-05_B_30",
-    "isoDate": "2026-06-05",
-    "colLabel": "B",
-    "rowIdx": 30,
-    "program": "YAĞLI GÜREŞ",
-    "description": "Manisa / TIR",
-    "time": "Belirtilmedi",
-    "staffList": ["H.HEKİMHAN", "Ş.ÖNALAN", "S.AKDAĞ"],
-    "isDefinite": true
+    "tarih": "2026-06-24",
+    "personel": "C.SALTIK",
+    "gorev": "KADIN GÖZÜYLE YAŞAM x3",
+    "detay": "İç Yapımlar Stüdyosu - Ayazağa, Kayıt Masası"
   },
   {
-    "id": "2026-06-05_B_40",
-    "isoDate": "2026-06-05",
-    "colLabel": "B",
-    "rowIdx": 40,
-    "program": "SALON KURULUM",
-    "description": "SU TOPU / Galatasaray Kalamış Yüzme Havuzu",
-    "time": "Belirtilmedi",
-    "staffList": ["H.BAKIRCI", "Ö.KARAKUŞ", "S.CÜREBAL", "T.ERDEN"],
-    "isDefinite": true
+    "tarih": "2026-06-24",
+    "personel": "A.DEMİRKAYA",
+    "gorev": "İSTANBUL'DA ZAMAN",
+    "detay": "Aktüel Çekim - KAYIT Ekibi"
   },
   {
-    "id": "2026-06-05_B_52",
-    "isoDate": "2026-06-05",
-    "colLabel": "B",
-    "rowIdx": 52,
-    "program": "SIFIR ATIK ÖZEL YAYIN",
-    "description": "Atatürk Havalimanı",
-    "time": "12.00",
-    "staffList": ["S.ARAS", "E.KOL", "M.DİNER"],
-    "isDefinite": true
+    "tarih": "2026-06-24",
+    "personel": "Ö.KARAKUŞ",
+    "gorev": "İSTANBUL'DA ZAMAN",
+    "detay": "Aktüel Çekim - PA Ekibi"
   },
   {
-    "id": "2026-06-05_B_67",
-    "isoDate": "2026-06-05",
-    "colLabel": "B",
-    "rowIdx": 67,
-    "program": "SERKAN ÇAĞRI SAHNESİ",
-    "description": "2. KAYIT",
-    "time": "17.00",
-    "staffList": ["C.SALTIK", "E.DÖNMEZ", "D.A.SALTIK", "K.GÜNGÖR", "A.KORUN"],
-    "isDefinite": true
+    "tarih": "2026-06-24",
+    "personel": "A.AŞİROĞLU",
+    "gorev": "İSTANBUL'DA ZAMAN",
+    "detay": "Aktüel Çekim - REJİ Ekibi"
   },
   {
-    "id": "2026-06-06_B_5",
-    "isoDate": "2026-06-06",
-    "colLabel": "B",
-    "rowIdx": 5,
-    "program": "İSTANBUL STÜDYOSU",
-    "description": "",
-    "time": "13.00",
-    "staffList": ["A.KOÇ", "T.ERDEN"],
-    "isDefinite": true
+    "tarih": "2026-06-23",
+    "personel": "A.C.PEHLİVAN",
+    "gorev": "İSTANBUL'DA ZAMAN",
+    "detay": "Aktüel Çekim Görevi"
   },
   {
-    "id": "2026-06-06_B_11",
-    "isoDate": "2026-06-06",
-    "colLabel": "B",
-    "rowIdx": 11,
-    "program": "GÜNDEM ÖTESİ",
-    "description": "",
-    "time": "23.50",
-    "staffList": ["S.CÜREBAL", "D.A.SALTIK"],
-    "isDefinite": true
+    "tarih": "2026-06-22",
+    "personel": "D.YÖNDEM",
+    "gorev": "KADIN GÖZÜYLE YAŞAM",
+    "detay": "İç Yapımlar Stüdyosu - Ayazağa"
   },
   {
-    "id": "2026-06-06_B_19",
-    "isoDate": "2026-06-06",
-    "colLabel": "B",
-    "rowIdx": 19,
-    "program": "SERKAN ÇAĞRI SAHNESİ",
-    "description": "1. KAYIT",
-    "time": "14.00",
-    "staffList": ["H.BAKIRCI", "E.YURDAGÜL", "A.AŞİROĞLU", "Ç.TAŞ"],
-    "isDefinite": true
+    "tarih": "2026-06-21",
+    "personel": "H.HEKİMHAN",
+    "gorev": "STÜDYO GÖREVİ",
+    "detay": "Ayazağa İç Yapımlar Ses Operasyonu"
   },
   {
-    "id": "2026-06-06_B_30",
-    "isoDate": "2026-06-06",
-    "colLabel": "B",
-    "rowIdx": 30,
-    "program": "YAĞLI GÜREŞ",
-    "description": "Manisa / TIR",
-    "time": "Belirtilmedi",
-    "staffList": ["H.HEKİMHAN", "Ş.ÖNALAN", "S.AKDAĞ"],
-    "isDefinite": true
+    "tarih": "2026-06-20",
+    "personel": "CENK VE ERDEM İLE",
+    "gorev": "D.A.SALTIK",
+    "detay": "İç Yapımlar Stüdyosu - Saat 10:00 Seansı"
   },
   {
-    "id": "2026-06-06_B_40",
-    "isoDate": "2026-06-06",
-    "colLabel": "B",
-    "rowIdx": 40,
-    "program": "NY KURULUM / PROVA",
-    "description": "",
-    "time": "Belirtilmedi",
-    "staffList": ["S.ARAS", "E.KOL", "Ö.KARAKUŞ", "Y.ŞAHİN"],
-    "isDefinite": true
+    "tarih": "2026-06-19",
+    "personel": "E.SAVAŞ",
+    "gorev": "AKTÜEL ÇEKİM",
+    "detay": "Dış Çekim Ses ve Kayıt Planı"
   },
   {
-    "id": "2026-06-06_B_53",
-    "isoDate": "2026-06-06",
-    "colLabel": "B",
-    "rowIdx": 53,
-    "program": "SIFIR ATIK ÖZEL YAYIN",
-    "description": "Atatürk Havalimanı",
-    "time": "12.00",
-    "staffList": ["M.DİNER", "D.YÖNDEM", "A.C.PEHLİVAN"],
-    "isDefinite": true
+    "tarih": "2026-06-18",
+    "personel": "F.BOZKURT",
+    "gorev": "YENİ TIR EĞİTİMİ",
+    "detay": "Çekmeköy Eğitim Sahası Operasyonu"
   },
   {
-    "id": "2026-06-06_B_67",
-    "isoDate": "2026-06-06",
-    "colLabel": "B",
-    "rowIdx": 67,
-    "program": "SERKAN ÇAĞRI SAHNESİ",
-    "description": "2. KAYIT",
-    "time": "17.00",
-    "staffList": ["A.DEMİRKAYA", "E.DÖNMEZ", "A.AŞİROĞLU", "K.GÜNGÖR", "A.KORUN"],
-    "isDefinite": true
+    "tarih": "2026-06-17",
+    "personel": "E.SAVAŞ",
+    "gorev": "İSTANBUL'DA ZAMAN",
+    "detay": "Aktüel Çekim Seti"
   },
   {
-    "id": "2026-06-06_B_79",
-    "isoDate": "2026-06-06",
-    "colLabel": "B",
-    "rowIdx": 79,
-    "program": "GEÇMİŞE BİR BİLET",
-    "description": "15 Temmuz Köprüsü / AKTÜEL",
-    "time": "Belirtilmedi",
-    "staffList": ["E.SAVAŞ"],
-    "isDefinite": true
+    "tarih": "2026-06-16",
+    "personel": "E.SAVAŞ",
+    "gorev": "İSTANBUL'DA ZAMAN",
+    "detay": "Aktüel Çekim Seti"
   },
   {
-    "id": "2026-06-07_B_5",
-    "isoDate": "2026-06-07",
-    "colLabel": "B",
-    "rowIdx": 5,
-    "program": "İSTANBUL STÜDYOSU",
-    "description": "",
-    "time": "13.00",
-    "staffList": ["A.AŞİROĞLU", "T.ERDEN"],
-    "isDefinite": true
+    "tarih": "2026-06-15",
+    "personel": "E.SAVAŞ",
+    "gorev": "İSTANBUL'DA ZAMAN",
+    "detay": "Aktüel Çekim Seti"
   },
   {
-    "id": "2026-06-07_B_19",
-    "isoDate": "2026-06-07",
-    "colLabel": "B",
-    "rowIdx": 19,
-    "program": "METİN ŞENTÜRK",
-    "description": "İPTAL",
-    "time": "20.00",
-    "staffList": ["A.DEMİRKAYA", "E.YURDAGÜL", "D.YÖNDEM", "K.GÜNGÖR", "A.KORUN"],
-    "isDefinite": false
+    "tarih": "2026-06-14",
+    "personel": "T.ERDEN",
+    "gorev": "İSTANBUL STÜDYOSU",
+    "detay": "Saat 13:00 Canlı Yayın / Kayıt"
   },
   {
-    "id": "2026-06-07_B_30",
-    "isoDate": "2026-06-07",
-    "colLabel": "B",
-    "rowIdx": 30,
-    "program": "YAĞLI GÜREŞ",
-    "description": "Manisa / TIR",
-    "time": "Belirtilmedi",
-    "staffList": ["H.HEKİMHAN", "Ş.ÖNALAN", "S.AKDAĞ"],
-    "isDefinite": true
+    "tarih": "2026-06-13",
+    "personel": "S.CÜREBAL",
+    "gorev": "İSTANBUL STÜDYOSU",
+    "detay": "Saat 13:00 Canlı Yayın / Kayıt"
   },
   {
-    "id": "2026-06-07_B_38",
-    "isoDate": "2026-06-07",
-    "colLabel": "B",
-    "rowIdx": 38,
-    "program": "BELGESEL ÖDÜL TÖRENİ",
-    "description": "Grand Pera",
-    "time": "Belirtilmedi",
-    "staffList": ["H.BAKIRCI", "S.ARAS", "E.KOL", "Ö.KARAKUŞ", "Y.ŞAHİN"],
-    "isDefinite": true
+    "tarih": "2026-06-12",
+    "personel": "A.DEMİRKAYA",
+    "gorev": "ZÜLEYHA İLE SINIRSIZ EZGİLER",
+    "detay": "2. Kayıt - KAYIT Sorumlusu"
   },
   {
-    "id": "2026-06-07_B_47",
-    "isoDate": "2026-06-07",
-    "colLabel": "B",
-    "rowIdx": 47,
-    "program": "FETİH KUPASI",
-    "description": "Okçuluk Federasyonu",
-    "time": "13.00",
-    "staffList": ["A.C.PEHLİVAN", "Ç.TAŞ"],
-    "isDefinite": true
+    "tarih": "2026-06-12",
+    "personel": "E.YURDAGÜL",
+    "gorev": "ZÜLEYHA İLE SINIRSIZ EZGİLER",
+    "detay": "2. Kayıt - PA Sorumlusu"
   },
   {
-    "id": "2026-06-07_B_53",
-    "isoDate": "2026-06-07",
-    "colLabel": "B",
-    "rowIdx": 53,
-    "program": "SIFIR ATIK ÖZEL YAYIN",
-    "description": "Atatürk Havalimanı",
-    "time": "12.00",
-    "staffList": ["M.DİNER", "D.YÖNDEM", "A.DEMİRKAYA"],
-    "isDefinite": true
+    "tarih": "2026-06-12",
+    "personel": "D.YÖNDEM",
+    "gorev": "ZÜLEYHA İLE SINIRSIZ EZGİLER",
+    "detay": "2. Kayıt - REJİ Sorumlusu"
   },
   {
-    "id": "2026-06-07_B_67",
-    "isoDate": "2026-06-07",
-    "colLabel": "B",
-    "rowIdx": 67,
-    "program": "BAŞKA BİR SAHNE",
-    "description": "Kayseri / AKTÜEL",
-    "time": "Belirtilmedi",
-    "staffList": ["E.SAVAŞ"],
-    "isDefinite": true
+    "tarih": "2026-06-11",
+    "personel": "D.A.SALTIK",
+    "gorev": "AKLI SELİM",
+    "detay": "Saat 17:00 Yayını / Ayazağa Stüdyoları"
   },
   {
-    "id": "2026-06-07_B_73",
-    "isoDate": "2026-06-07",
-    "colLabel": "B",
-    "rowIdx": 73,
-    "program": "SESSİZ ŞAHİTLER",
-    "description": "AKTÜEL / EĞİTİM / Ankara / YOL",
-    "time": "Belirtilmedi",
-    "staffList": ["E.YURDAGÜL", "F.BOZKURT"],
-    "isDefinite": true
+    "tarih": "2026-06-10",
+    "personel": "D.A.SALTIK",
+    "gorev": "AKLI SELİM",
+    "detay": "Saat 17:00 Yayını / Ayazağa Stüdyoları"
   },
   {
-    "id": "2026-06-08_B_5",
-    "isoDate": "2026-06-08",
-    "colLabel": "B",
-    "rowIdx": 5,
-    "program": "KADIN GÖZÜYLE YAŞAM",
-    "description": "",
-    "time": "10.00",
-    "staffList": ["D.YÖNDEM"],
-    "isDefinite": true
+    "tarih": "2026-06-09",
+    "personel": "Ö.KARAKUŞ",
+    "gorev": "MÜZİK DAİRESİ BAŞKANLIĞI",
+    "detay": "Aktüel Dış Çekim Görevi"
   },
   {
-    "id": "2026-06-08_B_28",
-    "isoDate": "2026-06-08",
-    "colLabel": "B",
-    "rowIdx": 28,
-    "program": "NAKLEN YAYINLAR",
-    "description": "DIŞ İŞLERİ B. BASIN TOPLANTISI / Çırağan Sarayı",
-    "time": "Belirtilmedi",
-    "staffList": ["A.KOÇ", "A.AŞİROĞLU"],
-    "isDefinite": true
+    "tarih": "2026-06-08",
+    "personel": "H.BAKIRCI",
+    "gorev": "PA MİKSER TESTİ",
+    "detay": "Özkan Standartları Teknik Testleri"
   },
   {
-    "id": "2026-06-08_B_28_prob",
-    "isoDate": "2026-06-08",
-    "colLabel": "B",
-    "rowIdx": 28,
-    "program": "NAKLEN YAYINLAR",
-    "description": "",
-    "time": "Belirtilmedi",
-    "staffList": ["M.DİNER", "D.A.SALTIK"],
-    "isDefinite": false
+    "tarih": "2026-06-07",
+    "personel": "Y.ŞAHİN",
+    "gorev": "PA MİKSER TESTİ",
+    "detay": "Özkan Standartları Teknik Testleri"
   },
   {
-    "id": "2026-06-08_B_67",
-    "isoDate": "2026-06-08",
-    "colLabel": "B",
-    "rowIdx": 67,
-    "program": "BAŞKA BİR SAHNE",
-    "description": "Kayseri / AKTÜEL",
-    "time": "Belirtilmedi",
-    "staffList": ["E.SAVAŞ"],
-    "isDefinite": true
+    "tarih": "2026-06-06",
+    "personel": "E.YURDAGÜL",
+    "gorev": "PA MİKSER TESTİ",
+    "detay": "Özkan Standartları Teknik Testleri"
   },
   {
-    "id": "2026-06-08_B_73",
-    "isoDate": "2026-06-08",
-    "colLabel": "B",
-    "rowIdx": 73,
-    "program": "BİZE KALAN",
-    "description": "AKTÜEL",
-    "time": "Belirtilmedi",
-    "staffList": ["T.ERDEN", "S.CÜREBAL"],
-    "isDefinite": true
+    "tarih": "2026-06-05",
+    "personel": "E.SAVAŞ",
+    "gorev": "GEÇMİŞE BİR BİLET",
+    "detay": "15 Temmuz Köprüsü Aktüel Çekim Görevi"
   },
   {
-    "id": "2026-06-08_B_79",
-    "isoDate": "2026-06-08",
-    "colLabel": "B",
-    "rowIdx": 79,
-    "program": "MÜZİK DAİRESİ BAŞKANLIĞI",
-    "description": "AKTÜEL",
-    "time": "Belirtilmedi",
-    "staffList": ["M.DİNER"],
-    "isDefinite": true
-  },
-  {
-    "id": "2026-06-08_B_85",
-    "isoDate": "2026-06-08",
-    "colLabel": "B",
-    "rowIdx": 85,
-    "program": "PA MİKSER TESTİ",
-    "description": "Özkan Std.",
-    "time": "Belirtilmedi",
-    "staffList": ["Y.ŞAHİN", "E.YURDAGÜL"],
-    "isDefinite": true
-  },
-  {
-    "id": "2026-06-28_B_30",
-    "isoDate": "2026-06-28",
-    "colLabel": "B",
-    "rowIdx": 30,
-    "program": "HABER HİZMETİ",
-    "description": "Sapanca",
-    "time": "Belirtilmedi",
-    "staffList": ["H.BAKIRCI", "S.ARAS"],
-    "isDefinite": true
-  },
-  {
-    "id": "2026-06-28_B_37",
-    "isoDate": "2026-06-28",
-    "colLabel": "B",
-    "rowIdx": 37,
-    "program": "ENGEL ATLAMA",
-    "description": "Kemer Country Club",
-    "time": "Belirtilmedi",
-    "staffList": ["E.KOL", "A.C.PEHLİVAN"],
-    "isDefinite": true
-  },
-  {
-    "id": "2026-06-28_B_43",
-    "isoDate": "2026-06-28",
-    "colLabel": "B",
-    "rowIdx": 43,
-    "program": "BİR TARİFTEN FAZLASI",
-    "description": "",
-    "time": "Belirtilmedi",
-    "staffList": ["E.DÖNMEZ"],
-    "isDefinite": true
+    "tarih": "2026-06-05",
+    "personel": "M.DİNER",
+    "gorev": "MÜZİK DAİRESİ BAŞKANLIĞI",
+    "detay": "Aktüel Dış Çekim Görevi"
   }
 ]
