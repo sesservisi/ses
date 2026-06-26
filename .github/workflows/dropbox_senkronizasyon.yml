@@ -2,12 +2,12 @@ name: Ses Servisi Merkezi Veri ve Dropbox Senkronizasyonu
 
 on:
   schedule:
-    # TSİ 08:00, 10:00, 12:00, 14:00, 16:00, 18:00 ve 20:00 saatlerinde otomatik tetiklenir.
+    # Her gün TSİ 08:00, 10:00, 12:00, 14:00, 16:00, 18:00 ve 20:00 saatlerinde otomatik tetiklenir (UTC+0 standardına göre).
     - cron: '0 5,7,9,11,13,15,17 * * *'
   repository_dispatch:
-    # Arayüzden (index.html) gönderilen yıllık izin ve iş logları güncellemelerini yakalar.
+    # index.html üzerinden tetiklenen manuel yönetim paneli güncellemelerini yakalar.
     types: [update_leaves, update_shifts]
-  workflow_dispatch: # GitHub paneli üzerinden manuel tetikleme butonu sağlar.
+  workflow_dispatch: # GitHub web arayüzünden manuel tetikleme butonu sağlar.
 
 permissions:
   contents: write
@@ -21,32 +21,32 @@ jobs:
 
       - name: Dropbox'tan Güncel Excel Dosyasını İndir
         run: |
-          # Şefinizin paylaştığı güncel Excel dosyası doğrudan bu bağlantıdan indirilir.
+          # Dropbox bağlantısı üzerinden güncel çalışma planı Excel'i indirilir
           curl -L -o Gorev-Listesi.xlsx "https://www.dropbox.com/scl/fi/qryt9lhx1l7igmi6qg3ak/Gorev-Listesixlxx?rlkey=w97mop9zlow5xt0d0cwxg8wp2&e=3&st=w7ogxxi0&dl=1"
 
-      - name: Gelen Arayüz Verisini İşle ve JSON Güncelle (Eğer Tetiklendiyse)
+      - name: Gelen Arayüz Verisini İşle ve JSON Güncelle
         run: |
           echo "Tetiklenme Türü: ${{ github.event.action }}"
           
-          # Eğer arayüzden bir repository_dispatch geldiyse ilgili dosyayı base64'ten çözerek yazar
+          # Eğer arayüzden bir dispatch geldiyse ilgili şifrelenmiş veriyi çözerek üzerine yazar
           if [ "${{ github.event.action }}" = "update_leaves" ]; then
             echo "${{ github.event.client_payload.matrix_data }}" | base64 --decode > izinler.json
           elif [ "${{ github.event.action }}" = "update_shifts" ]; then
             echo "${{ github.event.client_payload.matrix_data }}" | base64 --decode > isler.json
           fi
 
-      - name: Tüm Değişiklikleri Kontrol Et ve Web Sitesine Otomatik Yükle
+      - name: Tüm Değişiklikleri Kontrol Et ve Depoya Otomatik Yükle
         run: |
           git config --global user.name "GitHub Otomatik Senkronizasyon"
           git config --global user.email "action@github.com"
           
-          # Değişen tüm dosyaları (Excel ve JSON'lar) sahneye ekle
+          # Yeni çekilen Excel'i ve güncellenen JSON'ları ekle
           git add Gorev-Listesi.xlsx izinler.json isler.json 2>/dev/null || true
           
-          # Eğer ne Excel'de ne de JSON'larda bir değişiklik yoksa commit atma, varsa yükle
+          # Değişiklik kontrolü yap ve eğer fark varsa depoya pushla
           if git diff --staged --quiet; then
-            echo "Herhangi bir değişiklik tespit edilmedi. İşlem atlandı."
+            echo "Herhangi bir değişiklik tespit edilmedi. Depo güncel."
           else
-            git commit -m "Sistem Raporu: Excel ve merkezi veritabanı [isler/izinler] otomatik senkronize edildi (TSİ)"
+            git commit -m "Otomatik Veri Güncellemesi: Excel ve Yönetici Paneli Logları [Nispi Veri]"
             git push origin main
           fi
