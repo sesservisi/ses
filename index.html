@@ -298,4 +298,106 @@
 
             document.getElementById('div-comparison-result').innerHTML = `
                 <div class="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-2">
-                    <div><i class="fa-solid fa-scale-balanced text
+                    <div><i class="fa-solid fa-scale-balanced text-indigo-600 mr-1.5 text-sm"></i><strong>Kıyas Sonucu:</strong> ${winnerText}</div>
+                    <div class="flex gap-4 bg-white p-2 rounded-lg border border-indigo-100 shadow-sm text-[11px]">
+                        <div>${p1}: <span class="text-indigo-600 font-black">${count1} İş</span></div>
+                        <div class="border-l border-slate-200 pl-4">${p2}: <span class="text-purple-600 font-black">${count2} İş</span></div>
+                    </div>
+                </div>
+            `;
+
+            // CHART.JS BELLEK VE YENİDEN ÇİZİM OPTİMİZASYONU
+            // Eski grafiği tamamen yok edip DOM elemanını tazeleyerek "hayalet hover" bug'ını engelliyoruz
+            if (chartInstanceReference) {
+                chartInstanceReference.destroy();
+            }
+            
+            const chartContainer = document.getElementById('chart-container');
+            chartContainer.innerHTML = '<canvas id="canvas-admin-chart"></canvas>';
+
+            const ctx = document.getElementById('canvas-admin-chart').getContext('2d');
+            
+            // PREMIUM RENK VE GÖRSEL GELİŞTİRMELER ENTEGRE EDİLDİ
+            chartInstanceReference = new Chart(ctx, {
+                type: 'bar',
+                data: { 
+                    labels: [p1, p2], 
+                    datasets: [{ 
+                        label: 'Toplam Kesin İş Sayısı', 
+                        data: [count1, count2], 
+                        backgroundColor: [
+                            'rgba(79, 70, 229, 0.85)',  // Premium Opak Indigo
+                            'rgba(168, 85, 247, 0.85)'  // Premium Opak Mor
+                        ], 
+                        borderColor: [
+                            '#4f46e5', 
+                            '#a855f7'
+                        ],
+                        borderWidth: 1.5,
+                        borderRadius: 6, 
+                        barThickness: 50 
+                    }] 
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } }, 
+                    scales: { 
+                        y: { 
+                            beginAtZero: true, 
+                            ticks: { stepSize: 1, color: '#94a3b8' },
+                            grid: { color: '#f1f5f9' }
+                        },
+                        x: {
+                            ticks: { color: '#64748b', font: { weight: 'bold' } },
+                            grid: { display: false }
+                        }
+                    } 
+                }
+            });
+        }
+
+        function renderTableUi(matrix) {
+            const tbody = document.querySelector('#table-excel-data tbody');
+            const thead = document.querySelector('#table-excel-data thead');
+            tbody.innerHTML = "";
+            thead.innerHTML = "";
+
+            if(matrix.length === 0) return;
+
+            // İlk satırı başlık yap
+            let headerRow = matrix[0];
+            let thr = document.createElement('tr');
+            thr.className = "bg-slate-100/70 text-slate-500 font-bold border-b border-slate-200 sticky top-0";
+            
+            headerRow.forEach((cell, idx) => {
+                let th = document.createElement('th');
+                th.className = "p-3 whitespace-nowrap text-xs";
+                th.innerText = cell ? String(cell) : `Sütun ${idx + 1}`;
+                thr.appendChild(th);
+            });
+            thead.appendChild(thr);
+
+            // Verileri listele
+            for(let i = 1; i < matrix.length; i++) {
+                let row = matrix[i];
+                let tr = document.createElement('tr');
+                tr.className = "divide-x divide-slate-50 hover:bg-slate-50/80 transition-colors";
+                
+                row.forEach(cell => {
+                    let td = document.createElement('td');
+                    td.className = "p-2.5 whitespace-nowrap max-w-[200px] truncate";
+                    td.innerText = cell ? String(cell) : "";
+                    
+                    // Eğer hücrede personel ismi varsa arkaplan rengini vurgula
+                    if (cell && String(cell).includes('.')) {
+                        td.className += " font-bold text-indigo-600 bg-indigo-50/30";
+                    }
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            }
+        }
+    </script>
+</body>
+</html>
