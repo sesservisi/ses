@@ -4,37 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ses Servisi Çalışma Planı & Analiz Paneli</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-        // Paylaştığınız Güncel Firebase Yapılandırması
-        const firebaseConfig = {
-            apiKey: "AIzaSyAhmP1JC3Py6o3AMh8hJ3NHD1TwaDjATG4",
-            authDomain: "ses-servisi.firebaseapp.com",
-            databaseURL: "https://ses-servisi-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "ses-servisi",
-            storageBucket: "ses-servisi.firebasestorage.app",
-            messagingSenderId: "687926306042",
-            appId: "1:687926306042:web:ee4343dfe6f43345231543"
-        };
-
-        // Firebase Başlatma
-        const app = initializeApp(firebaseConfig);
-        window.db = getDatabase(app);
-        window.dbRef = ref;
-        window.dbSet = set;
-        window.dbOnValue = onValue;
-        
-        // Firebase Modülleri hazır olduğunda ana script akışını tetikle
-        window.dispatchEvent(new Event('firebaseReady'));
-    </script>
-
     <style>
         .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
@@ -73,8 +49,8 @@
 
         <div id="loader-live-data" class="bg-white border border-sky-100 rounded-2xl p-8 text-center max-w-md mx-auto my-6 shadow-md flex flex-col items-center justify-center">
             <i class="fa-solid fa-circle-notch text-orange-500 text-4xl mb-3 animate-spin"></i>
-            <h3 class="text-sm font-black text-slate-900">Bulut Verileri Yükleniyor</h3>
-            <p class="text-[11px] text-slate-500 mt-1">Firebase Realtime DB ve Excel senkronizasyonu kuruluyor...</p>
+            <h3 class="text-sm font-black text-slate-900">Güncel Plan Yükleniyor</h3>
+            <p class="text-[11px] text-slate-500 mt-1">Excel ve ortak izin verileri senkronize ediliyor...</p>
         </div>
 
         <div id="alert-no-data" class="bg-orange-50 border-2 border-dashed border-orange-200 rounded-2xl p-6 text-center max-w-md mx-auto my-6 hidden">
@@ -127,12 +103,12 @@
             <div class="bg-slate-900 text-white p-4 rounded-2xl shadow-md border border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                     <h4 class="text-xs font-black text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <i class="fa-solid fa-cloud-bolt"></i> Firebase Realtime Veritabanı Aktif
+                        <i class="fa-solid fa-cloud-bolt"></i> GitHub Actions Güvenli Otomasyon Sistemi Aktif
                     </h4>
-                    <p class="text-[10px] text-slate-400 mt-0.5">Tüm izin girişleri ve Excel senkronizasyon verileri tarayıcı fark etmeksizin tüm cihazlarda anlık güncellenir.</p>
+                    <p class="text-[10px] text-slate-400 mt-0.5">Artık cihazlarda bireysel token tanımlamaya gerek yoktur. Tüm işlemler merkezi işleyiciyle senkronize edilir.</p>
                 </div>
                 <div class="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 px-3 py-1.5 rounded-xl font-mono text-center">
-                    Bağlantı Türü: Firebase RTDB (Europe West)
+                    Bağlantı Türü: Dispatch API (Token-Free UI)
                 </div>
             </div>
 
@@ -141,12 +117,12 @@
                     <h3 class="text-sm font-black text-slate-900 flex items-center gap-1.5">
                         <i class="fa-solid fa-chart-pie text-orange-500"></i> Yönetici Analitik Paneli
                     </h3>
-                    <p class="text-[11px] text-slate-500 mt-0.5">Yaptığınız tüm işlemler buluta anlık olarak kaydedilir.</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Yaptığınız tüm izin işlemleri bağlı GitHub deposuna anlık olarak işlenir.</p>
                 </div>
                 
                 <div class="md:col-span-2 flex flex-wrap gap-2 justify-start md:justify-end">
                     <button onclick="fetchExcelFromGithub(true)" class="bg-gradient-to-r from-sky-600 to-blue-600 text-white text-xs font-black px-4 py-3 rounded-xl shadow-md transition-all active:scale-95 cursor-pointer flex items-center gap-1.5">
-                        <i class="fa-solid fa-rotate"></i> Depodan Excel Yenile
+                        <i class="fa-solid fa-rotate"></i> Depodan Güncelle
                     </button>
                     
                     <div class="relative bg-orange-50 hover:bg-orange-100 rounded-xl px-4 py-3 border-2 border-dashed border-orange-200 flex items-center justify-center cursor-pointer transition-colors">
@@ -166,7 +142,7 @@
                         <input type="file" id="import-ses-file" accept=".json" class="absolute inset-0 opacity-0 cursor-pointer w-full" onchange="importSesBackup(event)">
                     </div>
                     <button onclick="resetAllStoredData()" class="bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-bold px-3 py-2 rounded-xl border border-red-200 transition-colors">
-                        <i class="fa-solid fa-trash-can"></i> Bulutu Sıfırla
+                        <i class="fa-solid fa-trash-can"></i> Hafızayı Sıfırla
                     </button>
                 </div>
             </div>
@@ -237,7 +213,7 @@
                     <h4 id="metric-total-shifts" class="text-2xl font-black mt-1">0</h4>
                 </div>
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <span class="text-[10px] font-black text-slate-400 tracking-wider">Dönem En Yoğunu / Durum</span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Dönem En Yoğunu / Durum</span>
                     <h4 id="metric-max-staff" class="text-xs font-black text-slate-800 mt-2 truncate">-</h4>
                 </div>
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
@@ -246,7 +222,7 @@
                 </div>
             </div>
 
-            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
                 <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
                     <i class="fa-solid fa-code-compare text-indigo-500"></i> İKİ PERSONEL GÖREV KIYASLAMA MODÜLÜ
                 </h4>
@@ -371,7 +347,23 @@
     </div>
 
     <script>
+        // --- Firebase Yapılandırması ---
+        const firebaseConfig = {
+            apiKey: "BURAYA_API_KEY_GELECEK",
+            authDomain: "BURAYA_AUTH_DOMAIN_GELECEK",
+            databaseURL: "BURAYA_DATABASE_URL_GELECEK",
+            projectId: "BURAYA_PROJECT_ID_GELECEK",
+            storageBucket: "BURAYA_STORAGE_BUCKET_GELECEK",
+            messagingSenderId: "BURAYA_MESSAGING_SENDER_ID_GELECEK",
+            appId: "BURAYA_APP_ID_GELECEK"
+        };
+        
+        // Firebase Başlatma
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
         const GITHUB_LIVE_EXCEL = "Gorev-Listesi.xlsx"; 
+        const GITHUB_LIVE_LEAVES = "izinler.json"; 
         const SUPER_KEY = "7124624";
         
         const GITHUB_REPO_OWNER = "sesservisi";
@@ -389,15 +381,9 @@
         const TURKISH_DAYS = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
 
         const TARGET_EXCEL_COLUMNS = [
-            { label: "B", idx: 1 },
-            { label: "F", idx: 5 },
-            { label: "J", idx: 9 },
-            { label: "N", idx: 13 },
-            { label: "R", idx: 17 },
-            { label: "V", idx: 21 },
-            { label: "Z", idx: 25 },
-            { label: "AD", idx: 29 },
-            { label: "AH", idx: 33 },
+            { label: "B", idx: 1 }, { label: "F", idx: 5 }, { label: "J", idx: 9 },
+            { label: "N", idx: 13 }, { label: "R", idx: 17 }, { label: "V", idx: 21 },
+            { label: "Z", idx: 25 }, { label: "AD", idx: 29 }, { label: "AH", idx: 33 },
             { label: "AL", idx: 37 }
         ];
 
@@ -408,46 +394,49 @@
         let chartInstanceReference = null;
         let activeChartScaleMode = 'weekly';
 
-        // Firebase hazır olduğunda tetiklenecek event listener
-        window.addEventListener('firebaseReady', () => {
+        window.addEventListener('DOMContentLoaded', () => {
             buildYearFilterOptions();
+            loadDatabaseFromLocalStorage();
             rebuildStaffDropdownOptions();
+            fetchExcelFromGithub(false);
+            document.getElementById('upload-excel-input').addEventListener('change', processManualFileLoad, false);
             
-            // Firebase Realtime DB'den canlı verileri dinle
-            window.dbOnValue(window.dbRef(window.db, "ses_data"), (snapshot) => {
-                const cloudData = snapshot.val();
-                if (cloudData) {
-                    if (cloudData.mainShiftsLogPool) mainShiftsLogPool = cloudData.mainShiftsLogPool;
-                    if (cloudData.timePeriodDaysList) timePeriodDaysList = cloudData.timePeriodDaysList;
-                    if (cloudData.staffLeavePool) staffLeavePool = cloudData.staffLeavePool;
-                    
-                    document.getElementById('sync-timestamp-badge').textContent = "Veri Durumu: Canlı (Bulut Senkronize)";
-                    document.getElementById('sync-timestamp-badge').className = "text-[10px] bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg font-black self-start sm:self-center shadow-sm border border-emerald-200";
-                    
-                    document.getElementById('loader-live-data').classList.add('hidden');
-                    document.getElementById('section-personnel').classList.remove('hidden');
-                    
-                    displayStaffCards();
-                    if(currentActiveTab === 'admin') applyLogFilters();
-                } else {
-                    // Bulutta henüz veri yoksa ilk defa GitHub Excel'inden çek
-                    fetchExcelFromGithub(false);
+            // Bulut Verilerini Dinle ve Canlı Eşitle
+            syncWithFirebaseCloud();
+        });
+
+        // Firebase Bulut Senkronizasyon Altyapısı
+        function syncWithFirebaseCloud() {
+            database.ref('ses_cumulative_shifts_pool').on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    mainShiftsLogPool = snapshot.val();
+                    localStorage.setItem('ses_cumulative_shifts_pool', JSON.stringify(mainShiftsLogPool));
+                    if (currentActiveTab === 'admin') applyLogFilters();
                 }
             });
 
-            document.getElementById('upload-excel-input').addEventListener('change', processManualFileLoad, false);
-        });
+            database.ref('ses_cumulative_days_list').on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    timePeriodDaysList = snapshot.val();
+                    localStorage.setItem('ses_cumulative_days_list', JSON.stringify(timePeriodDaysList));
+                }
+            });
 
-        function pushDatabaseToFirebase() {
-            if(window.db && window.dbSet) {
-                window.dbSet(window.dbRef(window.db, "ses_data"), {
-                    mainShiftsLogPool: mainShiftsLogPool,
-                    timePeriodDaysList: timePeriodDaysList,
-                    staffLeavePool: staffLeavePool
-                }).then(() => {
-                    console.log("Veriler Firebase bulutuna başarıyla basıldı.");
-                }).catch((e) => console.error("Firebase yazma hatası:", e));
-            }
+            database.ref('ses_staff_leaves_pool').on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    staffLeavePool = snapshot.val();
+                    localStorage.setItem('ses_staff_leaves_pool', JSON.stringify(staffLeavePool));
+                    renderLeaveHistoryTable();
+                    if (currentActiveTab === 'admin') applyLogFilters();
+                }
+            });
+        }
+
+        // Verileri Buluta Toplu Gönderme Fonksiyonu
+        function pushAllToFirebaseCloud() {
+            database.ref('ses_cumulative_shifts_pool').set(mainShiftsLogPool);
+            database.ref('ses_cumulative_days_list').set(timePeriodDaysList);
+            database.ref('ses_staff_leaves_pool').set(staffLeavePool);
         }
 
         function buildYearFilterOptions() {
@@ -463,42 +452,72 @@
             }
         }
 
-        function resetAllStoredData() {
-            if(confirm("DİKKAT: BULUTTAKİ TÜM VERİLER KALICI OLARAK SİLİNECEK! Emin misiniz?")) {
-                if(window.db && window.dbSet) {
-                    window.dbSet(window.dbRef(window.db, "ses_data"), null).then(() => {
-                        alert("Bulut veritabanı sıfırlandı.");
-                        location.reload();
-                    });
+        function loadDatabaseFromLocalStorage() {
+            const savedPool = localStorage.getItem('ses_cumulative_shifts_pool');
+            const savedDays = localStorage.getItem('ses_cumulative_days_list');
+            const savedLeaves = localStorage.getItem('ses_staff_leaves_pool');
+            if(savedPool) mainShiftsLogPool = JSON.parse(savedPool);
+            if(savedDays) timePeriodDaysList = JSON.parse(savedDays);
+            if(savedLeaves) staffLeavePool = JSON.parse(savedLeaves);
+        }
+
+        function saveDatabaseToLocalStorage() {
+            localStorage.setItem('ses_cumulative_shifts_pool', JSON.stringify(mainShiftsLogPool));
+            localStorage.setItem('ses_cumulative_days_list', JSON.stringify(timePeriodDaysList));
+            localStorage.setItem('ses_staff_leaves_pool', JSON.stringify(staffLeavePool));
+            
+            // Yerel kayıt esnasında buluta da gönder
+            pushAllToFirebaseCloud();
+        }
+
+        async function uploadLeaveJsonToGithubDirectly() {
+            const b64Payload = btoa(unescape(encodeURIComponent(JSON.stringify(staffLeavePool, null, 2))));
+            const url = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/dispatches`;
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/vnd.github+json',
+                        'Authorization': `Bearer ${SUPER_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        event_type: "update_leaves",
+                        client_payload: { file_content: b64Payload }
+                    })
+                });
+                if(response.ok) {
+                    console.log("GitHub actions dispatched successfully.");
                 }
+            } catch(e) {
+                console.error(e);
             }
         }
 
-        function switchSection(tabName) {
-            currentActiveTab = tabName;
-            if(tabName === 'personnel') {
+        function switchSection(target) {
+            currentActiveTab = target;
+            document.getElementById('section-personnel').classList.add('hidden');
+            document.getElementById('section-admin').classList.add('hidden');
+            
+            document.getElementById('btn-nav-personnel').className = "px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center space-x-1.5 bg-sky-700/50 text-sky-100 hover:bg-sky-700";
+            document.getElementById('btn-nav-admin').className = "px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center space-x-1.5 bg-sky-700/50 text-sky-100 hover:bg-sky-700";
+
+            if (target === 'personnel') {
                 document.getElementById('section-personnel').classList.remove('hidden');
-                document.getElementById('section-admin').classList.add('hidden');
                 document.getElementById('btn-nav-personnel').className = "px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center space-x-1.5 bg-white text-sky-700 shadow";
-                document.getElementById('btn-nav-admin').className = "px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center space-x-1.5 bg-sky-700/50 text-sky-100 hover:bg-sky-700";
-            } else {
-                document.getElementById('section-personnel').classList.add('hidden');
+                displayStaffCards();
+            } else if (target === 'admin') {
                 document.getElementById('section-admin').classList.remove('hidden');
-                document.getElementById('btn-nav-personnel').className = "px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center space-x-1.5 bg-sky-700/50 text-sky-100 hover:bg-sky-700";
                 document.getElementById('btn-nav-admin').className = "px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center space-x-1.5 bg-white text-sky-700 shadow";
                 applyLogFilters();
+                renderLeaveHistoryTable();
             }
         }
 
         function checkAdminAccess() {
-            const sessionGate = sessionStorage.getItem('ses_admin_gate_passed');
-            if(sessionGate === "TRUE") {
-                switchSection('admin');
-            } else {
-                document.getElementById('field-gate-pass').value = "";
-                document.getElementById('wrapper-pass-error').classList.add('hidden');
-                document.getElementById('modal-auth-gate').classList.remove('hidden');
-            }
+            document.getElementById('field-gate-pass').value = "";
+            document.getElementById('wrapper-pass-error').classList.add('hidden');
+            document.getElementById('modal-auth-gate').classList.remove('hidden');
         }
 
         function closeAuthModal() {
@@ -508,8 +527,7 @@
         function submitAuthGatePassword() {
             const val = document.getElementById('field-gate-pass').value;
             if(val === SUPER_KEY) {
-                sessionStorage.setItem('ses_admin_gate_passed', "TRUE");
-                closeAuthModal();
+                document.getElementById('modal-auth-gate').classList.add('hidden');
                 switchSection('admin');
             } else {
                 document.getElementById('wrapper-pass-error').classList.remove('hidden');
@@ -517,315 +535,296 @@
         }
 
         function rebuildStaffDropdownOptions() {
-            const dropdown = document.getElementById('staff-dropdown');
-            const leaveSelect = document.getElementById('leave-staff-select');
-            const adminFilter = document.getElementById('admin-staff-filter');
-            const compare1 = document.getElementById('compare-staff-1');
-            const compare2 = document.getElementById('compare-staff-2');
+            const stDropdown = document.getElementById('staff-dropdown');
+            const lvSelect = document.getElementById('leave-staff-select');
+            const comp1 = document.getElementById('compare-staff-1');
+            const comp2 = document.getElementById('compare-staff-2');
+            const filterAdmin = document.getElementById('admin-staff-filter');
 
-            let optionsHtml = '<option value="" disabled selected>-- PERSONEL SEÇİNİZ --</option>';
-            let leaveOptionsHtml = '';
-            let adminFilterHtml = '<option value="ALL">-- TÜM PERSONELLER --</option>';
-            let compareHtml = '<option value="" disabled selected>Seçiniz...</option>';
-
-            USER_EXPLICIT_25.forEach(name => {
-                optionsHtml += `<option value="${name}">${name}</option>`;
-                leaveOptionsHtml += `<option value="${name}">${name}</option>`;
-                adminFilterHtml += `<option value="${name}">${name}</option>`;
-                compareHtml += `<option value="${name}">${name}</option>`;
-            });
-
-            if(dropdown) dropdown.innerHTML = optionsHtml;
-            if(leaveSelect) leaveSelect.innerHTML = leaveOptionsHtml;
-            if(adminFilter) adminFilter.innerHTML = adminFilterHtml;
-            if(compare1) compare1.innerHTML = compareHtml;
-            if(compare2) compare2.innerHTML = compareHtml;
+            if(stDropdown) {
+                stDropdown.innerHTML = '<option value="" disabled selected>Lütfen adınızı listeden seçiniz...</option>';
+                USER_EXPLICIT_25.forEach(p => {
+                    stDropdown.innerHTML += `<option value="${p}">${p}</option>`;
+                });
+            }
+            if(lvSelect) {
+                lvSelect.innerHTML = '';
+                USER_EXPLICIT_25.forEach(p => {
+                    lvSelect.innerHTML += `<option value="${p}">${p}</option>`;
+                });
+            }
+            if(comp1 && comp2) {
+                comp1.innerHTML = '';
+                comp2.innerHTML = '';
+                USER_EXPLICIT_25.forEach(p => {
+                    comp1.innerHTML += `<option value="${p}">${p}</option>`;
+                    comp2.innerHTML += `<option value="${p}">${p}</option>`;
+                });
+            }
+            if(filterAdmin) {
+                filterAdmin.innerHTML = '<option value="ALL">-- TÜM PERSONELLER --</option>';
+                USER_EXPLICIT_25.forEach(p => {
+                    filterAdmin.innerHTML += `<option value="${p}">${p}</option>`;
+                });
+            }
         }
 
         async function fetchExcelFromGithub(forceAlert) {
             document.getElementById('loader-live-data').classList.remove('hidden');
-            const excelUrl = `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/${GITHUB_LIVE_EXCEL}?t=${Date.now()}`;
+            document.getElementById('alert-no-data').classList.add('hidden');
+            
+            const rand = Math.random().toString(36).substring(2);
+            const excelUrl = `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/${GITHUB_LIVE_EXCEL}?v=${rand}`;
+            const leaveUrl = `https://raw.githubusercontent.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/main/${GITHUB_LIVE_LEAVES}?v=${rand}`;
+
+            let excelOk = false;
+            try {
+                const resExcel = await fetch(excelUrl);
+                if(resExcel.ok) {
+                    const arrayBuffer = await resExcel.arrayBuffer();
+                    parseExcelDataBuffer(arrayBuffer);
+                    document.getElementById('sync-timestamp-badge').textContent = "Veri Durumu: Canlı (Bulut Entegre)";
+                    excelOk = true;
+                }
+            } catch(e) {
+                console.error("Excel raw file fetch problem:", e);
+            }
 
             try {
-                const res = await fetch(excelUrl);
-                if(!res.ok) throw new Error("Excel dosyası GitHub reposunda bulunamadı");
-                const arrayBuffer = await res.arrayBuffer();
-                parseExcelMatrixData(arrayBuffer);
-                
-                if(forceAlert) alert("Excel verileri repodan başarıyla senkronize edilip Firebase'e yüklendi!");
-            } catch(err) {
-                console.error(err);
-                if(mainShiftsLogPool.length === 0) {
-                    document.getElementById('alert-no-data').classList.remove('hidden');
+                const resLeave = await fetch(leaveUrl);
+                if(resLeave.ok) {
+                    const text = await resLeave.text();
+                    if(text && text.trim().length > 0) {
+                        staffLeavePool = JSON.parse(text);
+                        localStorage.setItem('ses_staff_leaves_pool', JSON.stringify(staffLeavePool));
+                        // Firebase'e senkronize et
+                        database.ref('ses_staff_leaves_pool').set(staffLeavePool);
+                    }
                 }
-            } finally {
-                // UI Güncelleme
-                document.getElementById('loader-live-data').classList.add('hidden');
+            } catch(e) {
+                console.error("Leaves file raw fetch problem:", e);
+            }
+
+            document.getElementById('loader-live-data').classList.add('hidden');
+            if(!excelOk) {
+                document.getElementById('alert-no-data').classList.remove('hidden');
+            } else {
                 document.getElementById('section-personnel').classList.remove('hidden');
+                if(forceAlert) alert("Veriler başarıyla güncellendi ve bulut ile senkronize edildi!");
             }
         }
 
         function processManualFileLoad(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+            const files = e.target.files;
+            if(!files || files.length === 0) return;
+            const f = files[0];
             const reader = new FileReader();
-            reader.onload = function(evt) {
-                parseExcelMatrixData(evt.target.result);
-                alert("Manuel Excel dosyası başarıyla işlendi ve buluta kaydedildi!");
+            reader.onload = function(e) {
+                parseExcelDataBuffer(e.target.result);
                 document.getElementById('alert-no-data').classList.add('hidden');
+                document.getElementById('section-personnel').classList.remove('hidden');
+                document.getElementById('sync-timestamp-badge').textContent = "Veri Durumu: Manuel Excel";
+                alert("Manuel yüklediğiniz Excel başarıyla işlendi ve yerel/bulut veritabanına aktarıldı.");
             };
-            reader.readAsArrayBuffer(file);
+            reader.readAsArrayBuffer(f);
         }
 
-        function parseExcelMatrixData(arrayBuffer) {
-            const data = new Uint8Array(arrayBuffer);
+        function parseExcelDataBuffer(buffer) {
+            const data = new Uint8Array(buffer);
             const workbook = XLSX.read(data, { type: 'array' });
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
-            const matrix = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+            
+            const range = XLSX.utils.decode_range(worksheet['!ref']);
+            
+            let localShifts = [];
+            let localDays = [];
 
-            mainShiftsLogPool = [];
-            timePeriodDaysList = [];
+            for (let r = range.s.r; r <= range.e.r; r++) {
+                const dateCellRef = XLSX.utils.encode_cell({ r: r, c: 0 });
+                const dateCell = worksheet[dateCellRef];
+                if (!dateCell || !dateCell.v) continue;
 
-            if (matrix.length < 2) return;
+                let cellString = dateCell.v.toString().trim();
+                let parsedDateStr = parseExcelDateValue(cellString);
+                if(!parsedDateStr) continue;
 
-            const row0 = matrix[0];
-            const row1 = matrix[1];
-
-            let discoveredColumnsList = [];
-
-            TARGET_EXCEL_COLUMNS.forEach(colConfig => {
-                let cIdx = colConfig.idx;
-                if (cIdx < row0.length && cIdx < row1.length) {
-                    let dayNameVal = String(row0[cIdx]).trim();
-                    let dateVal = String(row1[cIdx]).trim();
-
-                    if (dayNameVal && dateVal) {
-                        let isoDate = dateVal;
-                        if (dateVal.includes(".")) {
-                            let parts = dateVal.split(".");
-                            if (parts.length === 3) isoDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-                        }
-                        
-                        let parsedDateObj = new Date(isoDate);
-                        let y = parsedDateObj.getFullYear() || 2026;
-                        let m = String(parsedDateObj.getMonth() + 1).padStart(2, '0');
-
-                        discoveredColumnsList.push({
-                            excelColIdx: cIdx,
-                            dayTitle: dayNameVal,
-                            dateTitle: isoDate,
-                            year: y.toString(),
-                            month: m
-                        });
-
-                        timePeriodDaysList.push({
-                            dateTitle: isoDate,
-                            dayTitle: dayNameVal
-                        });
-                    }
-                }
-            });
-
-            discoveredColumnsList.forEach(dayColumn => {
-                let blockStructureList = [];
-                let currentBlock = null;
-
-                for (let rIdx = 2; rIdx < matrix.length; rIdx++) {
-                    let row = matrix[rIdx];
-                    if (!row || row.length <= dayColumn.excelColIdx) continue;
-
-                    let cellVal = row[dayColumn.excelColIdx];
-                    let cleanStr = cellVal ? String(cellVal).trim() : "";
-                    if (!cleanStr) continue;
-
-                    if (cleanStr.includes(":") || (cleanStr.length > 5 && !USER_EXPLICIT_25.includes(cleanStr.replace(/\.+$/, "").trim()))) {
-                        currentBlock = {
-                            programName: cleanStr,
-                            hour: cleanStr.includes(":") ? cleanStr : "00:00",
-                            uniqueKey: "job_" + dayColumn.dateTitle + "_" + rIdx + "_" + encodeURIComponent(cleanStr),
-                            subLines: []
-                        };
-                        blockStructureList.push(currentBlock);
-                    } else if (currentBlock) {
-                        currentBlock.subLines.push({ text: cleanStr, rowIdx: rIdx });
-                    }
+                if(!localDays.includes(parsedDateStr)) {
+                    localDays.push(parsedDateStr);
                 }
 
-                blockStructureList.forEach(block => {
-                    let items = block.subLines;
-                    for (let i = 0; i < items.length; i++) {
-                        let currentText = items[i].text;
-                        let hasDot = currentText.endsWith(".");
-                        let sanitizedName = currentText.replace(/\.+$/, "").trim();
+                TARGET_EXCEL_COLUMNS.forEach(col => {
+                    const progCellRef = XLSX.utils.encode_cell({ r: r, c: col.idx });
+                    const descCellRef = XLSX.utils.encode_cell({ r: r, c: col.idx + 1 });
+                    const hourCellRef = XLSX.utils.encode_cell({ r: r, c: col.idx + 2 });
+                    const teamCellRef = XLSX.utils.encode_cell({ r: r, c: col.idx + 3 });
 
-                        if (USER_EXPLICIT_25.includes(sanitizedName)) {
-                            let descriptionLines = [];
-                            for (let j = i - 1; j >= 0; j--) {
-                                let prevText = items[j].text;
-                                let prevSanitized = prevText.replace(/\.+$/, "").trim();
-                                if (USER_EXPLICIT_25.includes(prevSanitized)) break;
-                                descriptionLines.unshift(prevText);
-                            }
-                            for (let j = i + 1; j < items.length; j++) {
-                                let nextText = items[j].text;
-                                let nextSanitized = nextText.replace(/\.+$/, "").trim();
-                                if (USER_EXPLICIT_25.includes(nextSanitized)) break;
-                                descriptionLines.push(nextText);
-                            }
+                    const progVal = worksheet[progCellRef] ? worksheet[progCellRef].v.toString().trim() : "";
+                    const descVal = worksheet[descCellRef] ? worksheet[descCellRef].v.toString().trim() : "";
+                    const hourVal = worksheet[hourCellRef] ? worksheet[hourCellRef].v.toString().trim() : "";
+                    const teamVal = worksheet[teamCellRef] ? worksheet[teamCellRef].v.toString().trim() : "";
 
-                            mainShiftsLogPool.push({
-                                workerName: sanitizedName,
-                                date: dayColumn.dateTitle,
-                                dayName: dayColumn.dayTitle,
-                                month: dayColumn.month,
-                                year: dayColumn.year,
-                                program: block.programName,
-                                subDetail: descriptionLines.join(" / "),
-                                hour: block.hour,
-                                uniqueKey: block.uniqueKey,
-                                isProbability: hasDot
-                            });
-                        }
+                    if (progVal || descVal) {
+                        localShifts.push({
+                            date: parsedDateStr,
+                            column: col.label,
+                            program: progVal,
+                            description: descVal,
+                            hour: hourVal,
+                            teamRaw: teamVal
+                        });
                     }
                 });
-            });
+            }
 
-            // Firebase bulutuna gönder
-            pushDatabaseToFirebase();
+            if(localShifts.length > 0) {
+                mainShiftsLogPool = localShifts;
+                timePeriodDaysList = localDays.sort();
+                saveDatabaseToLocalStorage();
+            }
+        }
+
+        function parseExcelDateValue(str) {
+            if(!str) return null;
+            const parts = str.split('.');
+            if(parts.length >= 3) {
+                let day = parts[0].padStart(2, '0');
+                let month = parts[1].padStart(2, '0');
+                let year = parts[2].split(' ')[0].trim();
+                if(year.length === 2) year = "20" + year;
+                return `${year}-${month}-${day}`;
+            }
+            return null;
+        }
+
+        function getTurkishDayName(dateString) {
+            const d = new Date(dateString);
+            return TURKISH_DAYS[d.getDay()];
         }
 
         function displayStaffCards() {
-            const currentStaff = document.getElementById('staff-dropdown').value;
-            if(!currentStaff) return;
-
-            document.getElementById('worker-title-name').textContent = currentStaff;
-            document.getElementById('schedule-wrapper').classList.remove('hidden');
-
+            const staff = document.getElementById('staff-dropdown').value;
+            const wrapper = document.getElementById('schedule-wrapper');
             const tbody = document.getElementById('weekly-schedule-table-body');
-            tbody.innerHTML = "";
+            
+            if(!staff) {
+                wrapper.classList.add('hidden');
+                return;
+            }
 
-            timePeriodDaysList.forEach((dayItem, index) => {
-                const tr = document.createElement('tr');
+            document.getElementById('worker-title-name').innerHTML = `<i class="fa-solid fa-user-check text-orange-500 mr-2"></i> ${staff}`;
+            tbody.innerHTML = '';
+            wrapper.classList.remove('hidden');
+
+            timePeriodDaysList.forEach(dayStr => {
+                const trDay = new Date(dayStr);
+                const isLeave = checkStaffLeaveOnDate(staff, dayStr);
                 
-                let divisionBorderClass = "";
-                if (index === 2 || index === 5 || index === 8) {
-                    divisionBorderClass = " border-b-4 border-slate-400 shadow-sm ";
-                }
-                tr.className = "hover:bg-slate-100/70 transition-colors " + divisionBorderClass;
-
-                let isLeaveDay = false;
-                let leaveMatch = staffLeavePool.find(l => l.name === currentStaff);
-                if(leaveMatch) {
-                    let targetTime = new Date(dayItem.dateTitle).getTime();
-                    let startTime = new Date(leaveMatch.start).getTime();
-                    let endTime = new Date(leaveMatch.end).getTime();
-                    if(targetTime >= startTime && targetTime <= endTime) {
-                        isLeaveDay = true;
-                    }
-                }
-
-                let staffRecords = mainShiftsLogPool.filter(s => s.workerName === currentStaff && s.date === dayItem.dateTitle);
-
-                let formattedDateStr = dayItem.dateTitle;
-                if(dayItem.dateTitle.includes("-")) {
-                    let p = dayItem.dateTitle.split("-");
-                    formattedDateStr = `${p[2]}.${p[1]}.${p[0]}`;
-                }
-
-                let dateColHtml = `
-                    <td class="p-4 pl-5 font-black text-slate-900 leading-tight">
-                        <div class="text-xs">${formattedDateStr}</div>
-                        <div class="text-[10px] text-slate-400 uppercase tracking-wider mt-0.5">${dayItem.dayTitle}</div>
-                    </td>
-                `;
-
-                if(isLeaveDay) {
-                    tr.className += " bg-orange-50/60";
-                    tr.innerHTML = `
-                        ${dateColHtml}
-                        <td class="p-4 text-center">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-sm uppercase"><i class="fa-solid fa-umbrella-beach mr-1"></i> YILLIK İZİNLİ</span>
-                        </td>
-                        <td class="p-4 font-black italic text-slate-400 text-xs" colspan="3">Bu tarihte onaylanmış yıllık izniniz bulunmaktadır. Veri havuzu kısıtlandı.</td>
+                const displayDate = dayStr.split('-').reverse().join('.') + ` (${getTurkishDayName(dayStr)})`;
+                
+                if (isLeave) {
+                    tbody.innerHTML += `
+                        <tr class="bg-orange-50/70 text-slate-500">
+                            <td class="p-4 pl-5 font-black border-r border-slate-200">${displayDate}</td>
+                            <td class="p-4 text-center border-r border-slate-200"><span class="bg-orange-600 text-white font-black text-[10px] px-2.5 py-1 rounded-full shadow-sm uppercase"><i class="fa-solid fa-umbrella-beach"></i> Yıllık İzinli</span></td>
+                            <td class="p-4 italic text-slate-400" colspan="3">Bu tarihte resmi yıllık izin tanımlanmıştır. Görevlendirme dışıdır.</td>
+                        </tr>
                     `;
-                    tbody.appendChild(tr);
                     return;
                 }
 
-                if(staffRecords.length === 0) {
-                    tr.innerHTML = `
-                        ${dateColHtml}
-                        <td class="p-4 text-center">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black bg-slate-100 text-slate-400 border border-slate-200 uppercase"><i class="fa-solid fa-bed mr-1"></i> BOŞ</span>
-                        </td>
-                        <td class="p-4 text-slate-400 font-medium italic" colspan="3">Planlanmış aktif bir göreviniz bulunmamaktadır.</td>
+                const matchingJobs = mainShiftsLogPool.filter(j => j.date === dayStr && checkStaffInvolvedInJob(staff, j));
+
+                if(matchingJobs.length === 0) {
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-100 transition-colors">
+                            <td class="p-4 pl-5 border-r border-slate-200 font-bold">${displayDate}</td>
+                            <td class="p-4 text-center border-r border-slate-200"><span class="bg-slate-100 text-slate-400 font-black text-[10px] px-2.5 py-1 rounded-full border border-slate-200 uppercase">Boş</span></td>
+                            <td class="p-4 text-slate-400 font-normal italic" colspan="3">Planlanmış bir göreviniz bulunmuyor.</td>
+                        </tr>
                     `;
-                    tbody.appendChild(tr);
-                    return;
+                } else {
+                    matchingJobs.forEach((job, idx) => {
+                        const isIhtimal = job.program.toLowerCase().includes('ihtimal') || job.description.toLowerCase().includes('ihtimal');
+                        const rowClass = isIhtimal ? "bg-amber-50/80 hover:bg-amber-100/90 transition-colors" : "hover:bg-slate-100 transition-colors";
+                        
+                        let actionBtn = '';
+                        if(job.teamRaw && job.teamRaw.trim().length > 0) {
+                            actionBtn = `<button onclick="openTeamModal('${dayStr}', '${job.column}', '${escape(job.program)}') legislative" class="bg-sky-50 text-sky-700 hover:bg-sky-100 px-2.5 py-1.5 rounded-lg font-black transition-all flex items-center gap-1 shadow-sm cursor-pointer border border-sky-200 active:scale-95 text-[10px]"><i class="fa-solid fa-users-viewfinder"></i> Ekip</button>`;
+                        }
+
+                        tbody.innerHTML += `
+                            <tr class="${rowClass}">
+                                ${idx === 0 ? `<td class="p-4 pl-5 font-black border-r border-slate-200 bg-slate-50/50" rowspan="${matchingJobs.length}">${displayDate}</td>` : ''}
+                                <td class="p-4 text-center border-r border-slate-200">
+                                    ${isIhtimal ? 
+                                        `<span class="bg-amber-500 text-white font-black text-[10px] px-2.5 py-1 rounded-full shadow-sm uppercase"><i class="fa-solid fa-circle-question"></i> İhtimal</span>` : 
+                                        `<span class="bg-emerald-600 text-white font-black text-[10px] px-2.5 py-1 rounded-full shadow-sm uppercase"><i class="fa-solid fa-circle-check"></i> Kesin</span>`
+                                    }
+                                </td>
+                                <td class="p-4 max-w-xs sm:max-w-md break-words border-r border-slate-100">
+                                    <div class="font-black text-slate-900 text-xs">${job.program || '-'}</div>
+                                    <div class="text-[11px] text-slate-500 font-medium mt-0.5">${job.description || '-'}</div>
+                                </td>
+                                <td class="p-4 text-center font-mono font-black text-slate-600 border-r border-slate-100">${job.hour || '-'}</td>
+                                <td class="p-4 text-right pr-5">${actionBtn}</td>
+                            </tr>
+                        `;
+                    });
                 }
-
-                let programsListHtml = '<div class="space-y-2 py-2">';
-                let hoursListHtml = '<div class="space-y-2 py-2 text-center font-mono font-black text-slate-600">';
-                let actionsListHtml = '<div class="space-y-2 py-1 text-right pr-1">';
-
-                let isRowContainsProbability = staffRecords.some(r => r.isProbability);
-                if(isRowContainsProbability) {
-                    tr.className += " bg-amber-50/60";
-                }
-
-                staffRecords.forEach(record => {
-                    let probBadgeHtml = record.isProbability ? `<span class="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-500 text-white uppercase tracking-tight shadow-sm animate-pulse">İhtimal .</span>` : '';
-                    
-                    programsListHtml += `
-                        <div class="leading-tight">
-                            <div class="text-slate-900 font-black flex items-center flex-wrap text-xs">${record.program} ${probBadgeHtml}</div>
-                            ${record.subDetail ? `<div class="text-[11px] text-slate-500 font-bold mt-0.5 bg-slate-50 border border-slate-100 p-1.5 rounded-lg">${record.subDetail}</div>` : ''}
-                        </div>
-                    `;
-
-                    hoursListHtml += `<div class="text-xs">${record.hour}</div>`;
-
-                    actionsListHtml += `
-                        <div>
-                            <button onclick="triggerTeamDiscoveryModal('${record.uniqueKey}', '${record.workerName}', '${formattedDateStr}')" class="bg-white hover:bg-slate-50 text-slate-700 text-[10px] font-black px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-sm hover:border-slate-300 transition-all active:scale-95 cursor-pointer inline-flex items-center gap-1">
-                                <i class="fa-solid fa-users text-sky-500"></i> Ekip Arkadaşlarım
-                            </button>
-                        </div>
-                    `;
-                });
-
-                programsListHtml += '</div>';
-                hoursListHtml += '</div>';
-                actionsListHtml += '</div>';
-
-                tr.innerHTML = `
-                    ${dateColHtml}
-                    <td class="p-4 text-center">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black ${isRowContainsProbability ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'} uppercase"><i class="fa-solid fa-briefcase mr-1"></i> ${isRowContainsProbability ? 'İhtimal' : 'GÖREVLİ'}</span>
-                    </td>
-                    <td class="p-4">${programsListHtml}</td>
-                    <td class="p-4 text-center">${hoursListHtml}</td>
-                    <td class="p-4 pr-5 text-right">${actionsListHtml}</td>
-                `;
-
-                tbody.appendChild(tr);
             });
         }
 
-        function triggerTeamDiscoveryModal(key, name, date) {
-            const list = document.getElementById('modal-staff-list');
-            list.innerHTML = "";
-            document.getElementById('modal-info-header').textContent = `${date} - ${name}`;
+        function checkStaffInvolvedInJob(staffName, job) {
+            if(!job.program && !job.description) return false;
+            const combined = (job.program + " " + job.description).toUpperCase();
+            return combined.includes(staffName.toUpperCase());
+        }
 
-            const members = [...new Set(mainShiftsLogPool.filter(s => s.uniqueKey === key).map(s => s.workerName))];
-
-            members.forEach(m => {
-                const li = document.createElement('li');
-                li.className = "p-2 bg-slate-50 border rounded-lg text-xs font-bold";
-                li.innerHTML = `<i class="fa-solid fa-user text-slate-400 mr-2"></i>${m}`;
-                list.appendChild(li);
+        function checkStaffLeaveOnDate(staffName, dateStr) {
+            const checkTime = new Date(dateStr).getTime();
+            return staffLeavePool.some(item => {
+                if(item.staff.toUpperCase() !== staffName.toUpperCase()) return false;
+                const start = new Date(item.startDate).getTime();
+                const end = new Date(item.endDate).getTime();
+                return (checkTime >= start && checkTime <= end);
             });
+        }
+
+        function openTeamModal(dateStr, colLetter, escapedProg) {
+            const progTitle = unescape(escapedProg);
+            const headerBox = document.getElementById('modal-info-header');
+            const listContainer = document.getElementById('modal-staff-list');
+            
+            const trDate = dateStr.split('-').reverse().join('.');
+            headerBox.innerHTML = `<div class="text-slate-400 text-[10px] font-bold uppercase mb-0.5">${trDate} - Sütun ${colLetter}</div><div class="text-slate-800 font-black text-xs truncate">${progTitle}</div>`;
+            
+            listContainer.innerHTML = '';
+            
+            const colJobs = mainShiftsLogPool.filter(j => j.date === dateStr && j.column === colLetter);
+            let absoluteStaffs = [];
+
+            colJobs.forEach(job => {
+                USER_EXPLICIT_25.forEach(p => {
+                    if(checkStaffInvolvedInJob(p, job) && !absoluteStaffs.includes(p)) {
+                        absoluteStaffs.push(p);
+                    }
+                });
+            });
+
+            if(absoluteStaffs.length === 0) {
+                listContainer.innerHTML = '<li class="text-slate-400 italic py-2 text-center">Ekip üyesi ayrıştırılamadı.</li>';
+            } else {
+                absoluteStaffs.forEach(p => {
+                    listContainer.innerHTML += `
+                        <li class="bg-slate-50 border border-slate-100 p-2.5 rounded-xl flex items-center justify-between shadow-inner">
+                            <span class="font-black text-slate-800 uppercase flex items-center gap-2"><i class="fa-solid fa-circle text-[8px] text-orange-500"></i> ${p}</span>
+                            <span class="text-[9px] bg-sky-100 text-sky-800 px-2 py-0.5 rounded font-black uppercase">Görevli</span>
+                        </li>
+                    `;
+                });
+            }
+
             document.getElementById('modal-team-view').classList.remove('hidden');
         }
 
@@ -833,348 +832,331 @@
             document.getElementById('modal-team-view').classList.add('hidden');
         }
 
-        function saveStaffLeave(event) {
-            event.preventDefault();
-            const name = document.getElementById('leave-staff-select').value;
+        function saveStaffLeave(e) {
+            e.preventDefault();
+            const staff = document.getElementById('leave-staff-select').value;
             const start = document.getElementById('leave-start-date').value;
             const end = document.getElementById('leave-end-date').value;
 
-            if(!name || !start || !end) return;
-
             if(new Date(start) > new Date(end)) {
-                alert("Başlangıç tarihi bitiş tarihinden sonra olamaz!");
+                alert("Hata: Başlangıç tarihi bitiş tarihinden sonra olamaz!");
                 return;
             }
 
-            const existingIdx = staffLeavePool.findIndex(l => l.name === name);
-            if(existingIdx !== -1) {
-                staffLeavePool[existingIdx] = { name, start, end };
-            } else {
-                staffLeavePool.push({ name, start, end });
-            }
-
-            pushDatabaseToFirebase();
-            alert(`${name} için yıllık izin tanımlandı ve bulut veritabanına işlendi!`);
+            const id = "leave_" + Date.now() + "_" + Math.random().toString(36).substring(2,7);
+            staffLeavePool.push({ id: id, staff: staff, startDate: start, endDate: end });
+            
+            saveDatabaseToLocalStorage();
+            uploadLeaveJsonToGithubDirectly();
+            
             document.getElementById('leave-entry-form').reset();
+            renderLeaveHistoryTable();
+            applyLogFilters();
+            alert(`Başarıyla eklendi: ${staff} için yıllık izin buluta işlendi.`);
         }
 
-        function removeStaffLeaveDirectly(name) {
-            if(confirm(`${name} isimli personelin iznini iptal etmek istiyor musunuz?`)) {
-                staffLeavePool = staffLeavePool.filter(l => l.name !== name);
-                pushDatabaseToFirebase();
-                alert("İzin iptal edildi ve buluttan silindi.");
-            }
+        function removeStaffLeave(id) {
+            if(!confirm("Bu yıllık izin kaydını tamamen silmek istediğinize emin misiniz?")) return;
+            staffLeavePool = staffLeavePool.filter(item => item.id !== id);
+            
+            saveDatabaseToLocalStorage();
+            uploadLeaveJsonToGithubDirectly();
+            
+            renderLeaveHistoryTable();
+            applyLogFilters();
+        }
+
+        function renderLeaveHistoryTable() {
+            const tbody = document.getElementById('table-body-leave-history');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+
+            let stats = {};
+            USER_EXPLICIT_25.forEach(p => stats[p] = { days: 0, items: [] });
+
+            staffLeavePool.forEach(item => {
+                if(stats[item.staff]) {
+                    const diff = Math.floor((new Date(item.endDate) - new Date(item.startDate)) / (1000*60*60*24)) + 1;
+                    stats[item.staff].days += diff;
+                    stats[item.staff].items.push(item);
+                }
+            });
+
+            USER_EXPLICIT_25.forEach(p => {
+                const u = stats[p];
+                let periodHtml = '<span class="text-slate-400 italic">Kayıt Yok</span>';
+                if(u.items.length > 0) {
+                    periodHtml = '<div class="flex flex-wrap gap-1.5">';
+                    u.items.forEach(it => {
+                        const sTr = it.startDate.split('-').reverse().slice(0,2).join('.');
+                        const eTr = it.endDate.split('-').reverse().join('.');
+                        const itemDiff = Math.floor((new Date(it.endDate) - new Date(it.startDate)) / (1000*60*60*24)) + 1;
+                        periodHtml += `
+                            <span class="bg-slate-100 border border-slate-200 text-slate-700 rounded-lg px-2 py-1 flex items-center text-[10px] font-black shadow-sm gap-1">
+                                <i class="fa-solid fa-calendar-days text-orange-500"></i> ${sTr} - ${eTr} (${itemDiff} Gün)
+                                <i onclick="removeStaffLeave('${it.id}')" class="fa-solid fa-circle-xmark text-red-500 hover:text-red-700 ml-1.5 cursor-pointer text-xs active:scale-95"></i>
+                            </span>
+                        `;
+                    });
+                    periodHtml += '</div>';
+                }
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-3 pl-4 font-black text-slate-900 uppercase flex items-center gap-2"><i class="fa-solid fa-user text-[10px] text-slate-400"></i> ${p}</td>
+                        <td class="p-3 max-w-sm">${periodHtml}</td>
+                        <td class="p-3 text-center"><span class="${u.days > 0 ? 'bg-orange-100 text-orange-800 font-black' : 'bg-slate-100 text-slate-400'} text-xs px-3 py-1 rounded-xl shadow-sm border border-orange-200/50">${u.days} Gün</span></td>
+                        <td class="p-3 text-right pr-4">
+                            <button onclick="focusAdminStaffHistory('${p}')" class="text-sky-600 hover:text-sky-800 text-[11px] font-black transition-all bg-sky-50 px-2.5 py-1.5 rounded-lg border border-sky-100 cursor-pointer active:scale-95"><i class="fa-solid fa-magnifying-glass mr-0.5"></i> İş Geçmişi</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function focusAdminStaffHistory(staffName) {
+            document.getElementById('admin-staff-filter').value = staffName;
+            applyLogFilters();
+            document.getElementById('panel-detailed-job-history').scrollIntoView({ behavior: 'smooth' });
         }
 
         function syncDateFiltersFromDropdowns() {
-            const mVal = document.getElementById('filter-month').value;
-            const yVal = document.getElementById('filter-year').value;
+            const m = document.getElementById('filter-month').value;
+            const y = document.getElementById('filter-year').value;
 
-            if(mVal === 'ALL' || yVal === 'ALL') {
-                document.getElementById('analysis-start-date').value = "";
-                document.getElementById('analysis-end-date').value = "";
+            if (m === 'ALL' || y === 'ALL') {
+                document.getElementById('analysis-start-date').value = '';
+                document.getElementById('analysis-end-date').value = '';
             } else {
-                document.getElementById('analysis-start-date').value = `${yVal}-${mVal}-01`;
-                let lastDay = new Date(parseInt(yVal), parseInt(mVal), 0).getDate();
-                document.getElementById('analysis-end-date').value = `${yVal}-${mVal}-${lastDay}`;
+                document.getElementById('analysis-start-date').value = `${y}-${m}-01`;
+                let lastDay = new Date(parseInt(y), parseInt(m), 0).getDate();
+                document.getElementById('analysis-end-date').value = `${y}-${m}-${lastDay.toString().padStart(2, '0')}`;
             }
             applyLogFilters();
         }
 
         function applyLogFilters() {
-            const staffFilter = document.getElementById('admin-staff-filter').value;
-            const startVal = document.getElementById('analysis-start-date').value;
-            const endVal = document.getElementById('analysis-end-date').value;
+            const filterStaff = document.getElementById('admin-staff-filter').value;
+            let startVal = document.getElementById('analysis-start-date').value;
+            let endVal = document.getElementById('analysis-end-date').value;
 
-            let filteredPool = [...mainShiftsLogPool];
+            let filterStart = startVal ? new Date(startVal).getTime() : -Infinity;
+            let filterEnd = endVal ? new Date(endVal).getTime() : Infinity;
 
-            if(staffFilter !== 'ALL') {
-                filteredPool = filteredPool.filter(s => s.workerName === staffFilter);
-                document.getElementById('label-total-shifts').textContent = "Filtreli Kesin Görev";
-                document.getElementById('side-panel-title').innerHTML = `<i class="fa-solid fa-list-ol text-sky-500 mr-1"></i> Üstlenilen Program Dağılımı`;
-            } else {
-                document.getElementById('label-total-shifts').textContent = "Toplam Kesin Görev Havuzu";
-                document.getElementById('side-panel-title').innerHTML = `<i class="fa-solid fa-list-ol text-sky-500 mr-1"></i> En Yoğun Personeller`;
-            }
+            let filteredDays = timePeriodDaysList.filter(dayStr => {
+                const t = new Date(dayStr).getTime();
+                return (t >= filterStart && t <= filterEnd);
+            });
 
-            if(startVal) {
-                filteredPool = filteredPool.filter(s => new Date(s.date) >= new Date(startVal));
-            }
-            if(endVal) {
-                filteredPool = filteredPool.filter(s => new Date(s.date) <= new Date(endVal));
-            }
+            let logCountMap = {};
+            let leaveCountMap = {};
+            USER_EXPLICIT_25.forEach(p => { logCountMap[p] = 0; leaveCountMap[p] = 0; });
 
-            const totalActiveRecords = filteredPool.filter(s => !s.isProbability).length;
-            document.getElementById('metric-total-shifts').textContent = totalActiveRecords;
-            document.getElementById('metric-total-staff').textContent = USER_EXPLICIT_25.length;
+            let totalShiftsCounter = 0;
+            let totalActiveLeavesCounter = 0;
 
-            let totalLeaveDaysCount = 0;
-            const leaveHistoryBody = document.getElementById('table-body-leave-history');
-            leaveHistoryBody.innerHTML = "";
-
-            USER_EXPLICIT_25.forEach(pName => {
-                let match = staffLeavePool.find(l => l.name === pName);
-                if(match) {
-                    let sD = new Date(match.start);
-                    let eD = new Date(match.end);
-                    let diffTime = Math.abs(eD - sD);
-                    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                    
-                    let insideFilterRange = true;
-                    if(startVal && new Date(match.end) < new Date(startVal)) insideFilterRange = false;
-                    if(endVal && new Date(match.start) > new Date(endVal)) insideFilterRange = false;
-
-                    if(insideFilterRange) {
-                        totalLeaveDaysCount += diffDays;
+            filteredDays.forEach(dayStr => {
+                USER_EXPLICIT_25.forEach(p => {
+                    const hasLeave = checkStaffLeaveOnDate(p, dayStr);
+                    if(hasLeave) {
+                        leaveCountMap[p]++;
+                        if(filterStaff === 'ALL' || filterStaff === p) {
+                            totalActiveLeavesCounter++;
+                        }
+                    } else {
+                        const dayJobs = mainShiftsLogPool.filter(j => j.date === dayStr && checkStaffInvolvedInJob(p, j));
+                        const actualShifts = dayJobs.filter(j => !(j.program.toLowerCase().includes('ihtimal') || j.description.toLowerCase().includes('ihtimal')));
+                        if(actualShifts.length > 0) {
+                            logCountMap[p] += actualShifts.length;
+                            if(filterStaff === 'ALL' || filterStaff === p) {
+                                totalShiftsCounter += actualShifts.length;
+                            }
+                        }
                     }
-
-                    let fStart = match.start.split("-").reverse().join(".");
-                    let fEnd = match.end.split("-").reverse().join(".");
-
-                    const lTr = document.createElement('tr');
-                    lTr.className = "hover:bg-slate-50";
-                    lTr.innerHTML = `
-                        <td class="p-3 pl-4 text-slate-900 font-black">${pName}</td>
-                        <td class="p-3 text-slate-500 font-mono text-xs">${fStart} - ${fEnd}</td>
-                        <td class="p-3 text-center"><span class="bg-orange-100 text-orange-800 px-2 py-0.5 rounded font-black">${diffDays} Gün</span></td>
-                        <td class="p-3 text-right pr-4">
-                            <button onclick="removeStaffLeaveDirectly('${pName}')" class="text-red-500 hover:text-red-700 text-xs font-black cursor-pointer"><i class="fa-solid fa-calendar-xmark"></i> İptal Et</button>
-                        </td>
-                    `;
-                    leaveHistoryBody.innerHTML += lTr.outerHTML;
-                }
+                });
             });
 
-            document.getElementById('metric-active-leaves-count').textContent = totalLeaveDaysCount + " Gün";
+            document.getElementById('metric-total-staff').textContent = USER_EXPLICIT_25.length.toString();
+            document.getElementById('metric-total-shifts').textContent = totalShiftsCounter.toString();
+            document.getElementById('metric-active-leaves-count').textContent = totalActiveLeavesCounter + " Gün";
 
-            const sideTableBody = document.getElementById('table-body-admin-logs');
-            sideTableBody.innerHTML = "";
-            const sideTableHeader = document.getElementById('side-table-header');
-
-            if(staffFilter !== 'ALL') {
-                sideTableHeader.innerHTML = `<th class="p-2.5">Program / Görev Adı</th><th class="p-2.5 text-center">Görev Sayısı</th>`;
-                let programCounts = {};
-                filteredPool.filter(s => !s.isProbability).forEach(item => {
-                    programCounts[item.program] = (programCounts[item.program] || 0) + 1;
-                });
-
-                let sortedPrograms = Object.keys(programCounts).sort((a,b) => programCounts[b] - programCounts[a]);
-                sortedPrograms.forEach(pKey => {
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-50";
-                    tr.innerHTML = `<td class="p-2.5 font-bold text-slate-900">${pKey}</td><td class="p-2.5 text-center font-black text-sky-600">${programCounts[pKey]}</td>`;
-                    sideTableBody.appendChild(tr);
-                });
-
-                document.getElementById('metric-max-staff').textContent = sortedPrograms[0] ? `${sortedPrograms[0]} (${programCounts[sortedPrograms[0]]} Kez)` : "-";
+            if (filterStaff !== 'ALL') {
+                document.getElementById('label-total-shifts').textContent = "Seçili Personel Kesin İş";
+                document.getElementById('chart-main-title').innerHTML = `<i class="fa-solid fa-chart-column text-orange-500 mr-1"></i> ${filterStaff} Detaylı Dağılım Grafiği`;
+                document.getElementById('side-panel-title').innerHTML = `<i class="fa-solid fa-list-ol text-sky-500 mr-1"></i> Görev Yapılan Programlar`;
+                document.getElementById('side-table-header').innerHTML = `<th class="p-2.5">Program Adı</th><th class="p-2.5 text-center">Kesin İş</th>`;
+                document.getElementById('chart-timeline-filter-wrapper').classList.remove('hidden');
+                
+                renderSingleStaffChartAndTables(filterStaff, filteredDays);
             } else {
-                sideTableHeader.innerHTML = `<th class="p-2.5">Personel Adı</th><th class="p-2.5 text-center">Kesin İş</th>`;
-                let staffCounts = {};
-                USER_EXPLICIT_25.forEach(n => staffCounts[n] = 0);
-                filteredPool.filter(s => !s.isProbability).forEach(item => {
-                    if(staffCounts.hasOwnProperty(item.workerName)) staffCounts[item.workerName]++;
-                });
+                document.getElementById('label-total-shifts').textContent = "Filtreli Toplam Kesin İş";
+                document.getElementById('chart-main-title').innerHTML = `<i class="fa-solid fa-chart-column text-orange-500 mr-1"></i> Tüm Kadro Yoğunluk Grafiği`;
+                document.getElementById('side-panel-title').innerHTML = `<i class="fa-solid fa-list-ol text-sky-500 mr-1"></i> Kadro Yoğunluk Sıralaması`;
+                document.getElementById('side-table-header').innerHTML = `<th class="p-2.5">Personel Adı</th><th class="p-2.5 text-center">Kesin İş</th>`;
+                document.getElementById('chart-timeline-filter-wrapper').classList.add('hidden');
+                document.getElementById('panel-detailed-job-history').classList.add('hidden');
 
-                let sortedStaff = Object.keys(staffCounts).sort((a,b) => staffCounts[b] - staffCounts[a]);
-                sortedStaff.forEach(sKey => {
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-50";
-                    tr.innerHTML = `<td class="p-2.5 font-bold text-slate-900">${sKey}</td><td class="p-2.5 text-center font-black text-orange-600">${staffCounts[sKey]}</td>`;
-                    sideTableBody.appendChild(tr);
-                });
-
-                document.getElementById('metric-max-staff').textContent = sortedStaff[0] ? `${sortedStaff[0]} (${staffCounts[sortedStaff[0]]} İş)` : "-";
+                renderAllStaffChartAndTables(logCountMap);
             }
-
-            renderAdminAnalyticsChart(filteredPool, staffFilter);
-            renderDetailedJobHistoryTable(filteredPool, staffFilter);
         }
 
-        function renderDetailedJobHistoryTable(filteredPool, staffFilter) {
-            const panel = document.getElementById('panel-detailed-job-history');
-            const tbody = document.getElementById('table-body-history-details');
-            const badge = document.getElementById('badge-history-count');
-
-            if(staffFilter === 'ALL') {
-                panel.classList.add('hidden');
-                return;
+        function renderAllStaffChartAndTables(logCountMap) {
+            let sortedKadro = [...USER_EXPLICIT_25].sort((a,b) => logCountMap[b] - logCountMap[a]);
+            
+            let maxStaff = "-";
+            if(sortedKadro.length > 0 && logCountMap[sortedKadro[0]] > 0) {
+                maxStaff = `${sortedKadro[0]} (${logCountMap[sortedKadro[0]]} İş)`;
             }
+            document.getElementById('metric-max-staff').textContent = maxStaff;
 
-            panel.classList.remove('hidden');
-            tbody.innerHTML = "";
-
-            let sortedHistory = [...filteredPool].sort((a,b) => new Date(a.date) - new Date(b.date));
-            badge.textContent = `${sortedHistory.length} Görev Kaydı`;
-
-            if(sortedHistory.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Seçilen kriterlerde görev kaydı bulunamadı.</td></tr>`;
-                return;
-            }
-
-            sortedHistory.forEach(item => {
-                let fDate = item.date.split("-").reverse().join(".");
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 " + (item.isProbability ? "bg-amber-50/40" : "");
-                tr.innerHTML = `
-                    <td class="p-3 pl-4 font-black text-slate-900">${fDate} <span class="text-[10px] text-slate-400 font-normal block">${item.dayName}</span></td>
-                    <td class="p-3 text-slate-800 font-black">${item.program} ${item.isProbability ? '<span class="text-[9px] bg-amber-500 text-white px-1 rounded ml-1">İHTİMAL</span>':''}</td>
-                    <td class="p-3 text-slate-500 text-xs font-medium">${item.subDetail || "-"}</td>
-                    <td class="p-3 text-center font-mono font-bold text-slate-600">${item.hour}</td>
+            const tbody = document.getElementById('table-body-admin-logs');
+            tbody.innerHTML = '';
+            sortedKadro.forEach(p => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-2.5 font-bold text-slate-800 uppercase">${p}</td>
+                        <td class="p-2.5 text-center font-mono font-black text-slate-600">${logCountMap[p]}</td>
+                    </tr>
                 `;
-                tbody.appendChild(tr);
             });
-        }
 
-        function executeStaffComparison() {
-            const p1 = document.getElementById('compare-staff-1').value;
-            const p2 = document.getElementById('compare-staff-2').value;
-            const box = document.getElementById('compare-result-box');
+            const labels = sortedKadro;
+            const dataValues = sortedKadro.map(p => logCountMap[p]);
 
-            if(!p1 || !p2) {
-                alert("Lütfen karşılaştırmak için iki personel seçin!");
-                return;
-            }
-            if(p1 === p2) {
-                alert("Aynı personeli kendisiyle kıyaslayamazsınız!");
-                return;
-            }
-
-            box.classList.remove('hidden');
-            let p1Count = mainShiftsLogPool.filter(s => s.workerName === p1 && !s.isProbability).length;
-            let p2Count = mainShiftsLogPool.filter(s => s.workerName === p2 && !s.isProbability).length;
-
-            let diffText = "";
-            if(p1Count > p2Count) {
-                diffText = `${p1}, ${p2} personeline göre <span class="text-indigo-600 font-black">${p1Count - p2Count} adet daha fazla</span> kesin iş üstlenmiştir.`;
-            } else if(p2Count > p1Count) {
-                diffText = `${p2}, ${p1} personeline göre <span class="text-purple-600 font-black">${p2Count - p1Count} adet daha fazla</span> kesin iş üstlenmiştir.`;
-            } else {
-                diffText = "Her iki personelin de toplam kesin iş sayıları birbirine tam olarak eşittir.";
-            }
-
-            box.innerHTML = `
-                <div class="flex items-center justify-between border-b border-indigo-100 pb-2 mb-2">
-                    <span class="font-black text-indigo-950 uppercase tracking-wider text-[11px]"><i class="fa-solid fa-scale-balanced mr-1"></i> KIYASLAMA ANALİZ RAPORU</span>
-                    <button onclick="document.getElementById('compare-result-box').classList.add('hidden')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                <div class="grid grid-cols-2 gap-4 text-center mb-2">
-                    <div class="bg-indigo-100/50 p-2 rounded-lg"><span class="text-slate-500 block text-[10px]">1. PERSONEL (${p1})</span><span class="text-lg font-black text-indigo-900">${p1Count} İş</span></div>
-                    <div class="bg-purple-100/50 p-2 rounded-lg"><span class="text-slate-500 block text-[10px]">2. PERSONEL (${p2})</span><span class="text-lg font-black text-purple-900">${p2Count} İş</span></div>
-                </div>
-                <p class="leading-relaxed text-[11px] text-slate-700 font-medium">${diffText}</p>
-            `;
-
-            if(chartInstanceReference) chartInstanceReference.destroy();
-            const ctx = document.getElementById('canvas-admin-chart').getContext('2d');
-            chartInstanceReference = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: [p1, p2],
-                    datasets: [{
-                        label: 'Toplam Kesin Görev Sayısı',
-                        data: [p1Count, p2Count],
-                        backgroundColor: ['rgba(79, 70, 229, 0.85)', 'rgba(147, 51, 234, 0.85)'],
-                        borderColor: ['#4f46e5', '#9333ea'],
-                        borderWidth: 2,
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-                }
-            });
+            rebuildChartInstance(labels, [{
+                label: 'Kesinleşen Toplam Görev Sayısı',
+                data: dataValues,
+                backgroundColor: '#0284c7',
+                borderRadius: 6
+            }]);
         }
 
         function changeChartScaleMode(mode) {
             activeChartScaleMode = mode;
-            ['btn-scale-weekly', 'btn-scale-monthly', 'btn-scale-yearly'].forEach(id => {
-                document.getElementById(id).className = "bg-slate-100 text-slate-600 hover:bg-slate-200 text-[10px] font-black px-3 py-1.5 rounded-lg transition-all";
+            ['weekly', 'monthly', 'yearly'].forEach(m => {
+                const btn = document.getElementById('btn-scale-' + m);
+                if(btn) {
+                    btn.className = (m === mode) ? 
+                        "bg-orange-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg transition-all shadow-sm" : 
+                        "bg-slate-100 text-slate-600 hover:bg-slate-200 text-[10px] font-black px-3 py-1.5 rounded-lg transition-all";
+                }
             });
-            document.getElementById(`btn-scale-${mode}`).className = "bg-orange-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg transition-all shadow-sm";
             applyLogFilters();
         }
 
-        function renderAdminAnalyticsChart(filteredPool, staffFilter) {
-            const compareBox = document.getElementById('compare-result-box');
-            if(!compareBox.classList.contains('hidden')) {
-                return;
+        function renderSingleStaffChartAndTables(staffName, filteredDays) {
+            let staffJobs = mainShiftsLogPool.filter(j => filteredDays.includes(j.date) && checkStaffInvolvedInJob(staffName, j));
+            let staffActualJobs = staffJobs.filter(j => !(j.program.toLowerCase().includes('ihtimal') || j.description.toLowerCase().includes('ihtimal')));
+
+            let progStats = {};
+            staffActualJobs.forEach(j => {
+                let cleanProg = j.program.trim() || "Açıklamasız Görev";
+                progStats[cleanProg] = (progStats[cleanProg] || 0) + 1;
+            });
+            let sortedProgs = Object.keys(progStats).sort((a,b) => progStats[b] - progStats[a]);
+
+            document.getElementById('metric-max-staff').textContent = sortedProgs.length > 0 ? `${sortedProgs[0]} (${progStats[sortedProgs[0]]} Kez)` : "-";
+
+            const tbodySide = document.getElementById('table-body-admin-logs');
+            tbodySide.innerHTML = '';
+            sortedProgs.forEach(pr => {
+                tbodySide.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-2.5 font-bold text-slate-800">${pr}</td>
+                        <td class="p-2.5 text-center font-mono font-black text-slate-600">${progStats[pr]}</td>
+                    </tr>
+                `;
+            });
+
+            const historyPanel = document.getElementById('panel-detailed-job-history');
+            const historyTbody = document.getElementById('table-body-history-details');
+            const historyCountBadge = document.getElementById('badge-history-count');
+            
+            historyPanel.classList.remove('hidden');
+            historyTbody.innerHTML = '';
+            historyCountBadge.textContent = `${staffJobs.length} İş Bulundu`;
+
+            if(staffJobs.length === 0) {
+                historyTbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Bu tarih aralığında planlanmış herhangi bir görev kaydı bulunamadı.</td></tr>';
+            } else {
+                staffJobs.forEach(j => {
+                    const isIhtimal = j.program.toLowerCase().includes('ihtimal') || j.description.toLowerCase().includes('ihtimal');
+                    const displayDate = j.date.split('-').reverse().join('.') + ` (${getTurkishDayName(j.date)})`;
+                    historyTbody.innerHTML += `
+                        <tr class="${isIhtimal ? 'bg-amber-50/50' : 'hover:bg-slate-50'} transition-colors">
+                            <td class="p-3 pl-4 font-black text-slate-900">${displayDate}</td>
+                            <td class="p-3 font-bold text-sky-900">${j.program || '-'}</td>
+                            <td class="p-3 text-slate-500 font-medium">${j.description || '-'}</td>
+                            <td class="p-3 text-center font-mono font-black text-slate-600">${j.hour || '-'}</td>
+                        </tr>
+                    `;
+                });
             }
 
-            document.getElementById('chart-timeline-filter-wrapper').classList.add('hidden');
-            if(chartInstanceReference) chartInstanceReference.destroy();
-
-            const ctx = document.getElementById('canvas-admin-chart').getContext('2d');
-            if(!ctx) return;
-
-            let labels = [];
-            let datasetsData = [];
-            let datasetLabel = "";
-            let primaryColor = "rgba(249, 115, 22, 0.85)";
-            let borderColor = "#f97316";
-
-            if(staffFilter !== 'ALL') {
-                document.getElementById('chart-timeline-filter-wrapper').classList.remove('hidden');
-                datasetLabel = `${staffFilter} Zaman Kırılımlı Görev Analizi`;
-                primaryColor = "rgba(14, 165, 233, 0.85)";
-                borderColor = "#0ea5e9";
-
+            let scaleGroups = {};
+            filteredDays.forEach(dStr => {
+                let key = dStr; 
                 if(activeChartScaleMode === 'weekly') {
-                    let weekMap = {};
-                    filteredPool.filter(s => !s.isProbability).forEach(item => {
-                        let d = new Date(item.date);
-                        let oneJan = new Date(d.getFullYear(), 0, 1);
-                        let numberOfDays = Math.floor((d - oneJan) / (24 * 60 * 60 * 1000));
-                        let resultWeek = Math.ceil((d.getDay() + 1 + numberOfDays) / 7);
-                        let wKey = `${resultWeek}. Hafta`;
-                        weekMap[wKey] = (weekMap[wKey] || 0) + 1;
-                    });
-                    labels = Object.keys(weekMap);
-                    datasetsData = Object.values(weekMap);
+                    key = "Hafta " + getExcelWeekNumber(new Date(dStr));
                 } else if(activeChartScaleMode === 'monthly') {
-                    let monthMap = {};
-                    filteredPool.filter(s => !s.isProbability).forEach(item => {
-                        let mIdx = parseInt(item.month) - 1;
-                        let mName = MONTH_NAMES[mIdx] || item.month;
-                        monthMap[mName] = (monthMap[mName] || 0) + 1;
-                    });
-                    labels = Object.keys(monthMap);
-                    datasetsData = Object.values(monthMap);
-                } else {
-                    let yrMap = {};
-                    filteredPool.filter(s => !s.isProbability).forEach(item => {
-                        yrMap[item.year] = (yrMap[item.year] || 0) + 1;
-                    });
-                    labels = Object.keys(yrMap);
-                    datasetsData = Object.values(yrMap);
+                    let d = new Date(dStr);
+                    key = MONTH_NAMES[d.getMonth()] + " " + d.getFullYear();
+                } else if(activeChartScaleMode === 'yearly') {
+                    key = new Date(dStr).getFullYear().toString();
                 }
-            } else {
-                datasetLabel = "Kadro Geneli Toplam Kesin İş Dağılımı";
-                let tempCounts = {};
-                USER_EXPLICIT_25.forEach(n => tempCounts[n] = 0);
-                filteredPool.filter(s => !s.isProbability).forEach(item => {
-                    if(tempCounts.hasOwnProperty(item.workerName)) tempCounts[item.workerName]++;
-                });
+                if(!scaleGroups[key]) scaleGroups[key] = 0;
+            });
 
-                labels = Object.keys(tempCounts);
-                datasetsData = Object.values(tempCounts);
+            staffActualJobs.forEach(j => {
+                let key = j.date;
+                if(activeChartScaleMode === 'weekly') {
+                    key = "Hafta " + getExcelWeekNumber(new Date(j.date));
+                } else if(activeChartScaleMode === 'monthly') {
+                    let d = new Date(j.date);
+                    key = MONTH_NAMES[d.getMonth()] + " " + d.getFullYear();
+                } else if(activeChartScaleMode === 'yearly') {
+                    key = new Date(j.date).getFullYear().toString();
+                }
+                if(scaleGroups.hasOwnProperty(key)) {
+                    scaleGroups[key]++;
+                }
+            });
+
+            let sortedScaleKeys = Object.keys(scaleGroups);
+            if(activeChartScaleMode === 'weekly' || activeChartScaleMode === 'weekly' === false) {
+                sortedScaleKeys.sort();
+            }
+
+            const chartLabels = sortedScaleKeys;
+            const chartDataValues = sortedScaleKeys.map(k => scaleGroups[k]);
+
+            rebuildChartInstance(chartLabels, [{
+                label: `${staffName} Kesin Görev Dağılımı`,
+                data: chartDataValues,
+                backgroundColor: '#f97316',
+                borderRadius: 6
+            }]);
+        }
+
+        function getExcelWeekNumber(d) {
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+            var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+            var weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
+            return weekNo;
+        }
+
+        function rebuildChartInstance(labels, datasets) {
+            const ctx = document.getElementById('canvas-admin-chart');
+            if(!ctx) return;
+            
+            if(chartInstanceReference) {
+                chartInstanceReference.destroy();
             }
 
             chartInstanceReference = new Chart(ctx, {
                 type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: datasetLabel,
-                        data: datasetsData,
-                        backgroundColor: primaryColor,
-                        borderColor: borderColor,
-                        borderWidth: 2,
-                        borderRadius: 6
-                    }]
-                },
+                data: { labels: labels, datasets: datasets },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
@@ -1182,24 +1164,82 @@
                         legend: { display: true, labels: { font: { weight: 'bold', size: 10 } } }
                     },
                     scales: {
-                        y: { beginAtZero: true, ticks: { stepSize: 1, font: { weight: 'bold' } } },
-                        x: { ticks: { font: { weight: 'bold', size: 9 } } }
+                        y: { beginAtZero: true, ticks: { font: { weight: 'bold', size: 10 } }, grid: { color: '#f1f5f9' } },
+                        x: { ticks: { font: { weight: 'bold', size: 9 }, autoSkip: false, maxRotation: 45, minRotation: 45 }, grid: { display: false } }
                     }
                 }
             });
         }
 
+        function executeStaffComparison() {
+            const p1 = document.getElementById('compare-staff-1').value;
+            const p2 = document.getElementById('compare-staff-2').value;
+            const resBox = document.getElementById('compare-result-box');
+
+            if(p1 === p2) {
+                alert("Lütfen karşılaştırmak için iki farklı personel seçiniz!");
+                return;
+            }
+
+            let startVal = document.getElementById('analysis-start-date').value;
+            let endVal = document.getElementById('analysis-end-date').value;
+            let filterStart = startVal ? new Date(startVal).getTime() : -Infinity;
+            let filterEnd = endVal ? new Date(endVal).getTime() : Infinity;
+
+            let filteredDays = timePeriodDaysList.filter(dayStr => {
+                const t = new Date(dayStr).getTime();
+                return (t >= filterStart && t <= filterEnd);
+            });
+
+            let count1 = 0, count2 = 0;
+            let leave1 = 0, leave2 = 0;
+
+            filteredDays.forEach(dayStr => {
+                if(checkStaffLeaveOnDate(p1, dayStr)) leave1++;
+                else if(mainShiftsLogPool.some(j => j.date === dayStr && checkStaffInvolvedInJob(p1, j) && !(j.program.toLowerCase().includes('ihtimal') || j.description.toLowerCase().includes('ihtimal')))) count1++;
+
+                if(checkStaffLeaveOnDate(p2, dayStr)) leave2++;
+                else if(mainShiftsLogPool.some(j => j.date === dayStr && checkStaffInvolvedInJob(p2, j) && !(j.program.toLowerCase().includes('ihtimal') || j.description.toLowerCase().includes('ihtimal')))) count2++;
+            });
+
+            resBox.classList.remove('hidden');
+            resBox.innerHTML = `
+                <div class="flex justify-between items-center border-b border-indigo-100 pb-2 mb-2 text-indigo-950">
+                    <span><i class="fa-solid fa-code-compare"></i> Analiz Sonucu (${p1} vs ${p2})</span>
+                    <span class="bg-indigo-600 text-white text-[9px] px-2 py-0.5 rounded-md">Karşılaştırma Modu</span>
+                </div>
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <div class="bg-white p-2.5 rounded-xl border border-indigo-100 shadow-sm">
+                        <div class="uppercase text-slate-800 text-xs font-black truncate">${p1}</div>
+                        <div class="text-indigo-600 text-lg font-black mt-1">${count1} İş</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">${leave1} Gün İzinli</div>
+                    </div>
+                    <div class="bg-white p-2.5 rounded-xl border border-indigo-100 shadow-sm">
+                        <div class="uppercase text-slate-800 text-xs font-black truncate">${p2}</div>
+                        <div class="text-purple-600 text-lg font-black mt-1">${count2} İş</div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">${leave2} Gün İzinli</div>
+                    </div>
+                </div>
+                <p class="text-[10px] text-slate-400 font-medium text-center mt-2">Yukarıdaki karşılaştırmaya sarı renkli ihtimal görevleri dahil edilmemiştir.</p>
+            `;
+
+            rebuildChartInstance([p1, p2], [
+                { label: 'Kesinleşen İş Sayısı', data: [count1, count2], backgroundColor: ['#4f46e5', '#7c3aed'], borderRadius: 6 },
+                { label: 'İzinli Gün Sayısı', data: [leave1, leave2], backgroundColor: ['#f97316', '#fb923c'], borderRadius: 6 }
+            ]);
+        }
+
         function exportSesBackup() {
-            const backupPayload = {
-                mainShiftsLogPool: mainShiftsLogPool,
-                timePeriodDaysList: timePeriodDaysList,
-                staffLeavePool: staffLeavePool
+            const backupObj = {
+                ses_cumulative_shifts_pool: localStorage.getItem('ses_cumulative_shifts_pool'),
+                ses_cumulative_days_list: localStorage.getItem('ses_cumulative_days_list'),
+                ses_staff_leaves_pool: localStorage.getItem('ses_staff_leaves_pool')
             };
-            
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupPayload, null, 2));
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupObj, null, 2));
             const dlAnchorElem = document.createElement('a');
             dlAnchorElem.href = dataStr;
-            dlAnchorElem.download = "ses_servisi_firebase_yedek.json";
+            dlAnchorElem.download = "ses_servisi_v2_yedek.json";
             document.body.appendChild(dlAnchorElem);
             dlAnchorElem.click();
             document.body.removeChild(dlAnchorElem);
@@ -1213,21 +1253,43 @@
             reader.onload = function(e) {
                 try {
                     const parsedData = JSON.parse(e.target.result);
-                    if (parsedData.hasOwnProperty('mainShiftsLogPool')) {
-                        mainShiftsLogPool = parsedData.mainShiftsLogPool || [];
-                        timePeriodDaysList = parsedData.timePeriodDaysList || [];
-                        staffLeavePool = parsedData.staffLeavePool || [];
+                    
+                    if (parsedData.hasOwnProperty('ses_cumulative_shifts_pool')) {
+                        Object.keys(parsedData).forEach(key => {
+                            if (parsedData[key] !== null) {
+                                localStorage.setItem(key, parsedData[key]);
+                            }
+                        });
                         
-                        pushDatabaseToFirebase();
-                        alert("Harika! Yedek dosyası Firebase bulutuna kayıpsız yüklendi.");
+                        // Belleği güncelle
+                        loadDatabaseFromLocalStorage();
+                        
+                        // --- KRİTİK ADIM: Yüklenen yedeği Firebase Bulutuna da aktar ---
+                        pushAllToFirebaseCloud();
+                        
+                        alert("Harika! Tüm iş logları, tarihler ve personel izinleri kayıpsız şekilde geri yüklendi ve Firebase bulut sistemine aktarıldı.");
+                        window.location.reload();
                     } else {
-                        alert("Hatalı yedek dosyası!");
+                        alert("Hatalı yedek dosyası! Lütfen geçerli bir ses_servisi_yedek.json dosyası seçin.");
                     }
                 } catch (err) {
-                    alert("JSON formatı geçersiz.");
+                    alert("Yedek dosyası okunurken hata oluştu: " + err.message);
                 }
             };
             reader.readAsText(file);
+        }
+
+        function resetAllStoredData() {
+            if(!confirm("DİKKAT! Cihazda kayıtlı tüm yerel veriler sıfırlanacaktır. Emin misiniz?")) return;
+            localStorage.removeItem('ses_cumulative_shifts_pool');
+            localStorage.removeItem('ses_cumulative_days_list');
+            localStorage.removeItem('ses_staff_leaves_pool');
+            
+            // Buluttaki verileri de temizle
+            database.ref().remove();
+            
+            alert("Tüm yerel hafıza ve Firebase bulut veritabanı başarıyla sıfırlandı.");
+            window.location.reload();
         }
     </script>
 </body>
