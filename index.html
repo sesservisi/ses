@@ -13,7 +13,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Firebase Konsolundan Aldığın Bilgileri Buraya Yapıştır
+        // Paylaştığınız Güncel Firebase Yapılandırması
         const firebaseConfig = {
             apiKey: "AIzaSyAhmP1JC3Py6o3AMh8hJ3NHD1TwaDjATG4",
             authDomain: "ses-servisi.firebaseapp.com",
@@ -31,7 +31,7 @@
         window.dbSet = set;
         window.dbOnValue = onValue;
         
-        // Firebase bağlandıktan sonra ana akışı başlat
+        // Firebase Modülleri hazır olduğunda ana script akışını tetikle
         window.dispatchEvent(new Event('firebaseReady'));
     </script>
 
@@ -132,7 +132,7 @@
                     <p class="text-[10px] text-slate-400 mt-0.5">Tüm izin girişleri ve Excel senkronizasyon verileri tarayıcı fark etmeksizin tüm cihazlarda anlık güncellenir.</p>
                 </div>
                 <div class="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 px-3 py-1.5 rounded-xl font-mono text-center">
-                    Bağlantı Türü: Firebase RTDB (Live Sync)
+                    Bağlantı Türü: Firebase RTDB (Europe West)
                 </div>
             </div>
 
@@ -559,7 +559,9 @@
                     document.getElementById('alert-no-data').classList.remove('hidden');
                 }
             } finally {
+                // UI Güncelleme
                 document.getElementById('loader-live-data').classList.add('hidden');
+                document.getElementById('section-personnel').classList.remove('hidden');
             }
         }
 
@@ -851,7 +853,6 @@
                 staffLeavePool.push({ name, start, end });
             }
 
-            // Firebase'e kaydet
             pushDatabaseToFirebase();
             alert(`${name} için yıllık izin tanımlandı ve bulut veritabanına işlendi!`);
             document.getElementById('leave-entry-form').reset();
@@ -860,7 +861,6 @@
         function removeStaffLeaveDirectly(name) {
             if(confirm(`${name} isimli personelin iznini iptal etmek istiyor musunuz?`)) {
                 staffLeavePool = staffLeavePool.filter(l => l.name !== name);
-                // Firebase'e güncelle
                 pushDatabaseToFirebase();
                 alert("İzin iptal edildi ve buluttan silindi.");
             }
@@ -1128,4 +1128,107 @@
                         let oneJan = new Date(d.getFullYear(), 0, 1);
                         let numberOfDays = Math.floor((d - oneJan) / (24 * 60 * 60 * 1000));
                         let resultWeek = Math.ceil((d.getDay() + 1 + numberOfDays) / 7);
-                        let wKey = `${resultWeek}. Ha
+                        let wKey = `${resultWeek}. Hafta`;
+                        weekMap[wKey] = (weekMap[wKey] || 0) + 1;
+                    });
+                    labels = Object.keys(weekMap);
+                    datasetsData = Object.values(weekMap);
+                } else if(activeChartScaleMode === 'monthly') {
+                    let monthMap = {};
+                    filteredPool.filter(s => !s.isProbability).forEach(item => {
+                        let mIdx = parseInt(item.month) - 1;
+                        let mName = MONTH_NAMES[mIdx] || item.month;
+                        monthMap[mName] = (monthMap[mName] || 0) + 1;
+                    });
+                    labels = Object.keys(monthMap);
+                    datasetsData = Object.values(monthMap);
+                } else {
+                    let yrMap = {};
+                    filteredPool.filter(s => !s.isProbability).forEach(item => {
+                        yrMap[item.year] = (yrMap[item.year] || 0) + 1;
+                    });
+                    labels = Object.keys(yrMap);
+                    datasetsData = Object.values(yrMap);
+                }
+            } else {
+                datasetLabel = "Kadro Geneli Toplam Kesin İş Dağılımı";
+                let tempCounts = {};
+                USER_EXPLICIT_25.forEach(n => tempCounts[n] = 0);
+                filteredPool.filter(s => !s.isProbability).forEach(item => {
+                    if(tempCounts.hasOwnProperty(item.workerName)) tempCounts[item.workerName]++;
+                });
+
+                labels = Object.keys(tempCounts);
+                datasetsData = Object.values(tempCounts);
+            }
+
+            chartInstanceReference = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: datasetLabel,
+                        data: datasetsData,
+                        backgroundColor: primaryColor,
+                        borderColor: borderColor,
+                        borderWidth: 2,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, labels: { font: { weight: 'bold', size: 10 } } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1, font: { weight: 'bold' } } },
+                        x: { ticks: { font: { weight: 'bold', size: 9 } } }
+                    }
+                }
+            });
+        }
+
+        function exportSesBackup() {
+            const backupPayload = {
+                mainShiftsLogPool: mainShiftsLogPool,
+                timePeriodDaysList: timePeriodDaysList,
+                staffLeavePool: staffLeavePool
+            };
+            
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupPayload, null, 2));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.href = dataStr;
+            dlAnchorElem.download = "ses_servisi_firebase_yedek.json";
+            document.body.appendChild(dlAnchorElem);
+            dlAnchorElem.click();
+            document.body.removeChild(dlAnchorElem);
+        }
+
+        function importSesBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsedData = JSON.parse(e.target.result);
+                    if (parsedData.hasOwnProperty('mainShiftsLogPool')) {
+                        mainShiftsLogPool = parsedData.mainShiftsLogPool || [];
+                        timePeriodDaysList = parsedData.timePeriodDaysList || [];
+                        staffLeavePool = parsedData.staffLeavePool || [];
+                        
+                        pushDatabaseToFirebase();
+                        alert("Harika! Yedek dosyası Firebase bulutuna kayıpsız yüklendi.");
+                    } else {
+                        alert("Hatalı yedek dosyası!");
+                    }
+                } catch (err) {
+                    alert("JSON formatı geçersiz.");
+                }
+            };
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html>
