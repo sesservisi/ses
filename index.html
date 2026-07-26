@@ -61,7 +61,7 @@
         <!-- YÖNETİCİ PANELİ (ADMIN VIEW) -->
         <section id="view-admin" class="space-y-6 hidden">
             
-            <!-- ÜST BUTON BAR (YÖNETİM BUTONLARI) -->
+            <!-- ÜST BUTON BAR (YÖNETİM BUTONLARI - TAM KORUNDU) -->
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
                 <div class="flex flex-wrap items-center gap-2">
                     <button onclick="fetchAllDataFromGithub(true)" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
@@ -116,7 +116,7 @@
                 </div>
             </div>
 
-            <!-- YIL / AY BAZLI GRUPLANMIŞ İZİN LİSTESİ MODÜLÜ -->
+            <!-- YIL / AY BAZLI GRUPLANMIŞ İZİN LİSTESİ MODÜLÜ (GÜNCELLENEN AKORDİYON ALANI) -->
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider flex items-center gap-2">
@@ -135,7 +135,6 @@
 
         <!-- PERSONEL GÖRÜNÜMÜ (USER VIEW) -->
         <section id="view-user" class="space-y-6">
-            <!-- Filtreler ve Personel Kartları İçeriği -->
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-users-viewfinder text-blue-600 text-lg"></i>
@@ -165,7 +164,7 @@
         const GITHUB_REPO_NAME = "ses";
         const GITHUB_LIVE_FULL_DATA = "veri.json";
 
-        // VERİ SAKLAMA DEĞİŞKENLERİ (SİSTEM HAFIZASI)
+        // VERİ SAKLAMA DEĞİŞKENLERİ
         let mainShiftsLogPool = [];
         let timePeriodDaysList = [];
         let staffLeavePool = [];
@@ -218,7 +217,7 @@
             if (savedLeaves) staffLeavePool = JSON.parse(savedLeaves);
         }
 
-        // GİTHUB'DAN OTOMATİK VERİ ÇEKME (READ)
+        // GİTHUB'DAN OTOMATİK VERİ ÇEKME (veri.json)
         async function fetchAllDataFromGithub(isManualClick = false) {
             const cacheBuster = new Date().getTime();
             try {
@@ -242,7 +241,7 @@
                     }
                 }
             } catch (e) {
-                console.log("GitHub tam verisi çekilirken yerel veri kullanıldı:", e);
+                console.log("GitHub verisi çekilemedi, yerel veri kullanılıyor:", e);
             }
 
             displayStaffCards();
@@ -252,11 +251,11 @@
             }
 
             if (isManualClick) {
-                alert("GitHub üzerindeki güncel veriler (veri.json) başarıyla tarayıcıya yüklendi!");
+                alert("GitHub (veri.json) üzerindeki en güncel veriler başarıyla yüklendi!");
             }
         }
 
-        // GİTHUB'A TAM VERİ YAZMA / SENKRONİZE ETME (WRITE VIA REPOSITORY DISPATCH)
+        // GİTHUB'A VERİ YAZMA / SENKRONİZE ETME
         async function syncFullDataToGithub() {
             const payloadData = {
                 mainShiftsLogPool: mainShiftsLogPool,
@@ -302,11 +301,10 @@
                 const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
                 if (jsonData.length > 0) {
-                    // Excel verisini işleme mantığı
                     processExcelRawData(jsonData);
                     saveDatabaseToLocalStorage();
                     syncFullDataToGithub(); // GitHub'a otomatik gönder
-                    alert("Excel verileri başarıyla işlendi ve GitHub veri.json senkronizasyonu başlatıldı!");
+                    alert("Excel verileri işlendi ve GitHub'daki veri.json güncellendi!");
                     displayStaffCards();
                 }
             };
@@ -314,13 +312,11 @@
         }
 
         function processExcelRawData(data) {
-            // Excel yapısından verileri ayrıştırma işlemleri
             timePeriodDaysList = [];
             mainShiftsLogPool = [];
 
             if(data.length < 2) return;
 
-            // Örnek sütun başlıkları ve isim tespiti
             const headers = data[0];
             for (let i = 1; i < data.length; i++) {
                 const row = data[i];
@@ -364,7 +360,7 @@
             downloadAnchor.remove();
         }
 
-        // YEDEK DOSYASINI GERİ YÜKLEME (GİTHUB AUTOMATIC SYNC DAHİL)
+        // YEDEĞİ GERİ YÜKLEME (GİTHUB AUTOMATIC SYNC DAHİL)
         function restoreDataBackup(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -381,7 +377,7 @@
                         saveDatabaseToLocalStorage();
                         syncFullDataToGithub(); // DIŞARIDAN YÜKLENEN JSON'I GİTHUB'A YAZAR
 
-                        alert("Yedek verisi başarıyla yüklendi ve GitHub'daki veri.json güncellendi!");
+                        alert("Yedek başarıyla yüklendi ve GitHub'daki veri.json senkronize edildi!");
                         
                         displayStaffCards();
                         if (currentActiveTab === 'admin') {
@@ -406,7 +402,7 @@
                 localStorage.clear();
                 syncFullDataToGithub(); // GitHub'ı da sıfırla
 
-                alert("Tüm veriler temizlendi ve sıfırlandı.");
+                alert("Tüm veriler temizlendi.");
                 displayStaffCards();
                 if (currentActiveTab === 'admin') {
                     populateStaffSelectOptions();
@@ -415,7 +411,7 @@
             }
         }
 
-        // PERSONEL SEÇİM LİSTESİNİ DOLDURMA
+        // PERSONEL SEÇİM LİSTESİ
         function populateStaffSelectOptions() {
             const selectEl = document.getElementById('select-leave-staff');
             selectEl.innerHTML = '';
@@ -469,12 +465,12 @@
             document.getElementById('input-leave-end').value = '';
 
             renderGroupedLeaveAccordion();
-            alert(`${staff} kişisi için izin kaydı oluşturuldu ve GitHub senkronizasyonu başlatıldı.`);
+            alert(`${staff} için izin kaydedildi ve GitHub senkronize edildi.`);
         }
 
-        // İZİN KAYDI İPTAL ETME (SİLME)
+        // İZİN SİLME (İPTAL)
         function deleteLeaveRecord(leaveId) {
-            if (confirm("Bu izin kaydını iptal etmek ve silmek istediğinizden emin misiniz?")) {
+            if (confirm("Bu izin kaydını silmek istediğinizden emin misiniz?")) {
                 staffLeavePool = staffLeavePool.filter(item => item.id !== leaveId);
                 saveDatabaseToLocalStorage();
                 syncFullDataToGithub(); // GitHub'ı güncelle
@@ -482,7 +478,7 @@
             }
         }
 
-        // İZİNLERİ YIL VE AY BAZINDA GRUPLAYARAK AKORDİSYON (ACCORDION) OLARAK BASTIRMA
+        // İZİNLERİ YIL VE AY BAZINDA GRUPLAYARAK AKORDİSYON OLARAK BASTIRMA
         function renderGroupedLeaveAccordion() {
             const container = document.getElementById('accordion-leave-container');
             const totalBadge = document.getElementById('badge-total-leave-count');
@@ -597,7 +593,7 @@
             }
         }
 
-        // PERSONEL GÖRÜNÜMÜ KARTLARINI BASTIRMA
+        // PERSONEL KARTLARINI BASTIRMA
         function displayStaffCards() {
             const grid = document.getElementById('staff-cards-grid');
             grid.innerHTML = '';
