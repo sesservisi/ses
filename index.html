@@ -128,16 +128,18 @@
                         </label>
                         <input type="file" id="upload-excel-input" accept=".xlsx, .xls" class="absolute inset-0 opacity-0 cursor-pointer w-full" />
                     </div>
-                    <button onclick="exportSesBackup()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-3 rounded-xl text-xs shadow-md transition-all active:scale-95 cursor-pointer flex items-center gap-1.5">
-    <i class="fa-solid fa-download"></i> Verileri Yedekle
-</button>
 
-<div class="relative bg-amber-50 hover:bg-amber-100 rounded-xl px-4 py-3 border-2 border-dashed border-amber-200 flex items-center justify-center cursor-pointer transition-colors">
-    <label class="text-xs font-black text-amber-800 cursor-pointer flex items-center gap-1.5">
-        <i class="fa-solid fa-upload text-amber-600 text-sm"></i> Yedeği Geri Yükle
-    </label>
-    <input type="file" id="import-ses-file" accept=".json" class="absolute inset-0 opacity-0 cursor-pointer w-full" onchange="importSesBackup(event)">
-</div>
+                    <button onclick="exportSesBackup()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-3 rounded-xl text-xs shadow-md transition-all active:scale-95 cursor-pointer flex items-center gap-1.5">
+                        <i class="fa-solid fa-download"></i> Verileri Yedekle
+                    </button>
+
+                    <div class="relative bg-amber-50 hover:bg-amber-100 rounded-xl px-4 py-3 border-2 border-dashed border-amber-200 flex items-center justify-center cursor-pointer transition-colors">
+                        <label class="text-xs font-black text-amber-800 cursor-pointer flex items-center gap-1.5">
+                            <i class="fa-solid fa-upload text-amber-600 text-sm"></i> Yedeği Geri Yükle
+                        </label>
+                        <input type="file" id="import-ses-file" accept=".json" class="absolute inset-0 opacity-0 cursor-pointer w-full" onchange="importSesBackup(event)">
+                    </div>
+
                     <button onclick="resetAllStoredData()" class="bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-bold px-3 py-2 rounded-xl border border-red-200 transition-colors">
                         <i class="fa-solid fa-trash-can"></i> Hafızayı Sıfırla
                     </button>
@@ -475,7 +477,6 @@
             } else { document.getElementById('wrapper-pass-error').classList.remove('hidden'); }
         }
 
-        // CRITICAL UPDATE: CACHE BUSTING MECHANISM (FORCED TIME-STAMPED REQUESTS)
         async function fetchExcelFromGithub(isManualClick = false) {
             if(!isManualClick) {
                 document.getElementById('loader-live-data').classList.remove('hidden');
@@ -483,7 +484,6 @@
                 document.getElementById('section-personnel').classList.add('hidden');
             }
             
-            // Her istekte benzersiz bir zaman damgası üreterek sunucu ve tarayıcı önbelleğini kırıyoruz
             const cacheBuster = new Date().getTime();
 
             try {
@@ -1116,71 +1116,64 @@
             });
             document.getElementById('chart-main-title').innerHTML = `<i class="fa-solid fa-chart-bar text-indigo-500 mr-1"></i> ${p1} vs ${p2} Karşılaştırma Grafiği`;
         }
-// Sitedeki gerçek verileri toplayıp tarayıcıyı indirmeye zorlayan fonksiyon
-function exportSesBackup() {
-    // Sitenizin LocalStorage üzerinde kullandığı gerçek anahtarlar
-    const keysToBackup = [
-        'ses_cumulative_shifts_pool',
-        'ses_cumulative_days_list',
-        'ses_staff_leaves_pool'
-    ];
-    
-    let backupData = {};
-    keysToBackup.forEach(key => {
-        backupData[key] = localStorage.getItem(key);
-    });
-    
-    // Eğer hiçbir veri yoksa kullanıcıyı uyar
-    if (!backupData['ses_cumulative_shifts_pool'] && !backupData['ses_staff_leaves_pool']) {
-        alert("Yedeklenecek herhangi bir veri bulunamadı! Lütfen önce bir Excel yükleyin.");
-        return;
-    }
-    
-    // Dosyayı ekranda açmaya çalışmasını engelleyen Blob yapısı (Kesin Çözüm)
-    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    
-    const dlAnchorElem = document.createElement('a');
-    dlAnchorElem.href = url;
-    dlAnchorElem.download = "ses_servisi_v2_yedek.json";
-    document.body.appendChild(dlAnchorElem);
-    
-    // İndirmeyi tetikle
-    dlAnchorElem.click();
-    
-    // Bellek temizliği
-    document.body.removeChild(dlAnchorElem);
-    URL.revokeObjectURL(url);
-}
 
-// İndirilen yedeği sisteme sorunsuz geri yükleyen fonksiyon
-function importSesBackup(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const parsedData = JSON.parse(e.target.result);
+        function exportSesBackup() {
+            const keysToBackup = [
+                'ses_cumulative_shifts_pool',
+                'ses_cumulative_days_list',
+                'ses_staff_leaves_pool'
+            ];
             
-            // Dosyanın bizim yedek dosyası olup olmadığını kontrol et
-            if (parsedData.hasOwnProperty('ses_cumulative_shifts_pool')) {
-                Object.keys(parsedData).forEach(key => {
-                    if (parsedData[key] !== null) {
-                        localStorage.setItem(key, parsedData[key]);
-                    }
-                });
-                alert("Harika! Tüm iş logları, tarihler ve personel izinleri kayıpsız şekilde geri yüklendi.");
-                window.location.reload();
-            } else {
-                alert("Hatalı yedek dosyası! Lütfen geçerli bir ses_servisi_yedek.json dosyası seçin.");
+            let backupData = {};
+            keysToBackup.forEach(key => {
+                backupData[key] = localStorage.getItem(key);
+            });
+            
+            if (!backupData['ses_cumulative_shifts_pool'] && !backupData['ses_staff_leaves_pool']) {
+                alert("Yedeklenecek herhangi bir veri bulunamadı! Lütfen önce bir Excel yükleyin.");
+                return;
             }
-        } catch (err) {
-            alert("Yedek dosyası işlenirken teknik bir hata oluştu.");
+            
+            const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.href = url;
+            dlAnchorElem.download = "ses_servisi_v2_yedek.json";
+            document.body.appendChild(dlAnchorElem);
+            
+            dlAnchorElem.click();
+            
+            document.body.removeChild(dlAnchorElem);
+            URL.revokeObjectURL(url);
         }
-    };
-    reader.readAsText(file);
-}
+
+        function importSesBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsedData = JSON.parse(e.target.result);
+                    
+                    if (parsedData.hasOwnProperty('ses_cumulative_shifts_pool')) {
+                        Object.keys(parsedData).forEach(key => {
+                            if (parsedData[key] !== null) {
+                                localStorage.setItem(key, parsedData[key]);
+                            }
+                        });
+                        alert("Harika! Tüm iş logları, tarihler ve personel izinleri kayıpsız şekilde geri yüklendi.");
+                        window.location.reload();
+                    } else {
+                        alert("Hatalı yedek dosyası! Lütfen geçerli bir ses_servisi_yedek.json dosyası seçin.");
+                    }
+                } catch (err) {
+                    alert("Yedek dosyası işlenirken teknik bir hata oluştu.");
+                }
+            };
+            reader.readAsText(file);
+        }
     </script>
 </body>
 </html>
