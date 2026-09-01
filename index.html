@@ -635,27 +635,26 @@
                     if (!isPerson) {
                         currentBlock = { 
                             programName: cleanStr, 
-                            hour: cellHour ? String(cellHour).trim() : "Belirtilmedi", 
+                            hour: cellHour ? String(cellHour).trim() : "", 
                             rowStart: rIdx, 
                             uniqueKey: dayColumn.dateTitle + "_" + actualColIdx + "_b_" + rIdx, 
                             subLines: [] 
                         };
                         blockStructureList.push(currentBlock);
                     } else if (currentBlock) {
-                        currentBlock.subLines.push({ text: cleanStr, rowIdx: rIdx });
+                        currentBlock.subLines.push({ text: cleanStr, rowIdx: rIdx, rawHour: cellHour ? String(cellHour).trim() : "" });
                     }
                 }
 
                 blockStructureList.forEach(block => {
                     let items = block.subLines;
-                    let commonDetails = [];
+                    if (items.length === 0) return;
+
                     let firstPersonIdx = items.findIndex(item => USER_EXPLICIT_25.includes(item.text.replace(/\.+$/, "").trim()));
-                    
-                    if (firstPersonIdx > 0) {
-                        commonDetails = items.slice(0, firstPersonIdx).map(item => item.text);
-                    } else if (firstPersonIdx === -1) {
-                        return;
-                    }
+                    if (firstPersonIdx === -1) return;
+
+                    // Ana iş isminin altındaki, ilk personelden önceki tüm detay satırlarını birleştir
+                    let topDetails = items.slice(0, firstPersonIdx).map(item => item.text);
 
                     for (let i = firstPersonIdx; i < items.length; i++) {
                         let currentText = items[i].text;
@@ -663,28 +662,23 @@
                         let sanitizedName = currentText.replace(/\.+$/, "").trim();
 
                         if (USER_EXPLICIT_25.includes(sanitizedName)) {
-                            let itemDetails = [...commonDetails];
+                            let personDetails = [...topDetails];
                             
-                            for (let j = i - 1; j >= firstPersonIdx; j--) {
-                                let prevText = items[j].text;
-                                let prevSanitized = prevText.replace(/\.+$/, "").trim();
-                                if (USER_EXPLICIT_25.includes(prevSanitized)) break;
-                                itemDetails.push(prevText);
-                            }
-                            
+                            // Personelden hemen sonraki (diğer bir personele kadar olan) alt açıklama metinlerini topla
                             for (let j = i + 1; j < items.length; j++) {
                                 let nextText = items[j].text;
                                 let nextSanitized = nextText.replace(/\.+$/, "").trim();
                                 if (USER_EXPLICIT_25.includes(nextSanitized)) break;
-                                itemDetails.push(nextText);
+                                personDetails.push(nextText);
                             }
 
-                            let uniqueDetails = [...new Set(itemDetails)];
+                            let finalDetailStr = personDetails.filter(Boolean).join(", ");
+                            let finalHour = items[i].rawHour || block.hour || "Belirtilmedi";
                             let rawProgLower = block.programName.toLowerCase();
                             
                             // RENK VE İPTAL TESPİT KURALLARI
                             let isCanceledOrGray = hasDot || rawProgLower.includes("iptal") || rawProgLower.includes("kesin değil") || rawProgLower.includes("beklemede");
-                            let isLastWeekYellow = colIdxOrder < 3; // Geçen haftanın işini temsil eder
+                            let isLastWeekYellow = colIdxOrder < 3; 
                             let isPinkChanged = rawProgLower.includes("değişen") || rawProgLower.includes("revize") || rawProgLower.includes("pembe");
 
                             mainShiftsLogPool.push({
@@ -693,13 +687,13 @@
                                 dayName: dayColumn.dayTitle, 
                                 month: dayColumn.month, 
                                 year: dayColumn.year,
-                                program: block.programName, 
-                                subDetail: uniqueDetails.join(", "), 
-                                hour: block.hour, 
+                                program: block.programName, // Asıl İş İsmi (ör. FUTBOL, CEV x2 vb.)
+                                subDetail: finalDetailStr,  // Alt Ayrıntılar (ör. Pendik / Sinan Erdem, YENİ TIR vb.)
+                                hour: finalHour, 
                                 uniqueKey: block.uniqueKey, 
-                                isProbability: isCanceledOrGray, // Gri / İptal (Analiz dışı)
-                                isLastWeek: isLastWeekYellow,  // Sarı (Geçen hafta kesin iş)
-                                isChanged: isPinkChanged       // Pembe (Değişen iş/personel)
+                                isProbability: isCanceledOrGray, 
+                                isLastWeek: isLastWeekYellow,  
+                                isChanged: isPinkChanged       
                             });
                         }
                     }
@@ -886,7 +880,7 @@
                         else row.className = "bg-white hover:bg-slate-50";
 
                         // RENK KATMANI VE ROLLER
-                        let headerBgClass = "bg-job-turquoise"; // Varsayılan renk Turkuaz
+                        let headerBgClass = "bg-job-turquoise"; // Varsayılan Turkuaz
                         let badge = `<span class="bg-sky-600 text-white text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm">KESİN GÖREV</span>`;
 
                         if (shift.isProbability) { // Gri
@@ -904,16 +898,15 @@
                             badge = `<span class="bg-orange-500 text-white text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm"><i class="fa-solid fa-umbrella-beach"></i> İZİNLİ</span>`; 
                         }
 
-                        // KALIN ÇERÇEVELİ İŞ HÜCRESİ YAPISI
+                        // KALIN ÇERÇEVELİ İŞ HÜCRESİ YAPISI (Başlıkta Personel Adı Tekrar Yazılmaz)
                         let cardContentHtml = `
                             <div class="job-card-border shadow-sm">
-                                <div class="${headerBgClass} p-2 font-black text-xs uppercase tracking-wide border-b border-slate-700">
-                                    <i class="fa-solid fa-briefcase mr-1"></i> ${shift.program}
+                                <div class="${headerBgClass} p-2 font-black text-xs uppercase tracking-wide border-b border-slate-700 flex justify-between items-center">
+                                    <span><i class="fa-solid fa-briefcase mr-1"></i> ${shift.program}</span>
+                                    ${shift.hour && shift.hour !== 'Belirtilmedi' ? `<span class="text-[10px] bg-black/20 px-1.5 py-0.5 rounded font-mono">${shift.hour}</span>` : ''}
                                 </div>
                                 <div class="bg-white p-2.5 text-slate-800 text-xs">
-                                    <div class="font-bold text-[11px] text-slate-600 mb-1"><i class="fa-solid fa-users text-sky-600 mr-1"></i> Görevli Ekip / Detaylar:</div>
-                                    <div class="font-extrabold text-slate-900">${selectedStaffName}</div>
-                                    ${shift.subDetail ? `<div class="text-[11px] text-slate-500 mt-1 font-semibold border-t border-slate-100 pt-1">${shift.subDetail}</div>` : ''}
+                                    ${shift.subDetail ? `<div class="font-bold text-slate-800"><i class="fa-solid fa-circle-info text-sky-600 mr-1"></i> ${shift.subDetail}</div>` : '<div class="text-slate-400 italic text-[11px]">Ayrıntı belirtilmemiş</div>'}
                                 </div>
                             </div>
                         `;
@@ -989,7 +982,7 @@
 
             // GRİ RENKLİ (İPTAL / KESİN OLMAYAN) İŞLER ANALİZE DÂHİL EDİLMEZ
             let filteredShifts = mainShiftsLogPool.filter(log => {
-                if (log.isProbability) return false; // Gri renklileri tamamen filtrele/çıkar
+                if (log.isProbability) return false; 
                 if (selectedStaff !== "ALL" && log.workerName !== selectedStaff) return false;
 
                 let dateStr = log.date || "";
@@ -1163,7 +1156,7 @@
 
             let count1 = 0; let count2 = 0;
             mainShiftsLogPool.forEach(log => {
-                if (log.isProbability) return; // Gri renklileri kıyasa dâhil etme
+                if (log.isProbability) return; 
                 let parts = (log.date || "").split('.');
                 if (parts.length !== 3) return;
                 let logDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
