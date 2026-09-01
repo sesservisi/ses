@@ -14,6 +14,18 @@
         .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #f97316; border-radius: 4px; }
         body { -webkit-tap-highlight-color: transparent; }
+
+        /* İş Çerçevesi Ve Renk Sınıfları */
+        .job-card-border {
+            border: 2.5px solid #334155 !important; /* Kalın Çerçeve */
+            border-radius: 0.75rem;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+        .bg-job-turquoise { background-color: #06b6d4 !important; color: #ffffff !important; } /* Turkuaz */
+        .bg-job-gray { background-color: #94a3b8 !important; color: #ffffff !important; } /* Gri (İptal/Etkisiz) */
+        .bg-job-yellow { background-color: #facc15 !important; color: #713f12 !important; } /* Sarı (Geçen Hafta İş) */
+        .bg-job-pink { background-color: #f472b6 !important; color: #831843 !important; } /* Pembe (Değişen/Özel) */
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
@@ -26,7 +38,7 @@
                 </div>
                 <div>
                     <h1 class="text-base font-black tracking-wide leading-none text-white">SES SERVİSİ</h1>
-                    <span class="text-[10px] text-orange-100 font-bold tracking-widest uppercase">Planlama & Analiz</span>
+                    <span class="text-[10px] text-orange-100 font-bold tracking-widest uppercase">Planlama & Analiz Paneli</span>
                 </div>
             </div>
             
@@ -54,7 +66,7 @@
         <div id="alert-no-data" class="bg-orange-50 border-2 border-dashed border-orange-200 rounded-2xl p-6 text-center max-w-md mx-auto my-6 hidden">
             <i class="fa-solid fa-cloud-bounce text-orange-500 text-4xl mb-2 block animate-bounce"></i>
             <h3 class="text-sm font-bold text-slate-900">Otomatik Veri Bağlantısı Kurulamadı</h3>
-            <p class="text-xs text-slate-600 mt-1 mb-4">Gorev-Listesi.xlsx dosyasına erişilemedi. Lütfen aşağıdan manuel yükleme yapın.</p>
+            <p class="text-xs text-slate-600 mt-1 mb-4">Gorev-Listesi.xlsx dosyasına erişilemedi. Lütfen manuel yükleme yapın.</p>
             <button onclick="checkAdminAccess()" class="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-black px-5 py-3 rounded-xl shadow-md transition-all active:scale-95 cursor-pointer">
                 <i class="fa-solid fa-file-excel mr-1"></i> Manuel Excel Yükle
             </button>
@@ -72,7 +84,7 @@
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white p-4 rounded-xl border border-slate-200 gap-2 shadow-sm">
                     <div>
                         <h2 id="worker-title-name" class="text-base font-black text-slate-900 uppercase tracking-tight flex items-center">-</h2>
-                        <p class="text-[11px] text-slate-500 mt-0.5">Sarı satırlar kesinleşmeyen ihtimallerdir. İlk 3 sütundan sonra bölme çizgisi eklenir.</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">İş ayrıntıları kalın çerçeve içinde gösterilir. Gri renkli işler iptal kabul edilir ve analize dâhil edilmez.</p>
                     </div>
                     <div id="sync-timestamp-badge" class="text-[10px] bg-orange-100 text-orange-700 px-3 py-1.5 rounded-lg font-black self-start sm:self-center shadow-sm border border-orange-200">Veri Durumu: Bilinmiyor</div>
                 </div>
@@ -84,7 +96,7 @@
                                 <tr class="bg-gradient-to-r from-sky-600 to-blue-600 text-white text-[11px] font-black uppercase tracking-wider">
                                     <th class="p-4 pl-5 w-44">Tarih / Gün</th>
                                     <th class="p-4 w-32 text-center">Durum</th>
-                                    <th class="p-4">Görevlendirilen Program / Stüdyo & Alt Açıklamalar</th>
+                                    <th class="p-4">Görevlendirilen Program / Stüdyo & Alt Açıklamalar (Kalın Çerçeve)</th>
                                     <th class="p-4 w-32 text-center">Yayın Saati</th>
                                     <th class="p-4 w-32 text-right pr-5">İşlemler</th>
                                 </tr>
@@ -103,10 +115,10 @@
                     <h4 class="text-xs font-black text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
                         <i class="fa-solid fa-cloud-bolt"></i> GitHub Actions Güvenli Otomasyon Sistemi Aktif
                     </h4>
-                    <p class="text-[10px] text-slate-400 mt-0.5">Artık cihazlarda bireysel token tanımlamaya gerek yoktur. Tüm işlemler merkezi işleyiciyle senkronize edilir.</p>
+                    <p class="text-[10px] text-slate-400 mt-0.5">Gri renkli iptal işler otomatik süzülerek analize yansıtılmaz.</p>
                 </div>
                 <div class="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 px-3 py-1.5 rounded-xl font-mono text-center">
-                    Bağlantı Türü: Dispatch API (Token-Free UI)
+                    Gelişmiş Analiz Filtresi Aktif
                 </div>
             </div>
 
@@ -115,7 +127,7 @@
                     <h3 class="text-sm font-black text-slate-900 flex items-center gap-1.5">
                         <i class="fa-solid fa-chart-pie text-orange-500"></i> Yönetici Analitik Paneli
                     </h3>
-                    <p class="text-[11px] text-slate-500 mt-0.5">Yaptığınız tüm izin işlemleri bağlı GitHub deposuna anlık olarak işlenir.</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Yaptığınız tüm işlemler kayıtlı depoya anlık olarak işlenir.</p>
                 </div>
                 
                 <div class="md:col-span-2 flex flex-wrap gap-2 justify-start md:justify-end">
@@ -191,7 +203,7 @@
                         <option value="ALL">Tüm Aylar</option>
                         <option value="01">Ocak</option><option value="02">Şubat</option><option value="03">Mart</option>
                         <option value="04">Nisan</option><option value="05">Mayıs</option><option value="06">Haziran</option>
-                        <option value="07">Temmuz</option><option value="08">Ağustos</option><option value="09" selected>Eylül</option>
+                        <option value="07">Temmuz</option><option value="08">Ağustos</option><option value="09" selected>EylüI</option>
                         <option value="10">Ekim</option><option value="11">Kasım</option><option value="12">Aralık</option>
                     </select>
                 </div>
@@ -222,7 +234,7 @@
                 </div>
             </div>
 
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
                 <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
                     <i class="fa-solid fa-code-compare text-indigo-500"></i> İKİ PERSONEL GÖREV KIYASLAMA MODÜLÜ
                 </h4>
@@ -362,7 +374,7 @@
             "K.GÜNGÖR", "Ç.TAŞ", "E.DÖNMEZ", "Ö.KARAKUŞ", "E.SAVAŞ"
         ].sort();
 
-        const MONTH_NAMES = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+        const MONTH_NAMES = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "EylüI", "Ekim", "Kasım", "Aralık"];
         const TURKISH_DAYS = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
 
         const TARGET_EXCEL_COLUMNS = [
@@ -519,7 +531,7 @@
                     document.getElementById('section-personnel').classList.remove('hidden');
                     document.getElementById('schedule-wrapper').classList.remove('hidden');
                     document.getElementById('sync-timestamp-badge').textContent = `Canlı Entegre (${new Date().toLocaleTimeString().substring(0,5)})`;
-                    if(isManualClick) alert("Tüm Excel ve ortak izin verileri önbellek kırılarak başarıyla çekildi!");
+                    if(isManualClick) alert("Tüm Excel ve ortak izin verileri başarıyla güncellendi!");
                     displayStaffCards();
                 } else { throw new Error(); }
             } catch(e) {
@@ -604,7 +616,7 @@
             
             mainShiftsLogPool = mainShiftsLogPool.filter(log => !newDatesSet.includes(log.date) || log.uniqueKey.startsWith("leave_"));
 
-            newIncomingDays.forEach(dayColumn => {
+            newIncomingDays.forEach((dayColumn, colIdxOrder) => {
                 let actualColIdx = dayColumn.excelColIdx;
                 let blockStructureList = [];
                 let currentBlock = null;
@@ -636,15 +648,13 @@
 
                 blockStructureList.forEach(block => {
                     let items = block.subLines;
-                    
-                    // Bloktaki ilk personelden önceki tüm satırları genel ayrıntılar (konum, tır, deneme çekimi vb.) olarak al
                     let commonDetails = [];
                     let firstPersonIdx = items.findIndex(item => USER_EXPLICIT_25.includes(item.text.replace(/\.+$/, "").trim()));
                     
                     if (firstPersonIdx > 0) {
                         commonDetails = items.slice(0, firstPersonIdx).map(item => item.text);
                     } else if (firstPersonIdx === -1) {
-                        return; // Blok içinde personel yoksa atla
+                        return;
                     }
 
                     for (let i = firstPersonIdx; i < items.length; i++) {
@@ -655,7 +665,6 @@
                         if (USER_EXPLICIT_25.includes(sanitizedName)) {
                             let itemDetails = [...commonDetails];
                             
-                            // Personelin hemen öncesinde (ortak ayrıntılardan sonra) kalan özel notları ekle
                             for (let j = i - 1; j >= firstPersonIdx; j--) {
                                 let prevText = items[j].text;
                                 let prevSanitized = prevText.replace(/\.+$/, "").trim();
@@ -663,7 +672,6 @@
                                 itemDetails.push(prevText);
                             }
                             
-                            // Personelin hemen altında kalan özel notları ekle
                             for (let j = i + 1; j < items.length; j++) {
                                 let nextText = items[j].text;
                                 let nextSanitized = nextText.replace(/\.+$/, "").trim();
@@ -671,8 +679,13 @@
                                 itemDetails.push(nextText);
                             }
 
-                            // Çift kayıtları engelle ve birleştir
                             let uniqueDetails = [...new Set(itemDetails)];
+                            let rawProgLower = block.programName.toLowerCase();
+                            
+                            // RENK VE İPTAL TESPİT KURALLARI
+                            let isCanceledOrGray = hasDot || rawProgLower.includes("iptal") || rawProgLower.includes("kesin değil") || rawProgLower.includes("beklemede");
+                            let isLastWeekYellow = colIdxOrder < 3; // Geçen haftanın işini temsil eder
+                            let isPinkChanged = rawProgLower.includes("değişen") || rawProgLower.includes("revize") || rawProgLower.includes("pembe");
 
                             mainShiftsLogPool.push({
                                 workerName: sanitizedName, 
@@ -684,7 +697,9 @@
                                 subDetail: uniqueDetails.join(", "), 
                                 hour: block.hour, 
                                 uniqueKey: block.uniqueKey, 
-                                isProbability: hasDot
+                                isProbability: isCanceledOrGray, // Gri / İptal (Analiz dışı)
+                                isLastWeek: isLastWeekYellow,  // Sarı (Geçen hafta kesin iş)
+                                isChanged: isPinkChanged       // Pembe (Değişen iş/personel)
                             });
                         }
                     }
@@ -706,7 +721,7 @@
                     if (!mainShiftsLogPool.some(l => l.uniqueKey === checkKey)) {
                         mainShiftsLogPool.push({
                             workerName: leave.workerName, date: formattedDate, dayName: computedDayTitle, month: (monthNum < 10 ? '0'+monthNum : monthNum).toString(), year: yearNum.toString(),
-                            program: "YILLIK İZİN GÖREVİ", subDetail: "Ortak Sistem Tarafından İzinli İşlendi", hour: "00:00", uniqueKey: checkKey, isProbability: false
+                            program: "YILLIK İZİN GÖREVİ", subDetail: "Ortak Sistem Tarafından İzinli İşlendi", hour: "00:00", uniqueKey: checkKey, isProbability: false, isLastWeek: false, isChanged: false
                         });
                     }
                     currentDate.setDate(currentDate.getDate() + 1);
@@ -779,7 +794,7 @@
 
                 mainShiftsLogPool.push({
                     workerName: staffName, date: formattedDate, dayName: computedDayTitle, month: (monthNum < 10 ? '0'+monthNum : monthNum).toString(), year: yearNum.toString(),
-                    program: "YILLIK İZİN GÖREVİ", subDetail: "Ortak Sistem Tarafından İzinli İşlendi", hour: "00:00", uniqueKey: "leave_" + uniqueLeaveId + "_" + formattedDate, isProbability: false
+                    program: "YILLIK İZİN GÖREVİ", subDetail: "Ortak Sistem Tarafından İzinli İşlendi", hour: "00:00", uniqueKey: "leave_" + uniqueLeaveId + "_" + formattedDate, isProbability: false, isLastWeek: false, isChanged: false
                 });
                 currentDate.setDate(currentDate.getDate() + 1);
             }
@@ -868,19 +883,45 @@
                     activeShifts.forEach((shift, sIdx) => {
                         const row = document.createElement('tr');
                         if (isToday) row.className = rowHighlightClass;
-                        else row.className = shift.isProbability ? "bg-amber-50/60 hover:bg-amber-50" : "bg-white hover:bg-slate-50";
-                        
-                        let badge = `<span class="bg-sky-600 text-white text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm">KESİN GÖREV</span>`;
-                        if (shift.isProbability) badge = `<span class="bg-amber-400 text-amber-950 text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm"><i class="fa-solid fa-circle-question"></i> İHTİMAL</span>`;
-                        if (shift.program === "YILLIK İZİN GÖREVİ") { badge = `<span class="bg-orange-500 text-white text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm"><i class="fa-solid fa-umbrella-beach"></i> İZİNLİ</span>`; }
+                        else row.className = "bg-white hover:bg-slate-50";
 
-                        let programDisplayHtml = `<div class="text-slate-950 font-black text-sm block tracking-tight">${shift.program}</div>`;
-                        if (shift.subDetail && shift.subDetail.trim() !== "") { programDisplayHtml += `<div class="text-slate-600 font-bold text-xs mt-1 block leading-normal">${shift.subDetail}</div>`; }
+                        // RENK KATMANI VE ROLLER
+                        let headerBgClass = "bg-job-turquoise"; // Varsayılan renk Turkuaz
+                        let badge = `<span class="bg-sky-600 text-white text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm">KESİN GÖREV</span>`;
+
+                        if (shift.isProbability) { // Gri
+                            headerBgClass = "bg-job-gray";
+                            badge = `<span class="bg-slate-500 text-white text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm"><i class="fa-solid fa-ban"></i> İPTAL / BEKLEMEDE</span>`;
+                        } else if (shift.isChanged) { // Pembe
+                            headerBgClass = "bg-job-pink";
+                            badge = `<span class="bg-pink-600 text-white text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm"><i class="fa-solid fa-pen-to-square"></i> DEĞİŞEN İŞ</span>`;
+                        } else if (shift.isLastWeek) { // Sarı
+                            headerBgClass = "bg-job-yellow";
+                            badge = `<span class="bg-amber-500 text-amber-950 text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm"><i class="fa-solid fa-clock-rotate-left"></i> GEÇEN HAFTA</span>`;
+                        }
+
+                        if (shift.program === "YILLIK İZİN GÖREVİ") { 
+                            badge = `<span class="bg-orange-500 text-white text-[10px] font-black px-2.5 py-1 rounded-xl block text-center shadow-sm"><i class="fa-solid fa-umbrella-beach"></i> İZİNLİ</span>`; 
+                        }
+
+                        // KALIN ÇERÇEVELİ İŞ HÜCRESİ YAPISI
+                        let cardContentHtml = `
+                            <div class="job-card-border shadow-sm">
+                                <div class="${headerBgClass} p-2 font-black text-xs uppercase tracking-wide border-b border-slate-700">
+                                    <i class="fa-solid fa-briefcase mr-1"></i> ${shift.program}
+                                </div>
+                                <div class="bg-white p-2.5 text-slate-800 text-xs">
+                                    <div class="font-bold text-[11px] text-slate-600 mb-1"><i class="fa-solid fa-users text-sky-600 mr-1"></i> Görevli Ekip / Detaylar:</div>
+                                    <div class="font-extrabold text-slate-900">${selectedStaffName}</div>
+                                    ${shift.subDetail ? `<div class="text-[11px] text-slate-500 mt-1 font-semibold border-t border-slate-100 pt-1">${shift.subDetail}</div>` : ''}
+                                </div>
+                            </div>
+                        `;
 
                         row.innerHTML = `
                             <td class="p-4 pl-5 border-b border-slate-100">${sIdx === 0 ? dateBadgeHtml : ''}</td>
                             <td class="p-4 border-b border-slate-100 text-center">${badge}</td>
-                            <td class="p-4 border-b border-slate-100">${programDisplayHtml}</td>
+                            <td class="p-4 border-b border-slate-100">${cardContentHtml}</td>
                             <td class="p-4 border-b border-slate-100 text-center"><span class="bg-slate-100 px-2 py-1 rounded-lg font-black text-[11px]"><i class="fa-solid fa-clock text-orange-500"></i> ${shift.hour}</span></td>
                             <td class="p-4 border-b border-slate-100 text-right pr-5">
                                 <button onclick="triggerTeamDiscoveryModal('${shift.uniqueKey}', '${shift.program}', '${shift.date}')" class="bg-white hover:bg-orange-500 text-slate-700 hover:text-white border border-slate-200 font-black text-[11px] px-3 py-1.5 rounded-xl transition-all shadow-sm">Ekip</button>
@@ -946,8 +987,9 @@
             let startDate = startDateVal ? new Date(startDateVal) : null;
             let endDate = endDateVal ? new Date(endDateVal) : null;
 
+            // GRİ RENKLİ (İPTAL / KESİN OLMAYAN) İŞLER ANALİZE DÂHİL EDİLMEZ
             let filteredShifts = mainShiftsLogPool.filter(log => {
-                if (log.isProbability) return false; 
+                if (log.isProbability) return false; // Gri renklileri tamamen filtrele/çıkar
                 if (selectedStaff !== "ALL" && log.workerName !== selectedStaff) return false;
 
                 let dateStr = log.date || "";
@@ -1121,7 +1163,7 @@
 
             let count1 = 0; let count2 = 0;
             mainShiftsLogPool.forEach(log => {
-                if (log.isProbability) return; 
+                if (log.isProbability) return; // Gri renklileri kıyasa dâhil etme
                 let parts = (log.date || "").split('.');
                 if (parts.length !== 3) return;
                 let logDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
@@ -1168,7 +1210,7 @@
             });
             
             if (!backupData['ses_cumulative_shifts_pool'] && !backupData['ses_staff_leaves_pool']) {
-                alert("Yedeklenecek herhangi bir veri bulunamadı! Lütfen önce bir Excel yükleyin.");
+                alert("Yedeklenecek herhangi bir veri bulunamadı!");
                 return;
             }
             
@@ -1201,13 +1243,13 @@
                                 localStorage.setItem(key, parsedData[key]);
                             }
                         });
-                        alert("Harika! Tüm iş logları, tarihler ve personel izinleri kayıpsız şekilde geri yüklendi.");
+                        alert("Yedek başarıyla yüklendi!");
                         window.location.reload();
                     } else {
-                        alert("Hatalı yedek dosyası! Lütfen geçerli bir ses_servisi_yedek.json dosyası seçin.");
+                        alert("Hatalı yedek dosyası!");
                     }
                 } catch (err) {
-                    alert("Yedek dosyası işlenirken teknik bir hata oluştu.");
+                    alert("Yedek dosyası işlenirken hata oluştu.");
                 }
             };
             reader.readAsText(file);
